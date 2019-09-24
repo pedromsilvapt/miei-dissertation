@@ -1,0 +1,115 @@
+%% LyX 2.3.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[table,xcdraw,english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{babel}
+\usepackage{changepage}
+\usepackage{enumitem}
+\usepackage[acronym]{glossaries}
+\usepackage{tabu}
+\usepackage[table]{xcolor}
+
+\renewcommand{\baselinestretch}{1.2}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{10pt}
+
+\makeglossaries
+
+\newacronym{dsl}{DSL}{Domain Specific Language}
+\newacronym{pcm}{PCM}{Pulse-Code Modulation}
+\newacronym{midi}{MIDI}{Music Instrument Digital Interface}
+\newacronym{vm}{VM}{Virtual Machine}
+\newacronym{mml}{MML}{Music Macro Language}
+
+\begin{document}
+\title{Plano de Trabalhos Para Mestrado em Engenharia Informática}
+\author{Pedro Miguel Oliveira da Silva}
+\date{Setembro, 2019}
+\maketitle
+
+\section{Sinopse}
+\begin{adjustwidth}{50pt}{50pt}
+\begin{description}[labelwidth=70pt, leftmargin=!]
+\item [{Candidato}] Pedro Miguel Oliveira da Silva
+\item [{Tema}] DSL para programação de teclados e acompanhamentos musicais dinâmicos
+virtuais
+\item [{Orientação}] José João Almeida
+\item [{Instituição}] Departamento de Informática \\ Escola de Engenharia \\ Universidade do Minho
+\end{description}
+\end{adjustwidth}
+
+\section{Resumo}
+Criação de uma ferramenta de geração de música e acompanhamentos músicais que facilitem a experimentação, criação e reutilização de padrões músicais, como melodias ou acordes. Permitir a integração com ferramentas musicais existentes, como SoundFonts, caixas de ritmo, reprodutores MIDI, etc...
+
+\newpage
+
+\section{Enquadramento}
+
+Neste trabalho irá ser desenvolvida uma \acrfull{dsl} que permita definir expressões músicais. Estas expressões podem ser conjuntos simples de notas, funções aplicadas sobre outras expressões, ou mesmo variáveis. A sintaxe deverá ser inspirada em linguagens já estabelecidas de notação musical, como por exemplo a \acrfull{mml}.
+
+Esta linguagem deve poder ser usada por si só, gerando ficheiros aúdio, \acrfull{midi}, etc... Mas também deve ser integrada num sistema de teclados virtuais programáveis que permitam associar a cada tecla um som a reproduzir. Para este fim, é importante o conceito de variáveis que possam reter o seu estado durante subsequentes ativações de uma tecla. Isto permite que os teclados sejam mais dinâmicos que apenas uma associação de atalhos para sons, mas que produzam diferentes sons ao longo do tempo ou dependendo do estado do teclado.
+
+Outra característica da linguagem deve ser a possibilidade de produzir sons intermédios infinitos, de uma forma totalmente transparente para o utilizador. Isto significa que o processo de geração de notas pela \acrfull{vm} que irá ser criada para executar a \acrshort{dsl} deve utilizar algum mecanismo similar ao que é normalmente utilizado em linguagens de programação imperativa sob a forma de geradores e iteradores, ou em linguagens funcionais onde é comum chamarem-se extruturas de dados \textit{lazy}.
+
+\section{Objetivos}
+Com este trabalho tem-se como objetivo desenvolver uma linguagem de domínio específica que facilite a criação de
+melodias e batidos, com recurso a \textit{soundfonts} e ficheiros de música.
+
+Também se pretende a criação de teclados virtuais, quer teclados baseados em instrumentos reais (como pianos ou acordiões) ou teclados customizados.
+
+No final é esperado ser possível exportar as músicas geradas para os mais diversos formatos \textit{standard}, como por exemplo PCM, WAV, MIDI ou na forma de pautas músicais.
+
+\section{Método de Trabalho}
+O trabalho irá ser dividido em três fases principais, em paralelo com a redação da dissertação, a relatar o processo de desenvolvimento e pesquisa do trabalho.
+
+As duas primeiras fases irão focar-se na pesquisa e recolha de informação sobre as soluções similares já existentes e na consolidação da direção que o projeto irá tomar. Durante a última fase irá ser desenvolvido, de acordo com as conclusões tiradas da pesquisa realizada, o projeto final.
+
+\section{Calendarização}
+\begin{center}
+\begin{tabu}{ |[1pt]c |[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|[1pt]c|} 
+\hline
+\cellcolor[HTML]{505050}\textbf{Tarefa} &  \cellcolor[HTML]{505050}\textbf{Out} & \cellcolor[HTML]{505050}\textbf{Nov} & \cellcolor[HTML]{505050}\textbf{Dez} & \cellcolor[HTML]{505050}\textbf{Jan} & \cellcolor[HTML]{505050}\textbf{Fev} & \cellcolor[HTML]{505050}\textbf{Mar} & \cellcolor[HTML]{505050}\textbf{Abr} & \cellcolor[HTML]{505050}\textbf{Mai} & \cellcolor[HTML]{505050}\textbf{Jun} & \cellcolor[HTML]{505050}\textbf{Jul} & \cellcolor[HTML]{505050}\textbf{Ago} \\
+\hline
+\cellcolor[HTML]{D0D0D0} 1ª Fase & x \cellcolor[HTML]{A0A0A0} & x \cellcolor[HTML]{A0A0A0}& x \cellcolor[HTML]{A0A0A0}& x & & & & & & & \\ \cline{1-12}
+\cellcolor[HTML]{D0D0D0} 2ª Fase & \cellcolor[HTML]{A0A0A0}& \cellcolor[HTML]{A0A0A0}&  & x & x & x & x & & & & \\ \cline{1-12 }
+\cellcolor[HTML]{D0D0D0} 3ª Fase & &\cellcolor[HTML]{A0A0A0}&\cellcolor[HTML]{A0A0A0} & & & x & x & x & x & &\\ \cline{1-12}
+\cellcolor[HTML]{D0D0D0} 4ª Fase & & & x & x \cellcolor[HTML]{A0A0A0} & x \cellcolor[HTML]{A0A0A0}& x \cellcolor[HTML]{A0A0A0}& x & x & x & x & x \\ \cline{1-12}
+\hline
+\end{tabu}
+\end{center}
+
+\begin{description}
+ \item[1ª Fase:] \textit{Levantamento do Estado da Arte} Investigação sobre técnicas e projetos existentes relativos à geração de sons e música dinâmicos, nomeadamente outras \acrshort{dsl} de criação de música.
+ \item[2ª Fase:] \textit{Arquitectura e Prototipagem} Desenho da arquitectura do sistema. Prototipagem e teste de várias abordagens alternativas para os diversos componentes do projeto.
+ \item[3ª Fase:] \textit{Desenvolvimento Final} Desenvolvimento do projeto (linguagem de teclado virtual e de acompanhamento musical) na sua versão final.
+ \item[4ª Fase:] \textit{Escrita da dissertação} Elaboração do documento de dissertação de mestrado.
+\end{description}
+
+A duração prevista para esta dissertação é de 11 meses, com início em Outubro de 2019 e finalização em Agosto de 2020.
+
+\newpage
+
+\begin{thebibliography}{9}
+\bibitem{knuthwebsite} 
+Music Macro Language - Wikipedia
+\\\texttt{https://en.wikipedia.org/wiki/Music\_Macro\_Language}
+\end{thebibliography}
+
+\vspace{2cm}
+ 
+Braga, 24 de Setembro de 2019
+
+\vspace{0.3cm}
+
+O Candidato
+\vspace{0.8cm} \hrule
+(Pedro Miguel Oliveira da Silva)
+
+\vspace{0.8cm}
+
+O Orientador
+\vspace{0.8cm} \hrule
+(José João Antunes Guimarães Dias de Almeida)
+
+\end{document}
