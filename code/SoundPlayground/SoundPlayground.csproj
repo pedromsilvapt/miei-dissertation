@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.71.0" />
+    <PackageReference Include="Pegasus" Version="4.1.0" />
     <PackageReference Include="Superpower" Version="2.3.0" />
     <PackageReference Include="Veldrid" Version="4.7.0" />
     <PackageReference Include="Veldrid.ImGui" Version="5.69.0" />
@@ -41,4 +42,11 @@
   <ItemGroup>
     <Compile Remove="NFluidSynth\NFluidsynth\generator\ConfigurationKeys.template.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    
+  </ItemGroup>
+  <Target Name="Grammar" BeforeTargets="Build" >
+    <CompilePegGrammar InputFiles="SoundPlayground/Parser/MusicParser.peg" OutputFiles="SoundPlayground/Parser/MusicParser.g.cs"></CompilePegGrammar>
+  </Target>
 </Project>

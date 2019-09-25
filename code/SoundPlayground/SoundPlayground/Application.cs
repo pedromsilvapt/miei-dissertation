@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 using SoundPlayground.Graphics;
 using SoundPlayground.VirtualMachine;
 using SoundPlayground.Parser;
+using System.Linq;
 
 namespace SoundPlayground
 {
     public class Application : BaseApplication
     {
-        public string code = "";
+        public string code = "(A3/8*11 G3 F3/8*12) (A3/8*11 | A4/3 C5/3 D5/3 E5)";
 
         public string codeSample = 
 @"# This expression plays the sound
@@ -70,8 +71,9 @@ with :piano {
 
                 if (ImGui.Button("Play"))
                 {
-                    var player = new MidiPlayer() { Notes = MusicParser.Parse( code ) };
-
+                    var player = new MidiPlayer() { Notes = new MusicParser().Parse( code ).GetCommands( new Context() { BPM = 105 } ).ToList() };
+                    // var player = new MidiPlayer() { Notes = null };
+                    
                     Async( () => Task.Factory.StartNew( () => player.Play(), TaskCreationOptions.LongRunning ) );
                 }
                 
@@ -79,7 +81,7 @@ with :piano {
             }
 
             if ( ImGui.BeginTabItem( "Sample" ) ) {
-                ImGui.InputTextMultiline("Code Sample", ref codeSample, 1000, new Vector2(-1, -1));
+                ImGui.InputTextMultiline( "Code Sample", ref codeSample, 1000, new Vector2( -1, -1 ) );
 
                 ImGui.EndTabItem();
             }

@@ -1,0 +1,41 @@
+@namespace SoundPlayground.Parser
+@classname MusicParser
+@using System.Globalization
+@using SoundPlayground.Parser.AbstractSyntaxTree;
+
+body <MusicNode>
+    = e:expression EOF { e }
+
+expression <MusicNode>
+    = parallel
+
+group <MusicGroupNode>
+    = "(" _ e:expression _ ")" { new MusicGroupNode( e ) }
+
+parallel <MusicNode>
+    = ns:sequence<1,,_ "|" _> { ns.Count == 1 ? ns[ 0 ] : new MusicParallelNode( ns ) }
+
+sequence <MusicNode>
+    = ns:repeat<1,,_> { ns.Count == 1 ? ns[ 0 ] : new MusicSequenceNode( ns ) }
+
+repeat <MusicNode>
+    = e:expression_unambiguous _ "*" _ c:integer { new MusicRepeatNode( e, c ) }
+    / expression_unambiguous
+
+expression_unambiguous <MusicNode>
+    = group / note
+
+note <NoteNode>
+    = n:([a-zA-Z]) _ octave:integer _ "/" _ duration:integer { new NoteNode() { PitchClass = n, Duration = duration, Octave = octave } }
+    / n:([a-zA-Z]) _ "/" _ duration:integer                  { new NoteNode() { PitchClass = n, Duration = duration } }
+    / n:([a-zA-Z]) _ octave:integer                          { new NoteNode() { PitchClass = n, Octave = octave } }
+    / n:([a-zA-Z])                                           { new NoteNode() { PitchClass = n } }
+
+integer <int>
+    = d:([0-9]+) { int.Parse( string.Join( "", d ) ) }
+
+_ = [ \t]*
+
+EOF
+  = !.
+  / unexpected:. #error{ "Unexpected character '" + unexpected + "'." }

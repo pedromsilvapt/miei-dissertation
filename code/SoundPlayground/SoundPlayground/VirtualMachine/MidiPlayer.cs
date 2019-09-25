@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NFluidsynth;
+using SoundPlayground.Core;
+using SoundPlayground.Parser.AbstractSyntaxTree;
 
 namespace SoundPlayground.VirtualMachine
 {
@@ -29,8 +32,8 @@ namespace SoundPlayground.VirtualMachine
 
         public void Apply(Synth synth)
         {
-            Console.WriteLine( $"NoneOn {Timestamp} {Key} {Velocity}" );
-            synth.NoteOn(0, Key, Velocity);
+            // Console.WriteLine( $"NoneOn {Timestamp} {Key} {Velocity}" );
+            synth.NoteOn( 0, Key, Velocity );
         }
     }
     
@@ -48,7 +51,7 @@ namespace SoundPlayground.VirtualMachine
 
         public void Apply(Synth synth)
         {
-            Console.WriteLine( $"NoneOff {Timestamp} {Key}" );
+            // Console.WriteLine( $"NoneOff {Timestamp} {Key}" );
             synth.NoteOff( 0, Key );
         }
     }
@@ -57,9 +60,26 @@ namespace SoundPlayground.VirtualMachine
     {
         public int Tempo { get; set; }
 
-        public List<INoteCommand> Notes { get; set; } = new List<INoteCommand>();
+        public IList<Note> Notes { get; set; } = new List<Note>();
 
         public string Midi { get; set; } = null;
+
+        public IEnumerable<INoteCommand> BuildCommands ( IEnumerable<Note> notes ) {
+            List<INoteCommand> commands = new List<INoteCommand>();
+
+            int velocity = 70; 
+
+            foreach ( Note note in notes ) {
+                int key = note.ToInteger();
+
+                // Console.WriteLine( $"<Note Start = {note.Start}, Duration = {note.Duration}, PitchClass = {note.PitchClass}, Octave = {note.Octave}>" );
+                
+                commands.Add( new NoteOnCommand( note.Start, key, velocity ) );
+                commands.Add( new NoteOffCommand( note.Start + note.Duration, key ) );
+            }
+
+            return commands.OrderBy( command => command.Timestamp ).ToList();
+        }
 
         public async Task Play()
         {
@@ -68,6 +88,8 @@ namespace SoundPlayground.VirtualMachine
                 settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
                 settings[ConfigurationKeys.AudioRealtimePrio].IntValue = 0;
                 settings[ConfigurationKeys.SynthVerbose].IntValue = 0;
+                settings[ConfigurationKeys.AudioPeriods].IntValue = 2;
+                settings[ConfigurationKeys.AudioPeriodSize].IntValue = 4096;
 
                 using ( var syn = new Synth(settings) ) {
                     syn.LoadSoundFont("/usr/share/sounds/sf2/FluidR3_GM.sf2", true);
@@ -86,17 +108,29 @@ namespace SoundPlayground.VirtualMachine
                         } else {
                             int lastTimestamp = 0;
                         
-                            foreach (INoteCommand noteCommand in Notes)
+                            // syn.ProgramChange( 0, 5 );
+
+                            Console.WriteLine( $"{ Notes.Count } notes" );
+
+                            long drift = 0;
+
+                            foreach ( INoteCommand noteCommand in BuildCommands( Notes ) )
                             {
-                                if (noteCommand.Timestamp > lastTimestamp)
+                                if ( noteCommand.Timestamp > lastTimestamp )
                                 {
-                                    await Task.Delay(noteCommand.Timestamp - lastTimestamp);
+                                    var time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
+                                    await Task.Delay( noteCommand.Timestamp - lastTimestamp );
+
+                                    drift += Math.Abs( ( DateTimeOffset.Now.ToUnixTimeMilliseconds() - time ) - ( noteCommand.Timestamp - lastTimestamp ) );
 
                                     lastTimestamp = noteCommand.Timestamp;
                                 }
                                 
                                 noteCommand.Apply( syn );
                             }
+
+                            Console.WriteLine( $"Total drift: {drift}ms out of {lastTimestamp}ms" );
                         }
                     }
                 }

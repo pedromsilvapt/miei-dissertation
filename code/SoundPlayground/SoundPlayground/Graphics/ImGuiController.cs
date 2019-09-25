@@ -207,7 +207,6 @@ namespace SoundPlayground.Graphics
 
         private byte[] LoadEmbeddedShaderCode(ResourceFactory factory, string name, ShaderStages stage)
         {
-            Console.WriteLine(factory.BackendType);
             switch (factory.BackendType)
             {
                 case GraphicsBackend.Direct3D11:
