@@ -6,11 +6,24 @@ using SoundPlayground.Graphics;
 using SoundPlayground.VirtualMachine;
 using SoundPlayground.Parser;
 using System.Linq;
+using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
+using System.CodeDom.Compiler;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Pegasus;
+using Pegasus.Common;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace SoundPlayground
 {
     public class Application : BaseApplication
     {
+        public uint colorRed = ImGui.ColorConvertFloat4ToU32( new Vector4( 1, 0, 0, 1 ) );
+
         public string code = "(A3/8*11 G3 F3/8*12) (A3/8*11 | A4/3 C5/3 D5/3 E5)";
 
         public string codeSample = 
@@ -97,6 +110,327 @@ with :piano {
 
                 ImGui.EndTabItem();
             }
+
+            RenderGrammarInspector();
+        }
+
+        // Grammar Inspector
+        public float panelInputSize = 20;
+        public float panelInspectorSize = 80;
+
+        public float panelContainerSize = 100;
+
+        public string grammarSource = "";
+
+        public string grammarTest = "";
+
+        public dynamic grammarParser = null;
+
+        public int assemblyCount = 0;
+
+        public Dictionary<string, object> grammarInspectorProperties = null;
+
+        private List<string> grammarErrors = new List<string>();
+
+        private List<string> grammarWarnings = new List<string>();
+
+        private string grammarTestError = null;
+
+        public void RenderGrammarInspector () {
+            if ( ImGui.Begin( "Grammar" ) ) {
+                ImGui.TextDisabled( "README (?)" );
+
+                if ( ImGui.IsItemHovered() ) {
+                    ImGui.BeginTooltip();
+                    ImGui.Text( "ATTN: Any changes made here will not be saved." );
+                    ImGui.Text( "First click on the Compile button, and then the parse button." );
+                    ImGui.Text( "Any changes to the grammar require clicking on the Compile button again." );
+                    ImGui.EndTooltip();
+                }
+
+                ImGui.Columns( 2 );
+
+                ImGui.InputTextMultiline( "###Grammar", ref grammarSource, 5000, new Vector2( -1, ImGui.GetContentRegionAvail().Y - 30 ) );
+
+                if ( ImGui.Button( "1. Compile" ) ) {
+                    CompileGrammar();
+                }
+
+                if ( grammarWarnings.Count > 0 ) {
+                    ImGui.SameLine();
+
+                    ImGui.Text( $"Warnings ({ grammarWarnings.Count })" );
+
+                    if ( ImGui.IsItemHovered() ) {
+                        ImGui.SetNextWindowSize(new Vector2( 600, 0 ));
+                        ImGui.BeginTooltip();
+
+                        // Debug output. In case your environment is different it may show some messages.
+                        foreach ( var compilerMessage in grammarWarnings ) {
+                            ImGui.TextWrapped( compilerMessage.ToString() );
+                        }
+                        
+                        ImGui.EndTooltip();
+                    }
+                }
+
+                if ( grammarErrors.Count > 0 ) {
+                    ImGui.SameLine();
+
+                    ImGui.PushStyleColor( ImGuiCol.Text, colorRed );
+                    ImGui.Text( $"Errors ({ grammarErrors.Count })" );
+                    ImGui.PopStyleColor();
+
+                    if ( ImGui.IsItemHovered() ) {
+                        ImGui.SetNextWindowSize(new Vector2( 600, 0 ));
+                        ImGui.BeginTooltip();
+
+                        // Debug output. In case your environment is different it may show some messages.
+                        foreach ( var compilerMessage in grammarErrors ) {
+                            ImGui.TextWrapped( compilerMessage.ToString() );
+                        }
+                        
+                        ImGui.EndTooltip();
+                    }
+                }
+                
+                ImGui.NextColumn();
+
+                DrawSplitter( 20, ref panelContainerSize, ref panelInputSize, ref panelInspectorSize, 50, 50 );
+
+                ImGui.InputTextMultiline( "###Input", ref grammarTest, 5000, new Vector2( -1, panelInputSize - 30 ) );
+
+                if ( ImGui.Button( "2. Parse" ) ) {
+                    ParseGrammarInput();
+                }
+
+                if ( grammarTestError != null ) {
+                    ImGui.SameLine();
+
+                    ImGui.PushStyleColor( ImGuiCol.Text, colorRed );
+                    ImGui.TextWrapped( "ERROR: " + grammarTestError );
+                    ImGui.PopStyleColor();
+                }
+
+                ImGui.BeginChildFrame( ImGui.GetID( "inspector" ), new Vector2( -1, panelInspectorSize ) );
+
+                if ( grammarInspectorProperties == null ) {
+                    ImGui.TextDisabled( "Sem resultados a apresentar." );
+                } else {
+                    RenderInspector( grammarInspectorProperties );
+                }
+
+                ImGui.EndChildFrame();
+
+                ImGui.Columns( 1 );
+
+                ImGui.End();
+            }
+        }
+
+        public void RenderInspector ( Dictionary<string, object> properties, string prefix = null ) {
+            string nodeName = $"{properties[ "__type" ]}###{properties[ "__hashCode" ]}";
+
+            if ( ImGui.TreeNodeEx( prefix != null ? $"{prefix}: {nodeName}" : nodeName, ImGuiTreeNodeFlags.DefaultOpen ) ) {
+                foreach ( var entry in properties ) {
+                    if ( entry.Key == "__type" || entry.Key == "__hashCode" ) continue;
+
+                    RenderInspectorValue( entry.Key, entry.Value );
+                }
+
+                ImGui.TreePop();
+            }
+        }
+        
+        public void RenderInspectorValue ( string key, object value ) {
+            if ( value is ICollection<object> ) {
+                var list = value as ICollection<object>;
+
+                if ( ImGui.TreeNodeEx( $"{ key }: { list.GetType().Name }({ list.Count } items)###{ list.GetHashCode() }", ImGuiTreeNodeFlags.DefaultOpen ) ) {
+                    int i = 0;
+
+                    foreach ( var obj in list ) {
+                        RenderInspectorValue( i.ToString(), obj );
+
+                        i++;
+                    }
+
+                    ImGui.TreePop();
+                }
+            } else if ( value is Dictionary<string, object> ) {
+                var dictionary = value as Dictionary<string, object>;
+
+                RenderInspector( dictionary, key );
+            }  else {
+                ImGui.BulletText( $"{key}: {value}"  );
+            }
+        }
+        
+        public Dictionary<string, object> CreateGrammarInspectorDictionary ( object obj ) {
+            return CreateGrammarInspectorDictionary( obj, new HashSet<int>() );
+        }
+
+        public Dictionary<string, object> CreateGrammarInspectorDictionary ( object obj, HashSet<int> history ) {
+            if ( history.Contains( obj.GetHashCode() ) ) return null;
+
+            history.Add( obj.GetHashCode() );
+            
+            Type type = obj.GetType();
+
+            var properties = new Dictionary<string, object>(){
+                ["__type"] = type.Name,
+                ["__hashCode"] = obj.GetHashCode()
+            };
+
+            foreach ( var prop in type.GetProperties() ) {
+                if ( prop.GetIndexParameters().Length > 0 ) continue;
+                
+                var value = prop.GetValue( obj );
+
+                properties[ prop.Name ] = CreateGrammarInspectorValue( value, history );
+            }
+
+            return properties;
+        }
+
+        public object CreateGrammarInspectorValue ( object value, HashSet<int> history ) {
+            if ( value == null ) {
+                return "<null>";
+            } else if ( value is ICollection ) {
+                return ( (ICollection)value ).OfType<object>().Select( obj => CreateGrammarInspectorValue( obj, history ) ).ToList();
+            } else if ( value is ICollection<object> ) {
+                return ( (ICollection<object>)value ).Select( obj => CreateGrammarInspectorValue( obj, history ) ).ToList();
+            } else if ( value is string || value is int || value is float || value is bool || value is decimal || value is double || value is Enum ) {
+                return value.ToString();
+            } else {
+                if ( history.Contains( value.GetHashCode() ) ) {
+                    return "<circular>";
+                } else {
+                    return CreateGrammarInspectorDictionary( value, history );
+                }
+            }
+        }
+
+        public void CompileGrammar () {
+            grammarErrors = new List<string>();
+            grammarWarnings = new List<string>();
+
+            try {
+                var compileResult = CompileManager.CompileString( grammarSource, "MusicParser.peg" );
+
+                var dotnetCoreDirectory = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
+
+                var compilation = CSharpCompilation.Create("LibraryName" + assemblyCount++)
+                    .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                    .AddReferences(
+                        MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
+                        MetadataReference.CreateFromFile(typeof(GeneratedCodeAttribute).GetTypeInfo().Assembly.Location),
+                        MetadataReference.CreateFromFile(typeof(MulticastDelegate).GetTypeInfo().Assembly.Location),
+                        MetadataReference.CreateFromFile(typeof(IList<object>).GetTypeInfo().Assembly.Location),
+                        MetadataReference.CreateFromFile(typeof(Cursor).GetTypeInfo().Assembly.Location),
+                        MetadataReference.CreateFromFile(Assembly.GetExecutingAssembly().Location),
+                        MetadataReference.CreateFromFile(Path.Combine(dotnetCoreDirectory, "netstandard.dll")),
+                        MetadataReference.CreateFromFile(Path.Combine(dotnetCoreDirectory, "System.Runtime.dll")))
+                    .AddSyntaxTrees(CSharpSyntaxTree.ParseText(compileResult.Code));
+                
+                var diagnostics = compilation.GetDiagnostics();
+
+                grammarErrors = diagnostics.Where( d => d.Severity == DiagnosticSeverity.Error ).Select( d => d.ToString() ).ToList();
+                grammarWarnings = diagnostics.Where( d => d.Severity != DiagnosticSeverity.Error ).Select( d => d.ToString() ).ToList();
+
+                using (var ms = new MemoryStream())
+                {
+                    var emitResult = compilation.Emit(ms);
+                    if (emitResult.Success)
+                    {
+                        ms.Seek(0, SeekOrigin.Begin);
+
+                        var context = AssemblyLoadContext.Default;
+                        var assembly = context.LoadFromStream( ms );
+
+                        var parserType = assembly.GetType("SoundPlayground.Parser.MusicParser");
+
+                        if ( parserType != null ) {
+                            grammarParser = Activator.CreateInstance( parserType );
+                        } else {
+                            grammarErrors.Add( "Parser class not found" );
+                        }
+
+                    }
+                }
+            } catch ( Exception ex ) {
+                grammarErrors.Add( ex.Message );
+            }
+        }
+
+        public void ParseGrammarInput () {
+            if ( grammarParser != null ) {
+                try {
+                    grammarTestError = null;
+
+                    var obj = grammarParser.Parse( grammarTest, null );
+
+                    grammarInspectorProperties = CreateGrammarInspectorDictionary( obj );
+
+                } catch ( Exception ex ) {
+                    grammarTestError = ex.Message;
+
+                    grammarInspectorProperties = null;
+                }
+                
+            }
+        }
+
+        public void DrawSplitter( float thickness, ref float containerSize, ref float size0, ref float size1, float minSize0 = 0, float minSize1 = 0, bool splitVertically = true )
+        {
+            float currentSize = splitVertically ? ImGui.GetContentRegionAvail().Y : ImGui.GetContentRegionAvail().X;
+
+            if ( currentSize != containerSize ) {
+                size0 = size0 * currentSize / containerSize;
+                size1 = currentSize - size0;
+                containerSize = currentSize;
+            }
+
+            Vector2 backupPos = ImGui.GetCursorPos();
+
+            if ( splitVertically ) {
+                ImGui.SetCursorPosY( backupPos.Y + size0 );
+            } else {
+                ImGui.SetCursorPosX( backupPos.X + size0 );
+            }
+
+            ImGui.PushStyleColor( ImGuiCol.Button, new Vector4( 0, 0, 0, 0 ) );
+            ImGui.PushStyleColor( ImGuiCol.ButtonActive, new Vector4( 0, 0, 0, 0 ) );          // We don't draw while active/pressed because as we move the panes the splitter button will be 1 frame late
+            ImGui.PushStyleColor( ImGuiCol.ButtonHovered, new Vector4( 0.6f, 0.6f, 0.6f, 0.10f ) );
+            ImGui.Button( "##Splitter", new Vector2( !splitVertically ? thickness : -1.0f, splitVertically ? thickness : -1.0f ) );
+            ImGui.PopStyleColor( 3 );
+
+            ImGui.SetItemAllowOverlap(); // This is to allow having other buttons OVER our splitter. 
+
+            if (ImGui.IsItemActive())
+            {
+                float mouseDelta = splitVertically ? ImGui.GetIO().MouseDelta.Y : ImGui.GetIO().MouseDelta.X;
+
+                // Minimum pane size
+                if ( mouseDelta < minSize0 - size0 ) {
+                    mouseDelta = minSize0 - size0;
+                }
+                if ( mouseDelta > size1 - minSize1 ) {
+                    mouseDelta = size1 - minSize1;
+                }
+
+                // Apply resize
+                size0 += mouseDelta;
+                size1 -= mouseDelta;
+            }
+
+            ImGui.SetCursorPos( backupPos );
+        }
+    
+        public override async Task Load () {
+            grammarSource = await File.ReadAllTextAsync( @"./SoundPlayground/Parser/MusicParser.peg" );
+
+            grammarTest = code;
         }
     }
 }
