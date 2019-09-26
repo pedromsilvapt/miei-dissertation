@@ -10,3 +10,4 @@ dotnet build
 # Compila e corre o código
 dotnet run
 ```
+## Set 26
