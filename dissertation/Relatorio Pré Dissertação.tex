@@ -1,0 +1,94 @@
+%% LyX 2.3.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[table,xcdraw,english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage{changepage}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage[acronym]{glossaries}
+\usepackage{tabu}
+\usepackage[table]{xcolor}
+
+\renewcommand{\baselinestretch}{1.2}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{10pt}
+
+\makeglossaries
+
+\newacronym{dsl}{DSL}{Domain Specific Language}
+\newacronym{pcm}{PCM}{Pulse-Code Modulation}
+\newacronym{midi}{MIDI}{Music Instrument Digital Interface}
+\newacronym{vm}{VM}{Virtual Machine}
+\newacronym{mml}{MML}{Music Macro Language}
+
+\begin{document}
+\title{[WIP] Relatório de Pré-Dissertação Mestrado em Engenharia Informática}
+\author{Pedro Miguel Oliveira da Silva}
+\date{Setembro, 2019}
+\maketitle
+
+\section{Sinopse}
+\begin{adjustwidth}{50pt}{50pt}
+\begin{description}[labelwidth=70pt, leftmargin=!]
+\item [{Candidato}] Pedro Miguel Oliveira da Silva
+\item [{Tema}] DSL para programação de teclados e acompanhamentos musicais dinâmicos
+virtuais
+\item [{Orientação}] José João Almeida
+\item [{Instituição}] Departamento de Informática \\ Escola de Engenharia \\ Universidade do Minho
+\end{description}
+\end{adjustwidth}
+
+
+\newpage
+
+\section{SoundFonts}
+O formato \textit{SoundFont} foi originalmente desenvolvido nos anos 90 pela empresa E-mu Systems para ser usado inicialmente pelas placas de som Sound Blaster. Ao longo dos anos o formato sofreu diversas alterações, encontrando-se atualemente na versão 2.04, lançada em 2005\cite{soundfont}. Atualmente existem diversos sintetizadores de software \textit{cross platform} e {open source} capazes de converterem eventos \textit{MIDI} em som usando ficheiros SoundFont, dispensando a necessidade de uma placa de som compatível com o formato. Alguns destes projetos são TiMidity\verb|++|, WildMIDI e FluidSynth.
+
+Um ficheiro de SoundFont é constítuido por um ou mais bancos (\textit{banks}) (até um máximo de 128). Cada banco pode por sua vez ter até 128 \textit{presets} (por vezes também chamados instrumentos ou programas). 
+
+
+\textit{TODO}
+
+\section{FluidSynth}
+A biblioteca FluidSynth é um \textit{software} sintetizador de aúdio em tempo real que transforma dados MIDI em sons, que podem ser gravados em disco ou encaminhados diretamente para um \textit{output} de aúdio. Os sons são gerados com recurso a SoundFonts\cite{soundfont} (ficheiros com a extensão \texttt{.sf2}) que mapeiam cada nota para a gravação de um instrumento a tocar essa nota.
+
+Os \textit{bindings} da biblioteca para C\verb|#| foram baseados no código \textit{open source} do projeto NFluidSynth\cite{nfluidsynth}, com algumas modificações para compilar com a versão da biblioteca em Linux.
+
+\subsection{Inicialização}
+Para utilizar a biblioteca FluidSynth, existem três objetos principais que devem ser criados: Settings (\texttt{fluid\_settings\_t*}), Synth (\texttt{fluid\_synth\_t*}) e AudioDriver (\texttt{fluid\_audio\_driver\_t*}).
+
+O objecto \textbf{Settings}\cite{fluidsynth_settings} é implementado com recurso a um dicionário. Para cada chave (por exemplo, \texttt{``audio.driver''}) é possível associar um valor do tipo inteiro (\texttt{int}), \textit{string} (\texttt{str}) ou \textit{double} (\texttt{num}). Alguns valores podem ser também booleanos (\texttt{bool}), no entanto eles são armazenados como inteiros com os valores aceites sendo apenas 0 e 1.
+
+O objeto \textbf{Synth} é utilizado para controlar o sintetizador e produzir os sons. Para isso é possível enviar as mensagens MIDI tais como \texttt{NoteOn}, \texttt{NoteOff}, \texttt{ProgramChange}, entre outros.
+
+O terceiro objeto \textbf{AudioDriver} encaminha automaticamente os sons para algum \textit{audio output}, seja ele colunas no computador ou um ficheiro em disco. Os seguintes \textit{outputs} são suportados pela biblioteca:
+
+\begin{adjustwidth}{20pt}{20pt}
+\begin{description}
+    \item[Linux:] jack, alsa, oss, PulseAudio, portaudio, sdl2, file
+    \item[Windows:] jack, PulseAudio, dsound, portaudio, sdl2, file
+    \item[Max OS:] jack, PulseAudio, coreaudio, portaudio, sndman, sdl2, file
+    \item[Android:] opensles, oboe, file
+\end{description}
+\end{adjustwidth}
+
+\subsection{Utilização}
+Com os objetos necessários inicializados, é necessário ainda especificar qual (ou quais) a(s) \textit{SoundFont(s)} a utilizar. Para isso podemos chamar o método \texttt{Synth.LoadSoundFont} que recebe dois argumentos: uma \textit{string} com o caminho em disco do ficheiro \textit{SoundFont} a carregar, seguido dum booleano que indica se os \textit{presets} devem ser atualizados para os da nova \textit{SoundFont} (isto é, atribuir os instrumentos da \textit{SoundFont} aos canais automaticamente).
+
+A função \texttt{Synth.NoteOn} recebe três argumentos: um inteiro a representar o canal, outro inteiro entre 0 e 127 a representar a nota, e finalmente outro inteiro também entre 0 e 127 a representar a velocidade da nota.
+
+O canal (\textbf{channel}) representa qual o instrumento que vai reproduzir a nota em questão. Cada canal está atríbuido a um programa da SoundFont, e é possível a qualquer momento mudar o programa atribuido a qualquer canal através do método \texttt{Synth.ProgramChange}. Caso se tenha carregado mais do que uma \textit{SoundFont}, é possível usar o método \texttt{Synth.ProgramSelect}, que permite especificar o \texttt{id} da \textit{SoundFont} e do banco do instrumento a atribuir.
+
+A chave (\textbf{key}) representa a nota a tocar. Sendo este valor um inteiro entre 0 e 127, é necessário saber como mapear as tradicionais notas músicais neste valor. Para isso, basta colocarmos as \textit{pich classes} e os seus respetivos acidentais \textit{sharp} numa lista ordenada (\verb|C, C#, D, D#, E, F, F#, G, G#, A, A#, B|) e associar a eles os inteiros entre 0 e 11 (inclusive). Depois apenas temos de somar a esse número a multiplicação da oitava da nota (a começar em 0) por 12. Podemos deste modo calcular, por exemplo, que a \textit{key} do C central (C4) é igual a 48 ($0 + 4 * 12$).
+$$N + O * 12$$
+
+A velocidade (\textbf{velocity}) é também um valor entre 0 e 127. Relacionando a velocidade com um piano físico, esta representa a força (ou velocidade) com que a tecla foi premida. Velocidades maiores geram sons mais altos, enquanto que velocidades mais baixas geram sons mais baixos, permitindo assim ao músico dar ou tirar enfase a uma nota relativamente às restantes. De notar que um valor igual a zero é o equivalente a invocar o método \texttt{Synth.NoteOff}.
+
+A método \texttt{Synth.NoteOff}, por sua vez, recebe apenas dois argumentos (canal e chave), e deve ser chamada passsado algum tempo para terminar a nota. Podemos deste modo construir a analogia óbvia que o método \texttt{NoteOn} corresponde a uma tecla de piano ser premida, e \texttt{NoteOff} corresponde a essa tecla ser libertada.
+
+\bibliographystyle{unsrt}
+\bibliography{bibliography}
+
+\end{document}
