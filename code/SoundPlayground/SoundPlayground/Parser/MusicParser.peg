@@ -20,7 +20,7 @@ repeat <MusicNode>
     / expressionUnambiguous
 
 expressionUnambiguous <MusicNode>
-    = group / note / modifier
+    = group / chord / note / modifier
 
 group <MusicGroupNode>
     = "(" _ e:expression _ ")" { new MusicGroupNode( e ) }
@@ -30,6 +30,9 @@ note <NoteNode>
     / n:notePitch _ "/" _ duration:integer                  { new NoteNode() { PitchClass = n, Value = duration } }
     / n:notePitch _ octave:integer                          { new NoteNode() { PitchClass = n, Octave = octave } }
     / n:notePitch                                           { new NoteNode() { PitchClass = n } }
+
+chord <MusicParallelNode>
+    = "[" _ ns:note<1,,_>  _ "]" { new MusicParallelNode( ns ) }
 
 notePitch <string>
     = [cdefgabCDEFGAB]
