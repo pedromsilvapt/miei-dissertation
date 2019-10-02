@@ -12,7 +12,15 @@ namespace SoundPlayground.Parser.AbstractSyntaxTree
         }
 
         public override IEnumerable<Note> GetCommands ( Context context ) {
-            return Expression.GetCommands( context );
+            Context forked = context.Fork();
+
+            try {
+                foreach ( var note in Expression.GetCommands( forked ) ) {
+                    yield return note;
+                }
+            } finally {
+                context.Join( forked );
+            }
         }
     }
 }

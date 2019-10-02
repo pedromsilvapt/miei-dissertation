@@ -19,21 +19,27 @@ namespace SoundPlayground.VirtualMachine
     {
         public int Timestamp { get; set; }
         
+        public int Channel { get; set; } = 0;
+
         public int Key { get; set; }
 
-        public int Velocity { get; set; }
+        public int Velocity { get; set; } = 127;
 
-        public NoteOnCommand(int timestamp, int key, int velocity)
+        public NoteOnCommand(int timestamp, int channel, int key, int velocity)
         {
             Timestamp = timestamp;
+            Channel = channel;
             Key = key;
             Velocity = velocity;
         }
 
         public void Apply(Synth synth)
         {
-            // Console.WriteLine( $"NoneOn {Timestamp} {Key} {Velocity}" );
-            synth.NoteOn( 0, Key, Velocity );
+            synth.NoteOn( Channel, Key, Velocity );
+        }
+
+        public override string ToString() {
+            return $"<NoteOn Timestamp={Timestamp} Channel={Channel} Key={Key} Velocity={Velocity}>";
         }
     }
     
@@ -41,18 +47,24 @@ namespace SoundPlayground.VirtualMachine
     {
         public int Timestamp { get; set; }
         
+        public int Channel { get; set; } = 0;
+
         public int Key { get; set; }
 
-        public NoteOffCommand(int timestamp, int key)
+        public NoteOffCommand(int timestamp, int channel, int key)
         {
             Timestamp = timestamp;
+            Channel = channel;
             Key = key;
         }
 
         public void Apply(Synth synth)
         {
-            // Console.WriteLine( $"NoneOff {Timestamp} {Key}" );
-            synth.NoteOff( 0, Key );
+            synth.NoteOff( Channel, Key );
+        }
+
+        public override string ToString() {
+            return $"<NoneOff Timestamp={Timestamp} Channel={Channel} Key={Key}>";
         }
     }
 
@@ -67,15 +79,11 @@ namespace SoundPlayground.VirtualMachine
         public IEnumerable<INoteCommand> BuildCommands ( IEnumerable<Note> notes ) {
             List<INoteCommand> commands = new List<INoteCommand>();
 
-            int velocity = 70; 
-
             foreach ( Note note in notes ) {
                 int key = note.ToInteger();
 
-                // Console.WriteLine( $"<Note Start = {note.Start}, Duration = {note.Duration}, PitchClass = {note.PitchClass}, Octave = {note.Octave}>" );
-                
-                commands.Add( new NoteOnCommand( note.Start, key, velocity ) );
-                commands.Add( new NoteOffCommand( note.Start + note.Duration, key ) );
+                commands.Add( new NoteOnCommand( note.Start, note.Channel, key, note.Velocity ) );
+                commands.Add( new NoteOffCommand( note.Start + note.Duration, note.Channel, key ) );
             }
 
             return commands.OrderBy( command => command.Timestamp ).ToList();
@@ -121,6 +129,7 @@ namespace SoundPlayground.VirtualMachine
                                     var time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
                                     await Task.Delay( noteCommand.Timestamp - lastTimestamp );
+                                    //new System.Threading.ManualResetEvent(false).WaitOne( noteCommand.Timestamp - lastTimestamp );
 
                                     drift += Math.Abs( ( DateTimeOffset.Now.ToUnixTimeMilliseconds() - time ) - ( noteCommand.Timestamp - lastTimestamp ) );
 

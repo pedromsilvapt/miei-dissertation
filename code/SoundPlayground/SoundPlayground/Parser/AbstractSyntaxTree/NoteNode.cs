@@ -7,7 +7,7 @@ namespace SoundPlayground.Parser.AbstractSyntaxTree
     {
         public string PitchClass { get; set; }
         
-        public int? Duration { get; set; }
+        public int? Value { get; set; }
 
         public int? Octave { get; set; }
         
@@ -17,14 +17,16 @@ namespace SoundPlayground.Parser.AbstractSyntaxTree
             var note = new Note() { 
                 Start = context.Cursor, 
                 PitchClass = Note.ParsePitchClass( PitchClass ), 
-                Duration = context.CalculateDurationInMilliseconds( Duration ?? context.Duration ),
-                Octave = Octave ?? context.Octave, 
-                Accidental = Accidental 
+                Duration = context.GetDuration( Value ?? context.Value ),
+                Octave = Octave ?? context.Octave,
+                Channel = context.Channel,
+                Velocity = context.Velocity, 
+                Accidental = Accidental
             };
 
-            yield return note;
-
             context.Cursor += note.Duration;
+
+            yield return note;
         }
     }
 }

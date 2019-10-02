@@ -24,11 +24,13 @@ namespace SoundPlayground.Parser.AbstractSyntaxTree
                 return s.GetCommands( forked );
             } ).MergeSorted( note => note.Start );
 
-            foreach ( Note note in notes ) {
-                yield return note;
+            try {
+                foreach ( Note note in notes ) {
+                    yield return note;
+                }
+            } finally {
+                context.Join( forks.ToArray() );
             }
-
-            context.Join( forks.ToArray() );
         }
     }
 }

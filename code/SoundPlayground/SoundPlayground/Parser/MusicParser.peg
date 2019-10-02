@@ -1,16 +1,13 @@
-@namespace SoundPlayground.Parser
+﻿@namespace SoundPlayground.Parser
 @classname MusicParser
-@using System.Globalization
 @using SoundPlayground.Parser.AbstractSyntaxTree;
+@using SoundPlayground.Parser.AbstractSyntaxTree.ContextModifiers;
 
 body <MusicNode>
-    = e:expression EOF { e }
+    = _ e:expression _ EOF { e }
 
 expression <MusicNode>
     = parallel
-
-group <MusicGroupNode>
-    = "(" _ e:expression _ ")" { new MusicGroupNode( e ) }
 
 parallel <MusicNode>
     = ns:sequence<1,,_ "|" _> { ns.Count == 1 ? ns[ 0 ] : new MusicParallelNode( ns ) }
@@ -19,22 +16,36 @@ sequence <MusicNode>
     = ns:repeat<1,,_> { ns.Count == 1 ? ns[ 0 ] : new MusicSequenceNode( ns ) }
 
 repeat <MusicNode>
-    = e:expression_unambiguous _ "*" _ c:integer { new MusicRepeatNode( e, c ) }
-    / expression_unambiguous
+    = e:expressionUnambiguous _ "*" _ c:integer { new MusicRepeatNode( e, c ) }
+    / expressionUnambiguous
 
-expression_unambiguous <MusicNode>
-    = group / note
+expressionUnambiguous <MusicNode>
+    = group / note / modifier
+
+group <MusicGroupNode>
+    = "(" _ e:expression _ ")" { new MusicGroupNode( e ) }
 
 note <NoteNode>
-    = n:([a-zA-Z]) _ octave:integer _ "/" _ duration:integer { new NoteNode() { PitchClass = n, Duration = duration, Octave = octave } }
-    / n:([a-zA-Z]) _ "/" _ duration:integer                  { new NoteNode() { PitchClass = n, Duration = duration } }
-    / n:([a-zA-Z]) _ octave:integer                          { new NoteNode() { PitchClass = n, Octave = octave } }
-    / n:([a-zA-Z])                                           { new NoteNode() { PitchClass = n } }
+    = n:notePitch _ octave:integer _ "/" _ duration:integer { new NoteNode() { PitchClass = n, Value = duration, Octave = octave } }
+    / n:notePitch _ "/" _ duration:integer                  { new NoteNode() { PitchClass = n, Value = duration } }
+    / n:notePitch _ octave:integer                          { new NoteNode() { PitchClass = n, Octave = octave } }
+    / n:notePitch                                           { new NoteNode() { PitchClass = n } }
+
+notePitch <string>
+    = [cdefgabCDEFGAB]
+
+modifier <ContextModifierNode>
+    = [tT] _ tempo:integer               { new TempoModifierNode( tempo ) }
+    / [vV] _ velocity:integer            { new VelocityModifierNode( velocity ) }
+    / [lL] _ "/" _ length:integer        { new LengthModifierNode( length ) }
+    / [sS] _ u:integer _ "/" _ l:integer { new SignatureModifierNode( u, l ) }
+    / [sS] _ l:integer                   { new SignatureModifierNode( null, l ) }
+    / [oO] _ octave:integer              { new OctaveModifierNode( octave ) }
 
 integer <int>
     = d:([0-9]+) { int.Parse( string.Join( "", d ) ) }
 
-_ = [ \t]*
+_ = [ \t\r\n]*
 
 EOF
   = !.

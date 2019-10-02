@@ -18,11 +18,13 @@ namespace SoundPlayground.Parser.AbstractSyntaxTree
             for ( int i = 0; i < Count; i++ ) {
                 var ctx = context.Fork();
 
-                foreach ( Note note in Expression.GetCommands( ctx ) ) {
-                    yield return note;
+                try {
+                    foreach ( Note note in Expression.GetCommands( ctx ) ) {
+                        yield return note;
+                    }
+                } finally {
+                    context.Join( ctx );
                 }
-
-                context.Join( ctx );
             }
         }
     }

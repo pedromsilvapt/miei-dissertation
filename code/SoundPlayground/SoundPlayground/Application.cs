@@ -17,14 +17,32 @@ using Pegasus.Common;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using SoundPlayground.Parser.AbstractSyntaxTree;
+using SoundPlayground.Core;
 
 namespace SoundPlayground
 {
+    public class KeyboardShortcut {
+        public string Hotkey = "";
+
+        public string Expression = "";
+
+        public MusicNode Node = null;
+
+        public string ParseError = null;
+    }
+
     public class Application : BaseApplication
     {
-        public uint colorRed = ImGui.ColorConvertFloat4ToU32( new Vector4( 1, 0, 0, 1 ) );
+        public Vector4 colorRed = new Vector4( 1, 0, 0, 1 );
 
-        public string code = "(A3/8*11 G3 F3/8*12) (A3/8*11 | A4/3 C5/3 D5/3 E5)";
+        public string code =
+@"S6/8 T105 L/8 V70
+(O3 A*11 G F*12) 
+(O3 A*11 | L/3 A4 C5 D5 E5)";
+        // public string code = "(A3/2*11 G F3/2*12) (A3/8*11 | A4/3 C5/3 D5/3 E5)";
+
+        public string[] codeCommands = null;
 
         public string codeSample = 
 @"# This expression plays the sound
@@ -73,23 +91,71 @@ with :piano {
 
         public MidiPlayer player = new MidiPlayer();
 
+        public List<KeyboardShortcut> keyboardKeys = new List<KeyboardShortcut>() {
+            new KeyboardShortcut() { Hotkey = "a", Expression = "A3/8*11 | A4/3 C5/3 D5/3 E5" },
+            new KeyboardShortcut() { Hotkey = "b", Expression = "A3/8*11 | E5/3 D5/3 C5/3 A4" },
+            new KeyboardShortcut() { Hotkey = "c", Expression = "A3/8*11 G3/8 F3/8*12" }
+        };
+
+        public MusicParser parser = new MusicParser();
+
+        public MusicNode Parse ( string expression ) {
+            // return null;
+            return parser.Parse( code );
+        }
+
+        public Context CreateContext () {
+            return new Context {
+                TimeSignature = (6, 8),
+                Tempo = 108,
+                Velocity = 80
+            };
+        }
+
         public override void Render()
         {
             ImGui.BeginTabBar("main_tag");
 
             if ( ImGui.BeginTabItem("Editor") ) {
-                Vector2 textSize = ImGui.GetContentRegionAvail() - new Vector2( 0, 30 );
+                Vector2 textSize = ImGui.GetContentRegionAvail() / new Vector2( 1, 2 );
 
                 ImGui.InputTextMultiline("Code", ref code, 1000, textSize);
 
                 if (ImGui.Button("Play"))
                 {
-                    var player = new MidiPlayer() { Notes = new MusicParser().Parse( code ).GetCommands( new Context() { BPM = 105 } ).ToList() };
+                    var player = new MidiPlayer() { Notes = Parse( code ).GetCommands( CreateContext() ).ToList() };
                     // var player = new MidiPlayer() { Notes = null };
                     
                     Async( () => Task.Factory.StartNew( () => player.Play(), TaskCreationOptions.LongRunning ) );
                 }
+
+                ImGui.SameLine();
+
+                if ( ImGui.Button( "See Commands" ) ) {
+                    var player = new MidiPlayer() { Notes = Parse( code ).GetCommands( CreateContext() ).ToList() };
+
+                    codeCommands = player.BuildCommands( player.Notes ).Select( command => command.ToString() ).ToArray();
+                }
                 
+                ImGui.SameLine();
+
+                if ( ImGui.Button( "See Notes" ) ) {
+                    codeCommands = Parse( code )
+                        .GetCommands( CreateContext() )
+                        .Select( command => command.ToString() )
+                        .ToArray();
+                }
+                
+                ImGui.BeginChildFrame( ImGui.GetID( "commands_list" ), new Vector2( -1, -1 ) );
+                
+                if ( codeCommands != null ) {
+                    foreach ( string cmd in codeCommands ) {
+                        ImGui.TextWrapped( cmd );
+                    }
+                }
+
+                ImGui.EndChildFrame();
+
                 ImGui.EndTabItem();
             }
 
@@ -110,6 +176,80 @@ with :piano {
 
                 ImGui.EndTabItem();
             }
+
+            if ( ImGui.BeginTabItem( "Keyboard" ) ) {
+                int removeIndex = -1;
+
+                for ( int i = 0; i < keyboardKeys.Count; i++ ) {
+                    var key = keyboardKeys[ i ];
+                    
+                    ImGui.PushID( "hotkey-" + i );
+
+                    float maxWidth = ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X * 2 - 80;
+
+                    ImGui.SetNextItemWidth( ImGuiUtils.CalcInputWidth( "Hotkey", maxWidth * 0.3f ) );
+
+                    ImGui.InputText( "Hotkey", ref key.Hotkey, 30 );
+                    
+                    ImGui.SameLine();
+
+                    ImGui.SetNextItemWidth( ImGuiUtils.CalcInputWidth( "Expression", maxWidth * 0.7f ) );
+
+                    if ( ImGui.InputText( "Expression", ref key.Expression, 200 ) ) {
+                        key.Node = null;
+                    }
+
+                    if ( key.Node == null ) {
+                        ImGui.SameLine();
+
+                        if ( ImGui.Button( "Compile" ) ) {
+                            try {
+                                key.Node = Parse( key.Expression );
+                            } catch ( Exception ex ) {
+                                key.ParseError = ex.Message;
+                            }
+                        }
+
+                        ImGui.SameLine();
+
+                        if ( ImGui.Button( "X" ) ) {
+                            removeIndex = i;
+                        }
+                    }
+
+                    if ( key.ParseError != null ) {
+                        ImGui.TextColored( colorRed, "!" );
+
+                        if ( ImGui.IsItemHovered() ) {
+                            ImGui.SetNextWindowSize(new Vector2( 600, 0 ));
+
+                            ImGui.BeginTooltip();
+
+                            ImGui.TextWrapped( key.ParseError );
+
+                            ImGui.EndTooltip();
+                        }
+                    }
+
+                    if ( key.Node != null && ImGuiUtils.Hotkey( key.Hotkey[ 0 ] ) ) {
+                        var player = new MidiPlayer() { Notes = key.Node.GetCommands( CreateContext() ).ToList() };
+                    
+                        Async( () => Task.Factory.StartNew( () => player.Play(), TaskCreationOptions.LongRunning ) );
+                    }
+
+                    ImGui.PopID();
+                }
+
+                if ( removeIndex >= 0 ) {
+                    keyboardKeys.RemoveAt( removeIndex );
+                }
+
+                if ( ImGui.Button( "Add Key Shortcut", new Vector2( -1, 0 ) ) ) {
+                    keyboardKeys.Add( new KeyboardShortcut() );
+                }
+            }
+
+            ImGui.EndTabBar();
 
             RenderGrammarInspector();
         }
@@ -177,9 +317,7 @@ with :piano {
                 if ( grammarErrors.Count > 0 ) {
                     ImGui.SameLine();
 
-                    ImGui.PushStyleColor( ImGuiCol.Text, colorRed );
-                    ImGui.Text( $"Errors ({ grammarErrors.Count })" );
-                    ImGui.PopStyleColor();
+                    ImGui.TextColored( colorRed, $"Errors ({ grammarErrors.Count })" );
 
                     if ( ImGui.IsItemHovered() ) {
                         ImGui.SetNextWindowSize(new Vector2( 600, 0 ));
@@ -194,6 +332,20 @@ with :piano {
                     }
                 }
                 
+                ImGui.SameLine();
+
+                var saveButtonWidth = ImGuiUtils.CalcButtonSize( "Save to File" );
+
+                var cursor = ImGui.GetCursorPos();
+                
+                ImGui.SetCursorPosX( cursor.X + ImGui.GetContentRegionAvail().X - saveButtonWidth.X );
+
+                if ( ImGui.Button( "Save to File" ) ) {
+                    Async( () => SaveGrammar( grammarSource ) );
+                }
+
+                ImGui.SetCursorPos( cursor );
+
                 ImGui.NextColumn();
 
                 DrawSplitter( 20, ref panelContainerSize, ref panelInputSize, ref panelInspectorSize, 50, 50 );
@@ -309,6 +461,10 @@ with :piano {
                     return CreateGrammarInspectorDictionary( value, history );
                 }
             }
+        }
+
+        public async Task SaveGrammar ( string content ) {
+            await File.WriteAllTextAsync( @"./SoundPlayground/Parser/MusicParser.peg", content, System.Text.Encoding.UTF8 );
         }
 
         public void CompileGrammar () {

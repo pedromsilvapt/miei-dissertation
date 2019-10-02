@@ -32,12 +32,20 @@ namespace SoundPlayground.Core {
 
         public int Octave { get; set; } = 4;
         
+        public int Channel { get; set; } = 0;
+
+        public int Velocity { get; set; } = 127;
+
         public NoteAccidental Accidental { get; set; } = NoteAccidental.None;
 
         public int ToInteger () {
             int accidental = ( ( int )Accidental - 1 );
 
             return Octave * 12 + PitchClass + accidental;
+        }
+
+        public override string ToString () {
+            return $"<Note Start={Start} PitchClass={PitchClass} Duration={Duration} Octave={Octave} Accidental={Accidental.ToString()} Channel={Channel} Velocity={Velocity}>";
         }
 
         // public static NoteNode FromInteger ( int node ) {

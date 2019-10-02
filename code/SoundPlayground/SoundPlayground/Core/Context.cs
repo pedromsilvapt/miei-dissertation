@@ -4,20 +4,27 @@ namespace SoundPlayground {
     public class Context {
         public (int, int) TimeSignature  { get; set; } = (4, 4);
         
+        public int Channel { get; set; } = 0;
+
+        public int Velocity { get; set; } = 120;
+
         public int Octave { get; set; } = 4;
 
-        public int Duration { get; set; } = 4;
+        public int Value { get; set; } = 4;
 
-        public int BPM { get; set; } = 120;
+        public int Tempo { get; set; } = 120;
 
         public int Cursor { get; set; } = 0;
 
         public Context Fork () {
-            return new Context { 
-                Octave = Octave, 
-                Duration = Duration,
-                BPM = BPM,
-                Cursor = Cursor 
+            return new Context {
+                TimeSignature = TimeSignature,
+                Channel = Channel,
+                Velocity = Velocity,
+                Octave = Octave,
+                Value = Value,
+                Tempo = Tempo,
+                Cursor = Cursor
             };
         }
 
@@ -25,10 +32,24 @@ namespace SoundPlayground {
             Cursor = childContexts.Select( c => c.Cursor ).Max();
         }
 
-        public int CalculateDurationInMilliseconds ( int duration ) {
-            float fullNoteLength = BPM * 1000 / 60f;
+        protected float GetDurationRatio () {
+            float l = (float)TimeSignature.Item2;
 
-            return (int)( fullNoteLength / (float)duration );
+            if ( TimeSignature.Item1 >= 6 && TimeSignature.Item1 % 3 == 0 ) {
+                return 3 / l;
+            } else {
+                return 1 / l;
+            }
+        }
+
+        public int GetDuration ( int value ) {
+            float beatDuration = 60 / (float)Tempo;
+
+            
+
+            float wholeNoteDuration = beatDuration * 1000f / GetDurationRatio();
+
+            return (int)( wholeNoteDuration / (float)value );
         }
     }
 }
