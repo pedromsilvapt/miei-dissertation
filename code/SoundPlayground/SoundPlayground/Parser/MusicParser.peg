@@ -20,27 +20,35 @@ repeat <MusicNode>
     / expressionUnambiguous
 
 expressionUnambiguous <MusicNode>
-    = group / chord / note / modifier
+    = group / chord / note / rest / modifier
 
 group <MusicGroupNode>
     = "(" _ e:expression _ ")" { new MusicGroupNode( e ) }
 
 note <NoteNode>
-    = n:notePitch _ octave:integer _ "/" _ duration:integer { new NoteNode() { PitchClass = n, Value = duration, Octave = octave } }
-    / n:notePitch _ "/" _ duration:integer                  { new NoteNode() { PitchClass = n, Value = duration } }
-    / n:notePitch _ octave:integer                          { new NoteNode() { PitchClass = n, Octave = octave } }
-    / n:notePitch                                           { new NoteNode() { PitchClass = n } }
+    = n:notePitch _ value:noteValue  { new NoteNode() { PitchClass = n.Item1, Octave = n.Item2, Value = value } }
+    / n:notePitch                    { new NoteNode() { PitchClass = n.Item1, Octave = n.Item2 } }
 
 chord <MusicParallelNode>
     = "[" _ ns:note<1,,_>  _ "]" { new MusicParallelNode( ns ) }
 
-notePitch <string>
-    = [cdefgabCDEFGAB]
+rest <RestNode>
+    = "r" _ value:noteValue  { new RestNode() { Value = value } }
+    / "r"                    { new RestNode() }
+
+noteValue <float>
+    = "/" _ num:integer              { 1 / (float)num }
+    / den:integer "/" _ num:integer  { (float)den / (float)num }
+    / den:integer                    { (float)den }
+
+notePitch <(string,int)>
+    = c:[cdefgab] o:"'"*    { ( c, o.Count ) }
+    / c:[CDEFGAB] o:","*    { ( c, -1 - o.Count ) }
 
 modifier <ContextModifierNode>
     = [tT] _ tempo:integer               { new TempoModifierNode( tempo ) }
     / [vV] _ velocity:integer            { new VelocityModifierNode( velocity ) }
-    / [lL] _ "/" _ length:integer        { new LengthModifierNode( length ) }
+    / [lL] _ value:noteValue             { new LengthModifierNode( value ) }
     / [sS] _ u:integer _ "/" _ l:integer { new SignatureModifierNode( u, l ) }
     / [sS] _ l:integer                   { new SignatureModifierNode( null, l ) }
     / [oO] _ octave:integer              { new OctaveModifierNode( octave ) }

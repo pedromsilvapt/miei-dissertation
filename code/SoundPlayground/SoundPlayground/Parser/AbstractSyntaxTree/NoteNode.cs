@@ -7,7 +7,7 @@ namespace SoundPlayground.Parser.AbstractSyntaxTree
     {
         public string PitchClass { get; set; }
         
-        public int? Value { get; set; }
+        public float? Value { get; set; }
 
         public int? Octave { get; set; }
         
@@ -18,7 +18,7 @@ namespace SoundPlayground.Parser.AbstractSyntaxTree
                 Start = context.Cursor, 
                 PitchClass = Note.ParsePitchClass( PitchClass ), 
                 Duration = context.GetDuration( Value ?? context.Value ),
-                Octave = Octave ?? context.Octave,
+                Octave = context.Octave + ( Octave ?? 0 ),
                 Channel = context.Channel,
                 Velocity = context.Velocity, 
                 Accidental = Accidental

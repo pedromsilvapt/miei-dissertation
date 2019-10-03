@@ -37,9 +37,10 @@ namespace SoundPlayground
         public Vector4 colorRed = new Vector4( 1, 0, 0, 1 );
 
         public string code =
-@"S6/8 T105 L/8 V70
-(O3 A*11 G F*12) 
-(O3 A*11 | L/3 A4 C5 D5 E5)";
+@"S6/8 T80 L/8 V70
+(A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2)*3
+|
+(r3 L3/8 a c' d' e'9/8 r9/8 e' d' c' a9/8)";
         // public string code = "(A3/2*11 G F3/2*12) (A3/8*11 | A4/3 C5/3 D5/3 E5)";
 
         public string[] codeCommands = null;
@@ -101,7 +102,7 @@ with :piano {
 
         public MusicNode Parse ( string expression ) {
             // return null;
-            return parser.Parse( code );
+            return parser.Parse( expression );
         }
 
         public Context CreateContext () {

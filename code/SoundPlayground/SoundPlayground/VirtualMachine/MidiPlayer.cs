@@ -77,6 +77,28 @@ namespace SoundPlayground.VirtualMachine
 
         public string Midi { get; set; } = null;
 
+        public bool ReverbEnabled { get; set; } = true;
+
+        public double ReverbRoomSize { get; set; } = 0.8f;
+        
+        public double ReverbDamping { get; set; } = 0.6f;
+
+        public double ReverbWidth { get; set; } = 0.5f;
+
+        public double ReverbLevel { get; set; } = 0.5f;
+
+        public bool ChorusEnabled { get; set; } = false;
+
+        public int ChorusNumVoices { get; set; }
+
+        public double ChorusLevel { get; set; }
+        
+        public double ChorusSpeed { get; set; }
+
+        public double ChorusDepthMS { get; set; }
+
+        public FluidChorusMod ChorusMod { get; set; } = FluidChorusMod.Sine;
+
         public IEnumerable<INoteCommand> BuildCommands ( IEnumerable<Note> notes ) {
             List<INoteCommand> commands = new List<INoteCommand>();
 
@@ -97,12 +119,17 @@ namespace SoundPlayground.VirtualMachine
                 settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
                 settings[ConfigurationKeys.AudioRealtimePrio].IntValue = 0;
                 settings[ConfigurationKeys.SynthVerbose].IntValue = 0;
-                settings[ConfigurationKeys.AudioPeriodSize].IntValue = 512;
+                settings[ConfigurationKeys.AudioPeriodSize].IntValue = 1024;
+                settings[ConfigurationKeys.SynthReverbActive].IntValue = ReverbEnabled ? 1 : 0;
+                settings[ConfigurationKeys.SynthChorusActive].IntValue = ChorusEnabled ? 1 : 0;
 
                 using ( var syn = new Synth(settings) ) {
                     syn.LoadSoundFont("/usr/share/sounds/sf2/FluidR3_GM.sf2", true);
 
                     using ( var adriver = new AudioDriver(syn.Settings, syn) ) {
+                        syn.SetReverb( ReverbRoomSize, ReverbDamping, ReverbWidth, ReverbLevel );
+                        syn.SetChorus( ChorusNumVoices, ChorusLevel, ChorusSpeed, ChorusDepthMS, ChorusMod );
+
                         if ( Midi != null ) {
                             // Meanwhile we are cheating a little bit and using the build-in FluidSynth MIDI player
                             // In the future it would be nice to read the events from the MIDI file and play them ourselves
