@@ -1,8 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
+using SoundPlayground.Core;
 
 namespace SoundPlayground {
     public class Context {
-        public (int, int) TimeSignature  { get; set; } = (4, 4);
+        public SharedContext Shared { get;set; } = new SharedContext();
+
+        public (int, int) TimeSignature  { get; set; } = ( 4, 4 );
         
         public int Channel { get; set; } = 0;
 
@@ -16,8 +20,20 @@ namespace SoundPlayground {
 
         public int Cursor { get; set; } = 0;
 
+        public Dictionary<string, Instrument> Instruments { get; set; } = new Dictionary<string, Instrument>();
+
+        public Instrument AddInstrument ( string name, int program ) {
+            Instrument instrument = new Instrument( name, program, null );
+
+            Instruments[ name ] = instrument;
+
+            return instrument;
+        }
+
         public Context Fork () {
             return new Context {
+                Shared = Shared,
+                Instruments = Instruments.ToDictionary( e => e.Key, e => e.Value ),
                 TimeSignature = TimeSignature,
                 Channel = Channel,
                 Velocity = Velocity,

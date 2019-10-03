@@ -127,8 +127,12 @@ namespace SoundPlayground.VirtualMachine
                     syn.LoadSoundFont("/usr/share/sounds/sf2/FluidR3_GM.sf2", true);
 
                     using ( var adriver = new AudioDriver(syn.Settings, syn) ) {
-                        syn.SetReverb( ReverbRoomSize, ReverbDamping, ReverbWidth, ReverbLevel );
-                        syn.SetChorus( ChorusNumVoices, ChorusLevel, ChorusSpeed, ChorusDepthMS, ChorusMod );
+                        if ( ReverbEnabled ) syn.SetReverb( ReverbRoomSize, ReverbDamping, ReverbWidth, ReverbLevel );
+
+                        if ( ChorusEnabled ) syn.SetChorus( ChorusNumVoices, ChorusLevel, ChorusSpeed, ChorusDepthMS, ChorusMod );
+
+                        // Hardcoded, will be changed in the future
+                        syn.ProgramChange( 1, (int)GeneralMidi.Violin );
 
                         if ( Midi != null ) {
                             // Meanwhile we are cheating a little bit and using the build-in FluidSynth MIDI player

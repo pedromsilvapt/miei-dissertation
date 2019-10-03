@@ -37,10 +37,11 @@ namespace SoundPlayground
         public Vector4 colorRed = new Vector4( 1, 0, 0, 1 );
 
         public string code =
-@"S6/8 T80 L/8 V70
-(A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2)*3
-|
-(r3 L3/8 a c' d' e'9/8 r9/8 e' d' c' a9/8)";
+@"S6/8 T70 L/8 V70
+(
+    (A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2)*3
+  | (r3 L3/8 a c' d' e'9/8 r9/8 e' d' c' a9/8)
+)";
         // public string code = "(A3/2*11 G F3/2*12) (A3/8*11 | A4/3 C5/3 D5/3 E5)";
 
         public string[] codeCommands = null;
@@ -109,7 +110,11 @@ with :piano {
             return new Context {
                 TimeSignature = (6, 8),
                 Tempo = 108,
-                Velocity = 80
+                Velocity = 80,
+                Instruments = new Dictionary<string, Instrument> {
+                    [ "piano" ] = new Instrument( "piano", (int)GeneralMidi.AcousticGrandPiano, 0 ) { RefCount = 1 },
+                    [ "violin" ] = new Instrument( "violin", (int)GeneralMidi.Violin, 1 ) { RefCount = 1 },
+                }
             };
         }
 
@@ -125,7 +130,6 @@ with :piano {
                 if (ImGui.Button("Play"))
                 {
                     var player = new MidiPlayer() { Notes = Parse( code ).GetCommands( CreateContext() ).ToList() };
-                    // var player = new MidiPlayer() { Notes = null };
                     
                     Async( () => Task.Factory.StartNew( () => player.Play(), TaskCreationOptions.LongRunning ) );
                 }

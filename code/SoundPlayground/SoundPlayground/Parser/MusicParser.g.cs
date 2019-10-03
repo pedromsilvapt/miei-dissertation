@@ -214,6 +214,64 @@ namespace
 
         private IParseResult<
             #line 15 "MusicParser.peg"
+                    MusicNode
+            #line default
+            > instrumentModifier(ref Cursor cursor)
+        {
+            IParseResult<MusicNode> r0 = null;
+            var startCursor0 = cursor;
+            IParseResult<string> r1 = null;
+            r1 = this.ParseLiteral(ref cursor, ":");
+            if (r1 != null)
+            {
+                IParseResult<string> r2 = null;
+                var nameStart = cursor;
+                r2 = this.alphanumeric(ref cursor);
+                var nameEnd = cursor;
+                var name = ValueOrDefault(r2);
+                if (r2 != null)
+                {
+                    IParseResult<IList<string>> r3 = null;
+                    r3 = this._(ref cursor);
+                    if (r3 != null)
+                    {
+                        IParseResult<MusicNode> r4 = null;
+                        var bodyStart = cursor;
+                        r4 = this.sequence(ref cursor);
+                        var bodyEnd = cursor;
+                        var body = ValueOrDefault(r4);
+                        if (r4 != null)
+                        {
+                            r0 = this.ReturnHelper<MusicNode>(startCursor0, ref cursor, state =>
+                                #line 16 "MusicParser.peg"
+                                              new InstrumentBlockModifier( body, name )
+                                #line default
+                                );
+                        }
+                        else
+                        {
+                            cursor = startCursor0;
+                        }
+                    }
+                    else
+                    {
+                        cursor = startCursor0;
+                    }
+                }
+                else
+                {
+                    cursor = startCursor0;
+                }
+            }
+            else
+            {
+                cursor = startCursor0;
+            }
+            return r0;
+        }
+
+        private IParseResult<
+            #line 18 "MusicParser.peg"
           MusicNode
             #line default
             > sequence(ref Cursor cursor)
@@ -261,7 +319,7 @@ namespace
             if (r1 != null)
             {
                 r0 = this.ReturnHelper<MusicNode>(startCursor0, ref cursor, state =>
-                    #line 16 "MusicParser.peg"
+                    #line 19 "MusicParser.peg"
                         ns.Count == 1 ? ns[ 0 ] : new MusicSequenceNode( ns )
                     #line default
                     );
@@ -274,7 +332,7 @@ namespace
         }
 
         private IParseResult<
-            #line 18 "MusicParser.peg"
+            #line 21 "MusicParser.peg"
         MusicNode
             #line default
             > repeat(ref Cursor cursor)
@@ -310,7 +368,7 @@ namespace
                                 if (r5 != null)
                                 {
                                     r0 = this.ReturnHelper<MusicNode>(startCursor0, ref cursor, state =>
-                                        #line 19 "MusicParser.peg"
+                                        #line 22 "MusicParser.peg"
                                                   new MusicRepeatNode( e, c )
                                         #line default
                                         );
@@ -348,7 +406,7 @@ namespace
         }
 
         private IParseResult<
-            #line 22 "MusicParser.peg"
+            #line 25 "MusicParser.peg"
                        MusicNode
             #line default
             > expressionUnambiguous(ref Cursor cursor)
@@ -374,11 +432,15 @@ namespace
             {
                 r0 = this.modifier(ref cursor);
             }
+            if (r0 == null)
+            {
+                r0 = this.instrumentModifier(ref cursor);
+            }
             return r0;
         }
 
         private IParseResult<
-            #line 25 "MusicParser.peg"
+            #line 28 "MusicParser.peg"
        MusicGroupNode
             #line default
             > group(ref Cursor cursor)
@@ -409,7 +471,7 @@ namespace
                             if (r5 != null)
                             {
                                 r0 = this.ReturnHelper<MusicGroupNode>(startCursor0, ref cursor, state =>
-                                    #line 26 "MusicParser.peg"
+                                    #line 29 "MusicParser.peg"
                                  new MusicGroupNode( e )
                                     #line default
                                     );
@@ -442,7 +504,7 @@ namespace
         }
 
         private IParseResult<
-            #line 28 "MusicParser.peg"
+            #line 31 "MusicParser.peg"
       NoteNode
             #line default
             > note(ref Cursor cursor)
@@ -470,7 +532,7 @@ namespace
                         if (r3 != null)
                         {
                             r0 = this.ReturnHelper<NoteNode>(startCursor0, ref cursor, state =>
-                                #line 29 "MusicParser.peg"
+                                #line 32 "MusicParser.peg"
                                        new NoteNode() { PitchClass = n.Item1, Octave = n.Item2, Value = value }
                                 #line default
                                 );
@@ -501,7 +563,7 @@ namespace
                 if (r4 != null)
                 {
                     r0 = this.ReturnHelper<NoteNode>(startCursor1, ref cursor, state =>
-                        #line 30 "MusicParser.peg"
+                        #line 33 "MusicParser.peg"
                                        new NoteNode() { PitchClass = n.Item1, Octave = n.Item2 }
                         #line default
                         );
@@ -515,7 +577,7 @@ namespace
         }
 
         private IParseResult<
-            #line 32 "MusicParser.peg"
+            #line 35 "MusicParser.peg"
        MusicParallelNode
             #line default
             > chord(ref Cursor cursor)
@@ -579,7 +641,7 @@ namespace
                             if (r7 != null)
                             {
                                 r0 = this.ReturnHelper<MusicParallelNode>(startCursor0, ref cursor, state =>
-                                    #line 33 "MusicParser.peg"
+                                    #line 36 "MusicParser.peg"
                                    new MusicParallelNode( ns )
                                     #line default
                                     );
@@ -612,7 +674,7 @@ namespace
         }
 
         private IParseResult<
-            #line 35 "MusicParser.peg"
+            #line 38 "MusicParser.peg"
       RestNode
             #line default
             > rest(ref Cursor cursor)
@@ -637,7 +699,7 @@ namespace
                         if (r3 != null)
                         {
                             r0 = this.ReturnHelper<RestNode>(startCursor0, ref cursor, state =>
-                                #line 36 "MusicParser.peg"
+                                #line 39 "MusicParser.peg"
                                new RestNode() { Value = value }
                                 #line default
                                 );
@@ -665,7 +727,7 @@ namespace
                 if (r4 != null)
                 {
                     r0 = this.ReturnHelper<RestNode>(startCursor1, ref cursor, state =>
-                        #line 37 "MusicParser.peg"
+                        #line 40 "MusicParser.peg"
                                new RestNode()
                         #line default
                         );
@@ -679,7 +741,7 @@ namespace
         }
 
         private IParseResult<
-            #line 39 "MusicParser.peg"
+            #line 42 "MusicParser.peg"
            float
             #line default
             > noteValue(ref Cursor cursor)
@@ -704,7 +766,7 @@ namespace
                         if (r3 != null)
                         {
                             r0 = this.ReturnHelper<float>(startCursor0, ref cursor, state =>
-                                #line 40 "MusicParser.peg"
+                                #line 43 "MusicParser.peg"
                                        1 / (float)num
                                 #line default
                                 );
@@ -750,7 +812,7 @@ namespace
                             if (r7 != null)
                             {
                                 r0 = this.ReturnHelper<float>(startCursor1, ref cursor, state =>
-                                    #line 41 "MusicParser.peg"
+                                    #line 44 "MusicParser.peg"
                                        (float)den / (float)num
                                     #line default
                                     );
@@ -786,7 +848,7 @@ namespace
                 if (r8 != null)
                 {
                     r0 = this.ReturnHelper<float>(startCursor2, ref cursor, state =>
-                        #line 42 "MusicParser.peg"
+                        #line 45 "MusicParser.peg"
                                        (float)den
                         #line default
                         );
@@ -800,7 +862,7 @@ namespace
         }
 
         private IParseResult<
-            #line 44 "MusicParser.peg"
+            #line 47 "MusicParser.peg"
            (string,int)
             #line default
             > notePitch(ref Cursor cursor)
@@ -839,7 +901,7 @@ namespace
                     if (r2 != null)
                     {
                         r0 = this.ReturnHelper<(string, int)>(startCursor0, ref cursor, state =>
-                            #line 45 "MusicParser.peg"
+                            #line 48 "MusicParser.peg"
                               ( c, o.Count )
                             #line default
                             );
@@ -887,7 +949,7 @@ namespace
                     if (r5 != null)
                     {
                         r0 = this.ReturnHelper<(string, int)>(startCursor2, ref cursor, state =>
-                            #line 46 "MusicParser.peg"
+                            #line 49 "MusicParser.peg"
                               ( c, -1 - o.Count )
                             #line default
                             );
@@ -906,7 +968,7 @@ namespace
         }
 
         private IParseResult<
-            #line 48 "MusicParser.peg"
+            #line 51 "MusicParser.peg"
           ContextModifierNode
             #line default
             > modifier(ref Cursor cursor)
@@ -931,7 +993,7 @@ namespace
                         if (r3 != null)
                         {
                             r0 = this.ReturnHelper<ContextModifierNode>(startCursor0, ref cursor, state =>
-                                #line 49 "MusicParser.peg"
+                                #line 52 "MusicParser.peg"
                                            new TempoModifierNode( tempo )
                                 #line default
                                 );
@@ -970,7 +1032,7 @@ namespace
                         if (r6 != null)
                         {
                             r0 = this.ReturnHelper<ContextModifierNode>(startCursor1, ref cursor, state =>
-                                #line 50 "MusicParser.peg"
+                                #line 53 "MusicParser.peg"
                                            new VelocityModifierNode( velocity )
                                 #line default
                                 );
@@ -1009,7 +1071,7 @@ namespace
                         if (r9 != null)
                         {
                             r0 = this.ReturnHelper<ContextModifierNode>(startCursor2, ref cursor, state =>
-                                #line 51 "MusicParser.peg"
+                                #line 54 "MusicParser.peg"
                                            new LengthModifierNode( value )
                                 #line default
                                 );
@@ -1067,7 +1129,7 @@ namespace
                                         if (r16 != null)
                                         {
                                             r0 = this.ReturnHelper<ContextModifierNode>(startCursor3, ref cursor, state =>
-                                                #line 52 "MusicParser.peg"
+                                                #line 55 "MusicParser.peg"
                                            new SignatureModifierNode( u, l )
                                                 #line default
                                                 );
@@ -1126,7 +1188,7 @@ namespace
                         if (r19 != null)
                         {
                             r0 = this.ReturnHelper<ContextModifierNode>(startCursor4, ref cursor, state =>
-                                #line 53 "MusicParser.peg"
+                                #line 56 "MusicParser.peg"
                                            new SignatureModifierNode( null, l )
                                 #line default
                                 );
@@ -1165,7 +1227,7 @@ namespace
                         if (r22 != null)
                         {
                             r0 = this.ReturnHelper<ContextModifierNode>(startCursor5, ref cursor, state =>
-                                #line 54 "MusicParser.peg"
+                                #line 57 "MusicParser.peg"
                                            new OctaveModifierNode( octave )
                                 #line default
                                 );
@@ -1189,7 +1251,7 @@ namespace
         }
 
         private IParseResult<
-            #line 56 "MusicParser.peg"
+            #line 59 "MusicParser.peg"
          int
             #line default
             > integer(ref Cursor cursor)
@@ -1226,8 +1288,75 @@ namespace
             if (r1 != null)
             {
                 r0 = this.ReturnHelper<int>(startCursor0, ref cursor, state =>
-                    #line 57 "MusicParser.peg"
+                    #line 60 "MusicParser.peg"
                    int.Parse( string.Join( "", d ) )
+                    #line default
+                    );
+            }
+            else
+            {
+                cursor = startCursor0;
+            }
+            return r0;
+        }
+
+        private IParseResult<
+            #line 62 "MusicParser.peg"
+              string
+            #line default
+            > alphanumeric(ref Cursor cursor)
+        {
+            IParseResult<string> r0 = null;
+            var startCursor0 = cursor;
+            IParseResult<string> r1 = null;
+            var nStart = cursor;
+            var startCursor1 = cursor;
+            IParseResult<string> r2 = null;
+            r2 = this.ParseClass(ref cursor, "azAZ");
+            if (r2 != null)
+            {
+                IParseResult<IList<string>> r3 = null;
+                var startCursor2 = cursor;
+                var l0 = new List<string>();
+                while (true)
+                {
+                    IParseResult<string> r4 = null;
+                    r4 = this.ParseClass(ref cursor, "azAZ09");
+                    if (r4 != null)
+                    {
+                        l0.Add(r4.Value);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                r3 = this.ReturnHelper<IList<string>>(startCursor2, ref cursor, state => l0.AsReadOnly());
+                if (r3 != null)
+                {
+                    {
+                        var len = cursor.Location - startCursor1.Location;
+                        r1 = this.ReturnHelper<string>(startCursor1, ref cursor, state =>
+                            state.Subject.Substring(startCursor1.Location, len)
+                            );
+                    }
+                }
+                else
+                {
+                    cursor = startCursor1;
+                }
+            }
+            else
+            {
+                cursor = startCursor1;
+            }
+            var nEnd = cursor;
+            var n = ValueOrDefault(r1);
+            if (r1 != null)
+            {
+                r0 = this.ReturnHelper<string>(startCursor0, ref cursor, state =>
+                    #line 63 "MusicParser.peg"
+                                       String.Join( "", n )
                     #line default
                     );
             }
@@ -1288,7 +1417,7 @@ namespace
                 if (r2 != null)
                 {
                     throw this.ExceptionHelper(cursor, state =>
-                        #line 63 "MusicParser.peg"
+                        #line 69 "MusicParser.peg"
                          "Unexpected character '" + unexpected + "'."
                         #line default
                         );

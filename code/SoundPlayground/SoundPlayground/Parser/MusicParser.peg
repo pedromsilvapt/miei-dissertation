@@ -12,6 +12,9 @@ expression <MusicNode>
 parallel <MusicNode>
     = ns:sequence<1,,_ "|" _> { ns.Count == 1 ? ns[ 0 ] : new MusicParallelNode( ns ) }
 
+instrumentModifier <MusicNode>
+    = ":" name:alphanumeric _ body:sequence { new InstrumentBlockModifier( body, name ) }
+
 sequence <MusicNode>
     = ns:repeat<1,,_> { ns.Count == 1 ? ns[ 0 ] : new MusicSequenceNode( ns ) }
 
@@ -20,7 +23,7 @@ repeat <MusicNode>
     / expressionUnambiguous
 
 expressionUnambiguous <MusicNode>
-    = group / chord / note / rest / modifier
+    = group / chord / note / rest / modifier / instrumentModifier
 
 group <MusicGroupNode>
     = "(" _ e:expression _ ")" { new MusicGroupNode( e ) }
@@ -55,6 +58,9 @@ modifier <ContextModifierNode>
 
 integer <int>
     = d:([0-9]+) { int.Parse( string.Join( "", d ) ) }
+
+alphanumeric <string>
+    = n:([a-zA-Z][a-zA-Z0-9]*)       { String.Join( "", n ) }
 
 _ = [ \t\r\n]*
 
