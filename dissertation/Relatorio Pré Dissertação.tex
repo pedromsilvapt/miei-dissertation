@@ -9,7 +9,9 @@
 \usepackage{url}
 \usepackage[acronym]{glossaries}
 \usepackage{tabu}
+\usepackage{listings}
 \usepackage[table]{xcolor}
+\usepackage[toc,page]{appendix}
 
 \renewcommand{\baselinestretch}{1.2}
 \setlength{\parindent}{0pt}
@@ -22,6 +24,8 @@
 \newacronym{midi}{MIDI}{Music Instrument Digital Interface}
 \newacronym{vm}{VM}{Virtual Machine}
 \newacronym{mml}{MML}{Music Macro Language}
+\newacronym{peg}{PEG}{Parsing Expression Grammar}
+\newacronym{cfg}{CFG}{Context Free Grammar}
 
 \begin{document}
 \title{[WIP] Relatório de Pré-Dissertação Mestrado em Engenharia Informática}
@@ -88,7 +92,203 @@ A velocidade (\textbf{velocity}) é também um valor entre 0 e 127. Relacionando
 
 A método \texttt{Synth.NoteOff}, por sua vez, recebe apenas dois argumentos (canal e chave), e deve ser chamada passsado algum tempo para terminar a nota. Podemos deste modo construir a analogia óbvia que o método \texttt{NoteOn} corresponde a uma tecla de piano ser premida, e \texttt{NoteOff} corresponde a essa tecla ser libertada.
 
+\section{Gramáticas}
+%% PEG vs CFG:
+%%  - Em PEGs, o operador de escolha / é ordenado, i.e. é relevante a ordem por que as várias alternativas são colocadas.
+%%    Numa CFG, o operador de escolha não é ordenado, o que pode resultar em gramáticas ambíguas, onde o mesmo input pode resultar em diferentes parse trees.
+%% https://stackoverflow.com/questions/34976533/some-information-about-peg-needed
+%% https://en.wikipedia.org/wiki/Parsing_expression_grammar
+%% https://compilers.iecc.com/comparch/article/05-09-114
+
+
+Para além dos aspetos técnicos da geração e reprodução de música já abordados neste relatório, existe também um componente fulcral relativo à análise e interpretação da linguagem que irá controlar a geração dos sons. Uma das primeiras decisões a ser tomada diz respeito à escolha do \textit{parser}, e possivelmente, do tipo de gramática que irá servir de base para a geração do mesmo.
+
+Tradicionalmente, as gramáticas mais populares no campo de processamento de texto tendem a ser \acrfull{cfg}, que são usadas como \textit{input} nos geradores de \textit{parser} mais populares (Bison/YACC, ANTLR). Existem no entanto alternativas, algumas mais recentes, como as \acrfull{peg}, que trazem consigo diferenças que podem ser consideradas por alguns como vantagens ou desvantagens.
+
+\subsection{Diferenças: \acrshort{cfg} vs \acrshort{peg}}
+
+A diferença com maiores repercussões práticas entre as duas classes de gramáticas deve-se á semãntica atribuída ao operador de escolha, e a consequente \textbf{ambíguidade} (ou falta dela) na gramática. Nas gramáticas \acrshort{peg}, o operador é ordenado, o que significa que a ordem porque as alternativas aparecem é relevante durante o \textit{parse} do \textit{input}. Isto contrasta com a semântica nas \acrshort{cfg}, onde a ordem das alternativas é irrelevante. Isto pode no entanto levar a ambíguidades, onde o mesmo \textit{input}, descrito pela mesma gramática, pode resultar em duas árvores de \textit{parsing} diferentes. Isto é, as \acrshort{cfg} podem por essa razão ser ambíguas.
+
+Tomemos como exemplo o famoso problema do \textit{dangling else}\cite{dangling-else} descrito nas duas classe de gramáticas:
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+ if (a) if (b) f1(); else f2();
+\end{lstlisting}
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}[caption=Gramática]
+ statement = ...
+    | conditional_statement
+ 
+ conditional_statement = ...
+    | IF ( expression ) statement ELSE statement
+    | IF ( expression ) statement
+\end{lstlisting}
+
+No caso de uma \acrshort{cfg}, sabendo que o operador de escolha \texttt{|} é comutativo, o seguinte \textit{input} será ambíguo, podendo resultar num \textit{if-else} dentro do \textit{if} ou num \textit{if} dentro de um \textit{if-else}.
+
+Mas no caso de uma \acrshort{peg}, o resultado é claro: um \textit{if-else} dentro de um \textit{if}. Quando a primeira regra do condicional chega ao \texttt{statement}, este vai por sua vez chamar o não terminal \texttt{conditional\_statement}, que por sua vez irá consumir o \textit{input} até ao fim. Deste modo, quando a execução voltar ao primeiro \texttt{conditional\_statement}, esta irá falhar por não conseguir ler o \textit{else} (uma vez que já consumimos todo o texto de entrada). Deste modo irá usar a segunda alternativa, dando então o resultado previso.
+
+Com este exemplo de \textit{backtracking} podemos também verificar um problema aparente nas gramáticas \acrshort{peg}. Falhando a primeira alternativa na produção \texttt{conditional\_statement}, a segunda irá ser testada. Mas é evidente, olhando para a gramática que a segunda alternativa é exatamente igual à parte inicial da primeira alternativa (que neste caso também corresponde á parte que teve sucesso). Em vez de voltar a testar as regras de uma forma \textit{naive}, as \acrlong{peg} guardam antes em \textit{cache} os resultados de testes anteriores, permitindo assim uma pesquisa em tempo linear relativamente ao tamanho do \textit{input}, à custa de uma maior utilização de memória.
+
+%% TODO Talk about composition and why PEG grammars can do it better than CFG
+
+\subsubsection{Resumo}
+Em resumo, as três principais diferenças entre as tradicionais \acrfull{cfg} e as mais recentes \acrfull{peg} são:
+
+\textbf{Ambiguidade}. O operador de escolha ser comutativo nas \acrshort{cfg} resulta em gramáticas que podem ser ambíguas para o mesmo \textit{input}. As \acrshort{peg} são determínisticas, mas exigem mais cuidado na ordem das produções, uma vez que tal afeta a semântica da gramática.
+
+\textbf{Memoization} Para evitar \textit{backtracking} exponêncial, as \acrshort{peg} utilizam \textit{memoization} que lhes permite guardar em \textit{cache} resultados parciais durante o processo de \textit{parsing}. Isto reduz o tempo dispendido, pois evita fazer o \textit{parse} do mesmo texto pela mesma regra duas vezes. Mas também aumenta o consumo de memória, pois os resultados parciais têm de ser guardados até a análise terminar por completo.
+
+\textbf{Composição} As \acrlong{peg} também têm a vantagem de oferecerem uma maior facilidade de composição. Em qualquer parte da gramática é possível trocar um terminal por um não terminal. Isto é, é extremamente fácil construir gramáticas mais modulares e compô-las entre si.
+
+\subsection{Acompanhamentos Músicais}
+A gramática de expressões ou acompanhamentos músicais tem como base fundamental os seguintes blocos: notas, pausas e modificadores. As notas são identificadas pelas letras A até G, seguindo a notação de \textit{Helmholtz}\cite{helmholtz-pitch-notation} para denotar as respetivas oitavas. Podem também ser seguidas de um número ou de uma fração, indicando a duração da nota.
+
+
+\begin{center}
+\begin{tabular}{c}
+\textit{Exemplos de notas} \\
+\begin{lstlisting}
+C,, C, C c c' c'' c''' c'/4 A1/4 B2
+\end{lstlisting}
+\end{tabular}
+\end{center}
+
+As notas podem depois ser compostas sequencialmente (como demonstrado em cima) ou em paralelo (separados por uma barra vertical \texttt{|}). Devemos notar que o operador paralelo tem a menor precedência de todos, pelo que não é necessário agrupar as notas com parênteses quando se usa. Isto é, as duas expressões seguintes são equivalentes.
+
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+    A B C | D E F
+( A B C ) | ( D E F )
+\end{lstlisting}
+\end{tabular}
+\end{center}
+
+É também possível agrupar estes blocos com recurso a parênteses. Os grupos herdam o contexto da expressão superior, mas as modificações ao seu contexto permanecem locais. Isto permite, por exemplo, modificar configurações para apenas um conjunto restrito de notas. No exemplo seguinte, a velocidade da nota \texttt{C} é 70, mas para o grupo de notas \texttt{A B} a velocidade é 127.
+
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+ v70 (v127 A B) C
+\end{lstlisting}
+\end{tabular}
+\end{center}
+
+Os modificadores disponíveis são:
+\begin{description}
+ \item[Velocity] A velocidade das notas, tendo o formato \texttt{[vV][0-9]+}.
+ \item[Duração] A duração das notas, tendo o formato \texttt{[lL][0-9]+} ou \\ \texttt{[lL][0-9]+/[0-9]+}.
+ \item[Tempo] O número de batidas por minuto (BPM) que definem a velocidade a que as notas são tocadas, tendo o formato \texttt{[tT][0-9]+}.
+ \item[Assinatura de Tempo] Define a assinatura de tempo, que define o tipo de batida da música e o comprimento de uma barra na pauta musical. Tem o formato \texttt{[sS][0-9]+/[0-9]}.
+\end{description}
+
+É também poossível definir qual o instrumento a ser utilizado para as notas. Todas as notas pertencentes ao mesmo contexto depois do modificador utilizarão esse instrumento.
+
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+ (:cello A F | :violin A D)
+\end{lstlisting}
+\end{tabular}
+\end{center}
+
+Para além destas funcionalidades, também existe algum açúcar sintático para algumas das tarefas mais comuns na construção de acompanhamentos, como tocar acordes ou repetir padrões.
+
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+( [BG]*2 [B2G2] )*3
+\end{lstlisting}
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+
+\end{lstlisting}
+\end{tabular}
+\end{center}
+
+A gramática completa pode ser analizada no \textbf{Anexo \ref{appendix:grammar}}.
+
 \bibliographystyle{unsrt}
 \bibliography{bibliography}
+
+\newpage
+\begin{appendices}
+\section{Gramática} 
+\label{appendix:grammar}
+\begin{lstlisting}
+body = _ expression _
+
+expression = parallel
+
+parallel
+    = sequence _ "|" _ parallel
+    | sequence
+
+sequence <MusicNode>
+    = repeat _ sequence
+    | repeat
+    
+repeat
+    = expressionUnambiguous _ "*" _ integer
+    | expressionUnambiguous
+
+expressionUnambiguous
+    = group | chord | note | rest | modifier | instrumentModifier
+
+group
+    = "(" _ expression _ ")"
+
+note
+    = notePitch _ noteValue
+    | notePitch
+
+chord = "[" _ chordBody  _ "]"
+
+chordBody
+    = note _ chordBody
+    | note
+
+rest
+    = "r" _ noteValue
+    | "r"
+
+noteValue
+    = "/" _ integer
+    | integer _ "/" _ integer
+    | integer
+
+notePitch
+    = [cdefgab] "'"*
+    | [CDEFGAB] ","*
+
+modifier
+    = [tT] _ integer
+    | [vV] _ integer
+    | [lL] _ noteValue
+    | [sS] _ integer _ "/" _ integer
+    | [sS] _ integer
+    | [oO] _ integer
+
+instrumentModifier
+    = ":" alphanumeric _ sequence
+    
+integer
+    = [0-9]+
+
+alphanumeric
+    = [a-zA-Z][a-zA-Z0-9]*
+
+_ = [ \t\r\n]*
+\end{lstlisting}
+\end{appendices}
+
 
 \end{document}
