@@ -1,0 +1,49 @@
+body <- _ expression _ EOF;
+
+expression <- sequence ( _ "|" _ sequence )*;
+
+sequence <- repeat ( _ repeat)*;
+    
+repeat
+    <- expression_unambiguous _ "*" _ integer
+     / expression_unambiguous
+     ;
+
+expression_unambiguous
+    <- group / chord / note / rest / modifier / instrument_modifier;
+
+group <- "(" _ expression _ ")";
+
+note <- note_pitch ( _ note_value )?;
+
+chord <- "[" _ note ( _ note )* _ "]";
+
+rest <- "r" ( _ note_value )?;
+
+note_value
+    <- "/" _ integer
+     / integer _ "/" _ integer
+     / integer
+     ;
+
+note_pitch
+    <- r"[cdefgab]" "'"*
+     / r"[CDEFGAB]" ","*
+     ;
+
+modifier
+    <- r"[tT]" _ integer
+     / r"[vV]" _ integer
+     / r"[lL]" _ note_value
+     / r"[sS]" _ integer _ "/" _ integer
+     / r"[sS]" _ integer
+     / r"[oO]" _ integer
+     ;
+
+instrument_modifier <- ":" alphanumeric _ sequence;
+    
+integer <- r"[0-9]+";
+
+alphanumeric <- r"[a-zA-Z][a-zA-Z0-9]*";
+
+_ <- r"[ \t\r\n]*";
