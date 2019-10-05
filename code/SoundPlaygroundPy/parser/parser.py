@@ -13,7 +13,7 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        return MusicParallelNode( children )
+        return MusicParallelNode( list( children ) )
 
     def visit_parallel ( self, node, children ):
         pass
@@ -22,7 +22,7 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        return MusicSequenceNode( children )
+        return MusicSequenceNode( list( children ) )
 
     def visit_repeat ( self, node, children ):
         if len( children ) == 1:
@@ -45,10 +45,10 @@ class ParserVisitor(PTNodeVisitor):
                 value = children[ 1 ]
             )
         
-        return NoteNode( pitch_class = children[ 0 ] )
+        return NoteNode( pitch_class = children[ 0 ][ 0 ], octave = children[ 0 ][ 1 ] )
 
     def visit_chord ( self, node, children ):
-        return MusicParallelNode( children )
+        return MusicParallelNode( list( children ) )
 
     def visit_rest ( self, node, children ):
         if len( children ) == 1:
@@ -65,20 +65,20 @@ class ParserVisitor(PTNodeVisitor):
             return children[ 0 ]
 
     def visit_note_pitch ( self, node, children ):
-        return NoteNode.parse_pitch_octave( node.value )
+        return NoteNode.parse_pitch_octave( ''.join( children ) )
 
     def visit_modifier ( self, node, children ):
-        c = node.value[ 0 ].lower()
+        c = children[ 0 ].lower()
         
-        if c == 't': return TempoModifierNode( children[ 0 ] )
-        elif c == 'v': return VelocityModifierNode( children[ 0 ] )
-        elif c == 'l': return LengthModifierNode( children[ 0 ] )
-        elif c == 's': 
-            if len( children ) == 2:
-                return SignatureModifierNode( children[ 0 ], children[ 1 ] )
+        if c == 't': return TempoModifierNode( children[ 1 ] )
+        elif c == 'v': return VelocityModifierNode( children[ 1 ] )
+        elif c == 'l': return LengthModifierNode( children[ 1 ] )
+        elif c == 's':
+            if len( children ) == 3:
+                return SignatureModifierNode( children[ 1 ], children[ 2 ] )
             else:
-                return SignatureModifierNode( lower = children[ 0 ] )
-        elif c == 'o': return OctaveModifierNode( children[ 0 ] )
+                return SignatureModifierNode( lower = children[ 1 ] )
+        elif c == 'o': return OctaveModifierNode( children[ 1 ] )
 
     def visit_instrument_modifier ( self, node, children ):
         return InstrumentBlockModifier( children[ 1 ], children[ 0 ] )

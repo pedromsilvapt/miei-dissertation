@@ -2,16 +2,26 @@ from .instrument import Instrument
 from .shared_context import SharedContext
 
 class Context():
-    def __init__ ( self ):
-        self.shared = SharedContext()
-        self.time_signature = ( 4, 4 )
-        self.channel = 0
-        self.velocity = 120
-        self.octave = 4
-        self.value = 1 / 4
-        self.tempo = 120
-        self.cursor = 0
-        self.instruments = dict()
+    def __init__ ( self, 
+                   shared = SharedContext(), 
+                   time_signature = ( 4, 4 ),
+                   channel = 0,
+                   velocity = 127,
+                   octave = 4,
+                   value = 1 / 4,
+                   tempo = 120,
+                   cursor = 0,
+                   instruments = dict()
+                 ):
+        self.shared = shared
+        self.time_signature = time_signature
+        self.channel = channel
+        self.velocity = velocity
+        self.octave = octave
+        self.value = value
+        self.tempo = tempo
+        self.cursor = cursor
+        self.instruments = instruments
 
     def add_instrument ( self, name, program ):
         instrument = Instrument( name, program, None )
@@ -21,18 +31,17 @@ class Context():
         return instrument
     
     def fork ( self ):
-        context = Context()
-
-        context.shared = self.shared
-        context.instruments = dict( self.instruments )
-        context.time_signature = self.time_signature
-        context.channel = self.channel
-        context.velocity = self.velocity
-        context.value = self.value
-        context.tempo = self.tempo
-        context.cursos = self.cursor
-
-        return context
+        return Context(
+            shared = self.shared,
+            instruments = self.instruments,
+            time_signature = self.time_signature,
+            channel = self.channel,
+            octave = self.octave,
+            velocity = self.velocity,
+            value = self.value,
+            tempo = self.tempo,
+            cursor = self.cursor
+        )
 
     def join ( self, *child_context ):
         for context in child_context:

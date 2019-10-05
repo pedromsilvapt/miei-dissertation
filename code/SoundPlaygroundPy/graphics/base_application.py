@@ -7,7 +7,7 @@ from imgui.integrations.glfw import GlfwRenderer
 class BaseApplication():
     def impl_glfw_init( self ):
         width, height = 1280, 720
-        window_name = "minimal ImGui/GLFW3 example"
+        window_name = "Music Language"
 
         if not glfw.init():
             print("Could not initialize OpenGL context")
@@ -34,32 +34,14 @@ class BaseApplication():
         return window
 
     def render ( self ):
-        if imgui.begin_main_menu_bar():
-            if imgui.begin_menu("File", True):
-
-                clicked_quit, selected_quit = imgui.menu_item(
-                    "Quit", 'Cmd+Q', False, True
-                )
-
-                if clicked_quit:
-                    exit(1)
-
-                imgui.end_menu()
-            imgui.end_main_menu_bar()
-
-        imgui.show_test_window()
-
-        imgui.begin("Custom window", True)
-        imgui.text("Bar")
-        imgui.text_colored("Eggs", 0.2, 1., 0.)
-        imgui.end()
+        pass
 
     def run ( self ):
         imgui.create_context()
         window = self.impl_glfw_init()
-        impl = GlfwRenderer(window)
+        impl = GlfwRenderer( window )
 
-        while not glfw.window_should_close(window):
+        while not glfw.window_should_close( window ):
             glfw.poll_events()
             impl.process_inputs()
 
@@ -67,12 +49,12 @@ class BaseApplication():
 
             self.render()
 
-            gl.glClearColor(1., 1., 1., 1)
-            gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+            gl.glClearColor( 1., 1., 1., 1 )
+            gl.glClear( gl.GL_COLOR_BUFFER_BIT )
 
             imgui.render()
-            impl.render(imgui.get_draw_data())
-            glfw.swap_buffers(window)
+            impl.render( imgui.get_draw_data() )
+            glfw.swap_buffers( window )
 
         impl.shutdown()
         glfw.terminate()

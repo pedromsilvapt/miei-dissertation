@@ -11,7 +11,7 @@ class InstrumentBlockModifier( BlockContextModifierNode ):
         if self.instrument_name not in context.instruments:
             raise BaseException( f"Could not switch to non-existent instrument { self.instrument_name }" )
             
-        instrument = context.instruments[ instrument_name ]
+        instrument = context.instruments[ self.instrument_name ]
 
         if instrument.channel == None:
             context.shared.register_instrument( instrument )
@@ -21,7 +21,7 @@ class InstrumentBlockModifier( BlockContextModifierNode ):
         context.channel = instrument.channel
 
     def restore ( self, context ):
-        instrument = context.instruments[ instrument_name ]
+        instrument = context.instruments[ self.instrument_name ]
 
         instrument.ref_count -= 1
 

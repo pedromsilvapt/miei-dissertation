@@ -20,7 +20,7 @@ class NoteNode( MusicNode ):
         self.octave = octave
         self.accidental = accidental
     
-    def get_events ( context ):
+    def get_events ( self, context ):
         note = Note(
             timestamp = context.cursor,
             pitch_class = self.pitch_class,
