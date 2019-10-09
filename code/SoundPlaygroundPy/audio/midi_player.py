@@ -64,8 +64,13 @@ class MidiPlayer():
     
     def play ( self ):
         fs = fluidsynth.Synth()
+
+        fluidsynth.fluid_settings_setint(fs.settings, b'audio.period-size', 1024)
         
-        fs.start( driver = "pulseaudio" )
+        fs.start( driver = "alsa" )
+        
+        # TODO Hardcoded Violin Program
+        fs.program_change(1, 41)
 
         sfid = fs.sfload( "/usr/share/sounds/sf2/FluidR3_GM.sf2", update_midi_preset = 1 )
     
