@@ -1,8 +1,9 @@
 import time
 import fluidsynth
 from py_linq import Enumerable
+from core import Note
 
-class NoteCommand():
+class MidiCommand():
     def __init__ ( self, timestamp ):
         self.timestamp = timestamp
 
@@ -12,7 +13,21 @@ class NoteCommand():
     def sequence ( self, now, sequencer, dest ):
         pass
 
-class NoteOnCommand( NoteCommand ):
+class ProgramChangeCommand( MidiCommand ):
+    def __init__ ( self, timestamp, channel, program ):
+        super().__init__( timestamp )
+
+        self.channel = channel
+        self.program = program
+
+    def apply ( self, synth ):
+        fs.program_change( self.channel, self.program )
+
+    def sequence ( self, now, sequencer, dest ):
+        pass
+        # raise BaseException( "Program Changes are currently not supported by the sequencer" )
+
+class NoteOnCommand( MidiCommand ):
     def __init__ ( self, timestamp, channel, key, velocity = 127 ):
         super().__init__( timestamp )
 
@@ -24,12 +39,14 @@ class NoteOnCommand( NoteCommand ):
         synth.noteon( self.channel, self.key, self.velocity )
 
     def sequence ( self, now, sequencer, dest ):
+        # sequencer = fluidsynth.Sequencer()
+        # sequencer._schedule_event(  )
         sequencer.note_on( now + self.timestamp, self.channel, self.key, self.velocity, dest = dest )
 
     def __str__ ( self ):
         return f"<NoteOn Timestamp={self.timestamp} Channel={self.channel} Key={self.key} Velocity={self.velocity}>"
     
-class NoteOffCommand( NoteCommand ):
+class NoteOffCommand( MidiCommand ):
     def __init__ ( self, timestamp, channel, key ):
         super().__init__( timestamp )
 
@@ -51,28 +68,34 @@ class MidiPlayer():
         commands = []
 
         for note in notes:
-            key = int( note )
+            if isinstance( note, Note ):
+                key = int( note )
 
-            commands.append( NoteOnCommand( note.timestamp, note.channel, key, note.velocity ) )
-            commands.append( NoteOffCommand( note.timestamp + note.duration, note.channel, key ) )
+                commands.append( NoteOnCommand( note.timestamp, note.channel, key, note.velocity ) )
+                commands.append( NoteOffCommand( note.timestamp + note.duration, note.channel, key ) )
+            elif isinstance( note, MidiCommand ):
+                commands.append( note )
+            else:
+                raise f"Unexpected event: {note}"
 
         return Enumerable( commands ).order_by( lambda command: command.timestamp ).to_list()
 
-    def __init__ ( self, notes ):
-        self.notes = notes
-        self.commands = MidiPlayer.notes_to_commands( notes )
+    def __init__ ( self, events ):
+        self.events = events
+        self.notes = [ ev for ev in events if isinstance( ev, Note ) ]
+        self.commands = MidiPlayer.notes_to_commands( events )
     
     def play ( self ):
         fs = fluidsynth.Synth()
 
         fluidsynth.fluid_settings_setint(fs.settings, b'audio.period-size', 1024)
         
-        fs.start( driver = "alsa" )
+        fs.start( driver = "pulseaudio" )
         
+        sfid = fs.sfload( "/usr/share/sounds/sf2/FluidR3_GM.sf2", update_midi_preset = 1 )
+
         # TODO Hardcoded Violin Program
         fs.program_change(1, 41)
-
-        sfid = fs.sfload( "/usr/share/sounds/sf2/FluidR3_GM.sf2", update_midi_preset = 1 )
     
         sequencer = fluidsynth.Sequencer()
         

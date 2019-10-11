@@ -1,5 +1,6 @@
 from .instrument import Instrument
 from .shared_context import SharedContext
+from .symbols_scope import SymbolsScope
 
 class Context():
     def __init__ ( self, 
@@ -11,7 +12,8 @@ class Context():
                    value = 1 / 4,
                    tempo = 120,
                    cursor = 0,
-                   instruments = dict()
+                   symbols = SymbolsScope(),
+                   instruments = list()
                  ):
         self.shared = shared
         self.time_signature = time_signature
@@ -21,26 +23,22 @@ class Context():
         self.value = value
         self.tempo = tempo
         self.cursor = cursor
-        self.instruments = instruments
+        self.symbols = symbols
 
-    def add_instrument ( self, name, program ):
-        instrument = Instrument( name, program, None )
-
-        self.instruments[ name ] = instrument
-
-        return instrument
+        for instrument in instruments:
+            self.symbols.assign_instrument( instrument )
     
-    def fork ( self ):
+    def fork ( self, cursor = None ):
         return Context(
             shared = self.shared,
-            instruments = self.instruments,
             time_signature = self.time_signature,
             channel = self.channel,
             octave = self.octave,
             velocity = self.velocity,
             value = self.value,
             tempo = self.tempo,
-            cursor = self.cursor
+            cursor = self.cursor if cursor == None else cursor,
+            symbols = self.symbols
         )
 
     def join ( self, *child_context ):

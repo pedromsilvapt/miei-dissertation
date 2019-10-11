@@ -2,13 +2,27 @@ from arpeggio.peg import ParserPEG
 from arpeggio import PTNodeVisitor, visit_parse_tree
 from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode
 from .abstract_syntax_tree import RestNode, MusicRepeatNode, MusicGroupNode
+from .abstract_syntax_tree import VariableExpressionNode
+from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier
 
 
 class ParserVisitor(PTNodeVisitor):
     def visit_body ( self, node, children ):
+        if len( children ) == 1:
+            return children[ 0 ]
+
+        return StatementsListNode( list( children ) )
+
+    def visit_statement ( self, node, children ):
         return children[ 0 ]
 
+    def visit_var_declaration ( self, node, children ):
+        return VariableDeclarationStatementNode( children[ 0 ], children[ 1 ] )
+
+    def visit_instrument_declaration ( self, node, children ):
+        return InstrumentDeclarationStatementNode( children[ 0 ], children[ 1 ] )
+    
     def visit_expression ( self, node, children ):
         if len( children ) == 1:
             return children[ 0 ]
@@ -46,6 +60,9 @@ class ParserVisitor(PTNodeVisitor):
             )
         
         return NoteNode( pitch_class = children[ 0 ][ 0 ], octave = children[ 0 ][ 1 ] )
+
+    def visit_variable ( self, node, children ):
+        return VariableExpressionNode( children[ 0 ] )
 
     def visit_chord ( self, node, children ):
         return MusicParallelNode( list( children ) )

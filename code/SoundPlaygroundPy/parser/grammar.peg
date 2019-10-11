@@ -1,20 +1,28 @@
-body <- _ expression _ EOF;
+body <- statement ( ";" statement )* ";"? _;
+
+statement <- _ ( var_declaration / instrument_declaration / expression ) _;
+
+var_declaration <- "$" alphanumeric _ "=" _ expression;
+
+instrument_declaration <- ":" alphanumeric _ "=" _ integer;
 
 expression <- sequence ( _ "|" _ sequence )*;
 
 sequence <- repeat ( _ repeat)*;
-    
+
 repeat
     <- expression_unambiguous _ "*" _ integer
      / expression_unambiguous
      ;
 
 expression_unambiguous
-    <- group / chord / note / rest / modifier / instrument_modifier;
+    <- group / chord / note / variable / rest / modifier / instrument_modifier;
 
 group <- "(" _ expression _ ")";
 
 note <- note_pitch ( _ note_value )?;
+
+variable <- "$" alphanumeric;
 
 chord <- "[" _ note ( _ note )* _ "]";
 

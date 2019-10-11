@@ -7,7 +7,7 @@ class SharedContext():
 
     @property
     def available_channels ( self ):
-        return Enumerable.range( 0, self.channel_count )\
+        return Enumerable.range( 1, self.channel_count )\
             .where( lambda i: i not in self.channels )
 
     def register_instrument ( self, instrument ):

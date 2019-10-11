@@ -1,1 +1,1 @@
-from .midi_player import MidiPlayer, NoteCommand, NoteOffCommand, NoteOnCommand
+from .midi_player import MidiPlayer, MidiCommand, ProgramChangeCommand, NoteOffCommand, NoteOnCommand

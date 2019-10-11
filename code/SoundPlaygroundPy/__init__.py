@@ -6,6 +6,7 @@ from graphics import BaseApplication
 from parser import Parser
 from audio.midi_player import MidiPlayer
 import imgui
+import traceback
 
 EXPRESSION_TAB_AST = 0
 EXPRESSION_TAB_NOTES = 1
@@ -13,13 +14,20 @@ EXPRESSION_TAB_COMMANDS = 2
 
 class Application( BaseApplication ):
     def __init__ ( self ):
-        self.code = """S6/8 T70 L/8 V70
+        self.code = """S6/8 T70 L/8 V70;
+
+:violin = 41;
+
+$chorus = (A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2);
+
 (
-    (A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2)*3
+    $chorus*3
   | (r3 L3/8 (:violin a c' d' e'9/8) r9/8 e' d' c' a9/8)
 )"""
 
         self.parsedTree = None
+        self.parsedException = None
+        self.player = None
 
         self.expressionTab = EXPRESSION_TAB_AST
 
@@ -28,10 +36,10 @@ class Application( BaseApplication ):
             time_signature = (6, 8),
             tempo = 75,
             velocity = 127,
-            instruments = {
-                'piano': Instrument( 'piano', 0, 0, 1 ),
-                'violin': Instrument( 'violin', 41, 1, 1 )
-            }
+            instruments = [
+                Instrument( 'piano', 0, 0, 1 )
+                # Instrument( 'violin', 41, 1, 1 )
+            ]
         )
     
     def imgui_tabbar ( self, open_tab, tabs ):
@@ -100,14 +108,25 @@ class Application( BaseApplication ):
             if imgui.button( "Play" ):
                 to_play = True
 
-            if to_parse or to_play:
-                self.parsedTree = Parser().parse( self.code )
+            try:
+                if to_parse or to_play:
+                    self.parsedTree = Parser().parse( self.code )
 
-                self.player = MidiPlayer( list( self.parsedTree.get_events( self.create_context() ) ) )
+                    self.player = MidiPlayer( list( self.parsedTree.get_events( self.create_context() ) ) )
+
+                    self.parsedException = None
+                
+                if to_play:
+                    self.player.play()
+            except Exception as ex:
+                self.parsedException = ex
+                print(ex)
+                traceback.print_tb(ex.__traceback__)
+
+            if self.parsedException != None:
+                imgui.text_colored( str( self.parsedException ), 1, 0, 0 )
+
             
-            if to_play:
-                self.player.play()
-
             self.expressionTab = self.imgui_tabbar( self.expressionTab, [
                 ( EXPRESSION_TAB_AST, "AST", self.render_inspector_ast ),
                 ( EXPRESSION_TAB_NOTES, "Notes", self.render_inspector_notes ),
