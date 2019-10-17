@@ -19,7 +19,7 @@ class BlockContextModifierNode( MusicNode ):
 
         try:
             if self.body != None:
-                for event in self.body.get_events( block_context ):
+                for event in self.body.eval( block_context ):
                     yield event
         finally:
             self.restore( block_context )

@@ -12,7 +12,7 @@ class MusicRepeatNode( MusicNode ):
             ctx = context.fork()
 
             try:
-                for event in self.expression.get_events( ctx ):
+                for event in self.expression.eval( ctx ):
                     yield event
             finally:
                 context.join( ctx )

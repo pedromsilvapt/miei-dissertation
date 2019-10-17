@@ -21,3 +21,14 @@ class FunctionExpressionNode( ExpressionNode ):
 
         for event in value.get_events( context ):
             yield event
+
+    def eval ( self, context, assignment : bool = False ):
+        value = context.symbols.lookup( self.name )
+        
+        if value == None: 
+            raise BaseException( "Calling undefined function" )
+
+        if value.kind != VALUE_KIND_CALLABLE:
+            raise BaseException( f"Value is of type {value.kind}, expected callable." )
+
+        return value.value( context, self.parameters )

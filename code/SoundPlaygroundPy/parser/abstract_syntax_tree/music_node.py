@@ -5,11 +5,14 @@ class MusicNode( ExpressionNode ):
     def __init__ ( self ):
         super().__init__()
     
-    def as_assignment ( self, context ):
-        return Value( VALUE_KIND_MUSIC, SharedMusicEvents( context.fork(), self ) )
-
     def get_events ( self, context ):
         return iter( () )
+
+    def eval ( self, context, assignment : bool = False ):
+        if assignment == True:
+            return Value( VALUE_KIND_MUSIC, SharedMusicEvents( context.fork(), self ) )
+
+        return Value( VALUE_KIND_MUSIC, self.get_events( context ) )
 
 # class SharedIterator():
 #     def __init__ ( self, iterator ):

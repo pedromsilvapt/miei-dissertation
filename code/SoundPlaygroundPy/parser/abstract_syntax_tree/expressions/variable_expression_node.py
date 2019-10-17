@@ -6,17 +6,9 @@ class VariableExpressionNode( ExpressionNode ):
 
         self.name = name
 
-    def as_assignment ( self, context ):
+    def eval ( self, context, assignment : bool = False ):
         value = context.symbols.lookup( self.name )
         
         if value == None: return None
 
-        return value.as_assignment( context )
-
-    def get_events ( self, context ):
-        value = context.symbols.lookup( self.name )
-        
-        if value == None: return None
-
-        for event in value.get_events( context ):
-            yield event
+        return value

@@ -7,8 +7,5 @@ class NumberLiteralNode( ExpressionNode ):
 
         self.value = Value( VALUE_KIND_NUMBER, value )
 
-    def as_assignment ( self, context ):
+    def eval ( self, context, assignment : bool = False ):
         return self.value
-
-    def get_events ( self, context ):
-        return iter( () )

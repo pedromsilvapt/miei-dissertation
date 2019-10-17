@@ -2,5 +2,5 @@ from ..node import Node
 from core import Context
 
 class ExpressionNode( Node ):
-    def as_assignment ( self, context : Context ):
-        raise BaseException("Expression cannot be assigned")
+    def eval ( self, context : Context, assignment : bool = False ):
+        raise BaseException("Abstract Expression cannot be evaluated")

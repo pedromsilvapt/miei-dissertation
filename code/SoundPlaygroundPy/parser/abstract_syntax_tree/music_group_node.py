@@ -10,7 +10,7 @@ class MusicGroupNode( MusicNode ):
         forked = context.fork()
 
         try:
-            for event in self.expression.get_events( forked ):
+            for event in self.expression.eval( context ):
                 yield event
         finally:
             context.join( forked )

@@ -8,13 +8,16 @@ class Value:
         self.kind = kind
         self.value = value
     
-    def as_assignment ( self ):
-        return self
+    # def as_assignment ( self ):
+    #     return self
 
-    def get_events ( self, context ):
-        if self.value != None and callable( getattr( self.value, "get_events", None ) ):
-            for ev in self.value.get_events( context ):
-                yield ev
+    # def get_events ( self, context ):
+    #     if self.value != None and callable( getattr( self.value, "get_events", None ) ):
+    #         for ev in self.value.get_events( context ):
+    #             yield ev
+
+    def __iter__ ( self ):
+        return iter( self.value )
 
 class CallableValue(Value):
     def __init__ ( self, value ):

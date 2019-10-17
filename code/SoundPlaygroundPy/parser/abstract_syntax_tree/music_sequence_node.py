@@ -8,6 +8,6 @@ class MusicSequenceNode( MusicNode ):
 
     def get_events ( self, context ):
         for node in self.expressions:
-            for event in node.get_events( context ):
+            for event in node.eval( context ):
                 yield event
     

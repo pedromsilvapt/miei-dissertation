@@ -10,7 +10,7 @@ class MusicParallelNode( MusicNode ):
 
         forks.append( forked )
 
-        return node.get_events( forked )
+        return node.eval( forked )
 
     def get_events ( self, context ):
         forks = []

@@ -119,7 +119,7 @@ A,, E, A, B, C B, A, E, D, F, C E C A,
                 if to_parse or to_play:
                     self.parsedTree = Parser().parse( self.code )
 
-                    self.player = MidiPlayer( list( self.parsedTree.get_events( self.create_context() ) ) )
+                    self.player = MidiPlayer( list( self.parsedTree.eval( self.create_context() ) ) )
 
                     self.parsedException = None
                 
