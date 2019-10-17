@@ -96,6 +96,8 @@ class MidiPlayer():
 
         # TODO Hardcoded Violin Program
         fs.program_change(1, 41)
+
+        fs.cc( 0, 64, 127 )
     
         sequencer = fluidsynth.Sequencer()
         

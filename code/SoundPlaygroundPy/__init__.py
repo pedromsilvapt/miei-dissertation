@@ -14,16 +14,23 @@ EXPRESSION_TAB_COMMANDS = 2
 
 class Application( BaseApplication ):
     def __init__ ( self ):
-        self.code = """S6/8 T70 L/8 V70;
+        self.code = """S6/8 T70 L/8 V120;
 
 :violin = 41;
 
 $chorus = (A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2);
 
-(
-    $chorus*3
-  | (r3 L3/8 (:violin a c' d' e'9/8) r9/8 e' d' c' a9/8)
-)"""
+$melody = (r3 L3/8 (:violin a c' d' e'9/8) r9/8 e' d' c' a9/8);
+
+$chorus*3 | $melody
+"""
+
+
+
+        self.code = """S4/4 T74 L/8 V120;
+
+A,, E, A, B, C B, A, E, D, F, C E C A,
+"""
 
         self.parsedTree = None
         self.parsedException = None

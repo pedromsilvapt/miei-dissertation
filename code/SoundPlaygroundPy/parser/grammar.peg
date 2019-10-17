@@ -6,7 +6,9 @@ var_declaration <- "$" alphanumeric _ "=" _ expression;
 
 instrument_declaration <- ":" alphanumeric _ "=" _ integer;
 
-expression <- sequence ( _ "|" _ sequence )*;
+expression <- value_expression / music_expression;
+
+music_expression <- sequence ( _ "|" _ sequence )*;
 
 sequence <- repeat ( _ repeat)*;
 
@@ -16,13 +18,17 @@ repeat
      ;
 
 expression_unambiguous
-    <- group / chord / note / variable / rest / modifier / instrument_modifier;
+    <- variable / function / group / chord / note / rest / modifier / instrument_modifier;
 
-group <- "(" _ expression _ ")";
+group <- "(" _ music_expression _ ")";
 
 note <- note_pitch ( _ note_value )?;
 
 variable <- "$" alphanumeric;
+
+function <- alphanumeric "(" _ function_parameters? _ ")";
+
+function_parameters <- expression ( ";" expression )*;
 
 chord <- "[" _ note ( _ note )* _ "]";
 
@@ -49,7 +55,31 @@ modifier
      ;
 
 instrument_modifier <- ":" alphanumeric _ sequence;
-    
+
+value_expression <- string_value / number_value;
+
+string_value <- double_string / single_string;
+
+double_string <- "\"" double_string_char* "\"";
+
+double_string_char 
+    <- "\\\""
+     / "\\\\"
+     / r"[^\"]"
+     ;
+
+single_string <- "'" single_string_char* "'";
+
+single_string_char
+    <- "\\'"
+     / "\\\\"
+     / r"[^']"
+     ;
+
+number_value <- float / integer;
+
+float <- r"[0-9]+\.[0-9]+";
+
 integer <- r"[0-9]+";
 
 alphanumeric <- r"[a-zA-Z][a-zA-Z0-9]*";

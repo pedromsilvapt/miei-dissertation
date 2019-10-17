@@ -1,4 +1,4 @@
-from .expression_node import ExpressionNode
+from .expressions import ExpressionNode
 from core import Value, VALUE_KIND_MUSIC
 
 class MusicNode( ExpressionNode ):

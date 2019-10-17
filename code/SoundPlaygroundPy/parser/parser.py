@@ -2,9 +2,10 @@ from arpeggio.peg import ParserPEG
 from arpeggio import PTNodeVisitor, visit_parse_tree
 from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode
 from .abstract_syntax_tree import RestNode, MusicRepeatNode, MusicGroupNode
-from .abstract_syntax_tree import VariableExpressionNode
-from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier
+from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode
+from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode
+from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode
 
 
 class ParserVisitor(PTNodeVisitor):
@@ -24,6 +25,9 @@ class ParserVisitor(PTNodeVisitor):
         return InstrumentDeclarationStatementNode( children[ 0 ], children[ 1 ] )
     
     def visit_expression ( self, node, children ):
+        return children[ 0 ]
+
+    def visit_music_expression ( self, node, children ):
         if len( children ) == 1:
             return children[ 0 ]
 
@@ -64,6 +68,15 @@ class ParserVisitor(PTNodeVisitor):
     def visit_variable ( self, node, children ):
         return VariableExpressionNode( children[ 0 ] )
 
+    def visit_function ( self, node, children ):
+        if len( children ) == 2:
+            return FunctionExpressionNode( children[ 0 ], children[ 1 ] )
+        
+        return FunctionExpressionNode( children[ 0 ] )
+
+    def visit_function_parameters ( self, node, children ):
+        return list( children )
+
     def visit_chord ( self, node, children ):
         return MusicParallelNode( list( children ) )
 
@@ -100,11 +113,46 @@ class ParserVisitor(PTNodeVisitor):
     def visit_instrument_modifier ( self, node, children ):
         return InstrumentBlockModifier( children[ 1 ], children[ 0 ] )
 
+    def visit_value_expression ( self, node, children ):
+        return children[ 0 ]
+
+    # Strings
+    def visit_string_value ( self, node, children ):
+        return StringLiteralNode( children[ 0 ] )
+
+    def visit_double_string ( self, node, children ):
+        return ''.join( children )
+
+    def visit_double_string_char ( self, node, children ):
+        if node.value == "\\\"":
+            return "\""
+        elif node.value == "\\\\":
+            return "\\"
+        else:
+            return node.value
+
+    def visit_single_string ( self, node, children ):
+        return ''.join( children )
+
+    def visit_single_string_char ( self, node, children ):
+        if node.value == "\\'":
+            return "'"
+        elif node.value == "\\\\":
+            return "\\"
+        else:
+            return node.value
+
+    def integer_value ( self, node, children ):
+        return NumberValueLiteral( children[ 0 ] )
+
     def visit_alphanumeric ( self, node, children ):
         return node.value
 
     def visit_integer ( self, node, children ):
         return int( node.value )
+
+    def visit_float ( self, node, children ):
+        return float( node.value )
 
 class Parser():
     def __init__ ( self ):

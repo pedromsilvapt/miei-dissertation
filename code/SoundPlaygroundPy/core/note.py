@@ -21,7 +21,7 @@ class Note( MusicEvent ):
     def __int__ ( self ):
         accidental = self.accidental - 1
 
-        return self.octave * 12 + self.pitch_class + accidental
+        return ( self.octave + 1 ) * 12 + self.pitch_class + accidental
 
     def __str__ ( self ):
         return f"<Note Timestamp={self.timestamp} PitchClass={self.pitch_class} Duration={self.duration} Octave={self.octave} Accidental={self.accidental} Channel={self.channel} Velocity={self.velocity}>"
