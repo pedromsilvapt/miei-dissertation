@@ -84,26 +84,42 @@ class MidiPlayer():
         self.events = events
         self.notes = [ ev for ev in events if isinstance( ev, Note ) ]
         self.commands = MidiPlayer.notes_to_commands( events )
+        self.fs = None
     
-    def play ( self ):
-        fs = fluidsynth.Synth()
+    def setup ( self ):
+        self.fs = fluidsynth.Synth()
 
-        fluidsynth.fluid_settings_setint(fs.settings, b'audio.period-size', 1024)
+        fluidsynth.fluid_settings_setint(self.fs.settings, b'audio.period-size', 1024)
         
-        fs.start( driver = "pulseaudio" )
+        self.fs.start( driver = "pulseaudio" )
         
-        sfid = fs.sfload( "/usr/share/sounds/sf2/FluidR3_GM.sf2", update_midi_preset = 1 )
+        sfid = self.fs.sfload( "/usr/share/sounds/sf2/FluidR3_GM.sf2", update_midi_preset = 1 )
 
         # TODO Hardcoded Violin Program
-        fs.program_change(1, 41)
+        self.fs.program_change(1, 41)
 
-        fs.cc( 0, 64, 127 )
+        self.fs.cc( 0, 64, 127 )
     
-        sequencer = fluidsynth.Sequencer()
+        self.sequencer = fluidsynth.Sequencer()
         
-        synthSeqId = sequencer.register_fluidsynth( fs )
+        self.synthSeqId = self.sequencer.register_fluidsynth( self.fs )
 
-        now = sequencer.get_tick()
+    def play ( self ):
+        if self.fs == None:
+            self.setup()
+
+        now = self.sequencer.get_tick()
 
         for command in self.commands:
-            command.sequence( now, sequencer, synthSeqId )
+            command.sequence( now, self.sequencer, self.synthSeqId )
+
+    def play_more ( self, events ):
+        if self.fs == None:
+            self.setup()
+
+        now = self.sequencer.get_tick()
+
+        commands = MidiPlayer.notes_to_commands( events )
+
+        for command in commands:
+            command.sequence( now, self.sequencer, self.synthSeqId )

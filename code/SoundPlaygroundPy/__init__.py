@@ -1,12 +1,13 @@
 #!/usr/bin/python3
-from core import Context, Instrument
+from core import Context, Instrument, VALUE_KIND_MUSIC
 from parser.abstract_syntax_tree import MusicSequenceNode
 from parser.abstract_syntax_tree.context_modifiers import ContextModifierNode
 from graphics import BaseApplication
-from libraries import KeyboardLibrary, StandardLibrary
+from libraries import KeyboardLibrary, KeyStroke, StandardLibrary
 from parser import Parser
 from audio.midi_player import MidiPlayer
 import imgui
+import glfw
 import traceback
 
 EXPRESSION_TAB_AST = 0
@@ -21,8 +22,6 @@ class Application( BaseApplication ):
 :violin = 41;
 
 fun music( $chorus; $melody ) {
-    debug( $chorus );
-    debug( $melody );
     play( $chorus*3 | $melody );
 };
 
@@ -31,6 +30,9 @@ $chorus = (A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2);
 $melody = (r3 L3/8 (:violin a c' d' e'9/8) r9/8 e' d' c' a9/8);
 
 play( music( $chorus; $melody ) );
+
+register_key( "ctrl+a"; A );
+register_key( "ctrl+b"; B );
 """
 
 
@@ -109,11 +111,38 @@ play( music( $chorus; $melody ) );
                 imgui.text( str( command ) )
         imgui.end_child()
 
+    def get_pressed_keystroke ( self ):
+        for i in range( glfw.KEY_A, glfw.KEY_Z + 1 ):
+            if imgui.get_io().keys_down[ i ]:
+                return KeyStroke( 
+                    imgui.get_io().key_ctrl, 
+                    imgui.get_io().key_alt, 
+                    imgui.get_io().key_shift, 
+                    chr( ord( 'a' ) + ( i - glfw.KEY_A ) )
+                )
+
+        return None
+
     def render_inspector_keyboard ( self ):
         imgui.begin_child( "keyboard", 0, 0, border = True )
+
         if self.context != None:
-            for key, expr in self.context.symbols.lookup_internal( "keyboard_keys" ):
-                imgui.text( str( key ) )
+            current_key = self.get_pressed_keystroke()
+
+            for key, expr in self.context.symbols.lookup_internal( "keyboard_keys" ).items():
+                is_pressed = current_key == key
+
+                imgui.bullet()
+
+                if is_pressed: imgui.text_colored( str( key ), 0, 1, 0 )
+                else: imgui.text( str( key ) )
+
+                if is_pressed:
+                    value = expr.eval( self.context.fork( 0 ) )
+                
+                    if value and value.kind == VALUE_KIND_MUSIC:
+                        self.player.play_more( value )
+
         imgui.end_child()
 
     def render ( self ):
@@ -164,25 +193,6 @@ play( music( $chorus; $melody ) );
                 ( EXPRESSION_TAB_KEYBOARD, "Keyboard", self.render_inspector_keyboard )
             ] )
 
-            # if imgui.button( "AST" ): self.expressionTab = EXPRESSION_TAB_AST
-            # imgui.same_line()
-            # if imgui.button( "Notes" ): self.expressionTab = EXPRESSION_TAB_NOTES
-            # imgui.same_line()
-            # if imgui.button( "Commands" ): self.expressionTab = EXPRESSION_TAB_COMMANDS
-
-            # if self.expressionTab == EXPRESSION_TAB_AST:
-                
-            # elif self.expressionTab == EXPRESSION_TAB_NOTES:
-            #     imgui.begin_child( "inspector", 0, 0, border = True )
-            #     if self.parsedTree != None:
-            #         self.render_inspector( self.parsedTree )
-            #     imgui.end_child()
-            # elif self.expressionTab == EXPRESSION_TAB_COMMANDS:
-            #     imgui.begin_child( "inspector", 0, 0, border = True )
-            #     if self.parsedTree != None:
-            #         self.render_inspector( self.parsedTree )
-            #     imgui.end_child()
-
             imgui.end()
 
     def render_inspector ( self, obj, prefix = None ):
@@ -191,7 +201,7 @@ play( music( $chorus; $melody ) );
         node_name = f"{obj.__class__.__name__}###{id( obj )}";
 
         if imgui.tree_node( node_name if prefix != None else f"{prefix}: {node_name}", imgui.TREE_NODE_DEFAULT_OPEN ):
-            for key,value in properties.items():
+            for key, value in properties.items():
                 self.render_inspector_value( key, value );
 
             imgui.tree_pop()

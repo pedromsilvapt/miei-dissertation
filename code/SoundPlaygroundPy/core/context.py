@@ -67,3 +67,8 @@ class Context():
 
     def link ( self, library : Library ):
         library.on_link( self )
+
+        self.symbols.assign( library.__class__, library, container = "libraries" )
+
+    def library ( self, library ):
+        return self.symbols.lookup( library )
