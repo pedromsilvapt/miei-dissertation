@@ -1,4 +1,5 @@
 from .expression_node import ExpressionNode
+from core import Value, VALUE_KIND_MUSIC
 
 class VariableExpressionNode( ExpressionNode ):
     def __init__ ( self, name ):
@@ -10,5 +11,8 @@ class VariableExpressionNode( ExpressionNode ):
         value = context.symbols.lookup( self.name )
         
         if value == None: return None
+
+        if value.kind == VALUE_KIND_MUSIC and not assignment:
+            return Value( VALUE_KIND_MUSIC, value.value.get_events( context ) )
 
         return value

@@ -8,7 +8,8 @@ class InstrumentDeclarationStatementNode( StatementNode ):
         self.name = name
         self.program = program
 
-    def get_events ( self, context ):
-        context.symbols.assign_instrument( Instrument( self.name, self.program ) )
 
-        return iter(())
+    def eval ( self, context, assignment : bool = False ):
+        context.symbols.assign_instrument( Instrument( self.name, self.program ) )
+        
+        return None

@@ -5,11 +5,14 @@ from .abstract_syntax_tree import RestNode, MusicRepeatNode, MusicGroupNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier
 from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode
 from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode
-from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode
+from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 
 
 class ParserVisitor(PTNodeVisitor):
     def visit_body ( self, node, children ):
+        if len( children ) > 0 and children[ -1 ] == ";":
+            children = children[:-1]
+
         if len( children ) == 1:
             return children[ 0 ]
 
@@ -24,6 +27,25 @@ class ParserVisitor(PTNodeVisitor):
     def visit_instrument_declaration ( self, node, children ):
         return InstrumentDeclarationStatementNode( children[ 0 ], children[ 1 ] )
     
+    def visit_function_declaration ( self, node, children ): # alphanumeric "(" _ arguments _ ")" _ "{" body "}";
+        print( "function declaration" )
+        if len( children ) == 3:
+            return FunctionDeclarationStatementNode( children[ 0 ], children[ 1 ], children[ 2 ] )
+
+        return FunctionDeclarationStatementNode( children[ 0 ], [], children[ 1 ] )
+    
+    def visit_arguments ( self, node, children ): # single_argument ( _ ";" _ single_argument )*;
+        return list( children )
+    
+    def visit_single_argument ( self, node, children ): # single_argument_expr / single_argument_eval;
+        return children[ 0 ]
+
+    def visit_single_argument_expr ( self, node, children ): # "expr" _ alphanumeric;
+        return ( children[ 0 ], True )
+
+    def visit_single_argument_eval ( self, node, children ): # alphanumeric;
+        return ( children[ 0 ], False )
+
     def visit_expression ( self, node, children ):
         return children[ 0 ]
 
@@ -162,4 +184,4 @@ class Parser():
     def parse ( self, expression ):
         tree = self.internal_parser.parse( expression )
 
-        return visit_parse_tree( tree, ParserVisitor( debug = False ) )
+        return visit_parse_tree( tree, ParserVisitor( debug = False ),  )

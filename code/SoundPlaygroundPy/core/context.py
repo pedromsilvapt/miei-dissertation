@@ -2,6 +2,10 @@ from .instrument import Instrument
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
 
+class Library:
+    def on_link ( self, context ):
+        pass
+
 class Context():
     def __init__ ( self, 
                    shared = SharedContext(), 
@@ -28,7 +32,7 @@ class Context():
         for instrument in instruments:
             self.symbols.assign_instrument( instrument )
     
-    def fork ( self, cursor = None ):
+    def fork ( self, cursor = None, symbols = None ):
         return Context(
             shared = self.shared,
             time_signature = self.time_signature,
@@ -38,7 +42,7 @@ class Context():
             value = self.value,
             tempo = self.tempo,
             cursor = self.cursor if cursor == None else cursor,
-            symbols = self.symbols
+            symbols = self.symbols if symbols == None else symbols
         )
 
     def join ( self, *child_context ):
@@ -60,3 +64,6 @@ class Context():
         whole_note_duration = beat_duration * 1000.0 / self.get_duration_ratio()
 
         return int( whole_note_duration * value )
+
+    def link ( self, library : Library ):
+        library.on_link( self )

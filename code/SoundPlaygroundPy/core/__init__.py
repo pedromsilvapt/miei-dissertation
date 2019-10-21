@@ -1,5 +1,5 @@
 from .enumerable import IterCursor, merge_sorted
-from .context import Context
+from .context import Context, Library
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
 from .instrument import Instrument, GeneralMidi

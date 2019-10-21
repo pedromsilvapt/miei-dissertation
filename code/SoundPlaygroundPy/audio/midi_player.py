@@ -76,7 +76,7 @@ class MidiPlayer():
             elif isinstance( note, MidiCommand ):
                 commands.append( note )
             else:
-                raise f"Unexpected event: {note}"
+                raise BaseException( f"Unexpected event: {note}" )
 
         return Enumerable( commands ).order_by( lambda command: command.timestamp ).to_list()
 

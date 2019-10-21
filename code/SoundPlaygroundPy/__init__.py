@@ -3,6 +3,7 @@ from core import Context, Instrument
 from parser.abstract_syntax_tree import MusicSequenceNode
 from parser.abstract_syntax_tree.context_modifiers import ContextModifierNode
 from graphics import BaseApplication
+from libraries import KeyboardLibrary, StandardLibrary
 from parser import Parser
 from audio.midi_player import MidiPlayer
 import imgui
@@ -11,6 +12,7 @@ import traceback
 EXPRESSION_TAB_AST = 0
 EXPRESSION_TAB_NOTES = 1
 EXPRESSION_TAB_COMMANDS = 2
+EXPRESSION_TAB_KEYBOARD = 3
 
 class Application( BaseApplication ):
     def __init__ ( self ):
@@ -18,28 +20,35 @@ class Application( BaseApplication ):
 
 :violin = 41;
 
+fun music( $chorus; $melody ) {
+    debug( $chorus );
+    debug( $melody );
+    play( $chorus*3 | $melody );
+};
+
 $chorus = (A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2);
 
 $melody = (r3 L3/8 (:violin a c' d' e'9/8) r9/8 e' d' c' a9/8);
 
-$chorus*3 | $melody
+play( music( $chorus; $melody ) );
 """
 
 
 
-        self.code = """S4/4 T74 L/8 V120;
+#         self.code = """S4/4 T74 L/8 V120;
 
-A,, E, A, B, C B, A, E, D, F, C E C A,
-"""
+# register_key( "a"; A,, E, A, B, C B, A, E, D, F, C E C A, );
+# """
 
         self.parsedTree = None
         self.parsedException = None
         self.player = None
+        self.context = None
 
         self.expressionTab = EXPRESSION_TAB_AST
 
     def create_context ( self, ):
-        return Context(
+        ctx = Context(
             time_signature = (6, 8),
             tempo = 75,
             velocity = 127,
@@ -48,6 +57,11 @@ A,, E, A, B, C B, A, E, D, F, C E C A,
                 # Instrument( 'violin', 41, 1, 1 )
             ]
         )
+
+        ctx.link( StandardLibrary() )
+        ctx.link( KeyboardLibrary() )
+
+        return ctx
     
     def imgui_tabbar ( self, open_tab, tabs ):
         width = imgui.get_content_region_available_width()
@@ -95,6 +109,13 @@ A,, E, A, B, C B, A, E, D, F, C E C A,
                 imgui.text( str( command ) )
         imgui.end_child()
 
+    def render_inspector_keyboard ( self ):
+        imgui.begin_child( "keyboard", 0, 0, border = True )
+        if self.context != None:
+            for key, expr in self.context.symbols.lookup_internal( "keyboard_keys" ):
+                imgui.text( str( key ) )
+        imgui.end_child()
+
     def render ( self ):
         super().render()
 
@@ -119,7 +140,9 @@ A,, E, A, B, C B, A, E, D, F, C E C A,
                 if to_parse or to_play:
                     self.parsedTree = Parser().parse( self.code )
 
-                    self.player = MidiPlayer( list( self.parsedTree.eval( self.create_context() ) ) )
+                    self.context = self.create_context()
+
+                    self.player = MidiPlayer( list( self.parsedTree.eval( self.context ) ) )
 
                     self.parsedException = None
                 
@@ -137,7 +160,8 @@ A,, E, A, B, C B, A, E, D, F, C E C A,
             self.expressionTab = self.imgui_tabbar( self.expressionTab, [
                 ( EXPRESSION_TAB_AST, "AST", self.render_inspector_ast ),
                 ( EXPRESSION_TAB_NOTES, "Notes", self.render_inspector_notes ),
-                ( EXPRESSION_TAB_COMMANDS, "Commands", self.render_inspector_commands )
+                ( EXPRESSION_TAB_COMMANDS, "Commands", self.render_inspector_commands ),
+                ( EXPRESSION_TAB_KEYBOARD, "Keyboard", self.render_inspector_keyboard )
             ] )
 
             # if imgui.button( "AST" ): self.expressionTab = EXPRESSION_TAB_AST

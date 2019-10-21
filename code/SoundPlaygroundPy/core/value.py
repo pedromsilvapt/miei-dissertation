@@ -24,4 +24,4 @@ class CallableValue(Value):
         super().__init__( VALUE_KIND_CALLABLE, value )
 
     def call ( self, context, args ):
-        self.value( *args )
+        return self.value( context, *args )

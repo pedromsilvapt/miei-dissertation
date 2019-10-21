@@ -1,4 +1,4 @@
-from ..music_node import MusicNode
+from ..expressions import ExpressionNode
 
-class StatementNode( MusicNode ):
+class StatementNode( ExpressionNode ):
     pass

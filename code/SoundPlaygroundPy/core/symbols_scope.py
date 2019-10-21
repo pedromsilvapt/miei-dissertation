@@ -33,7 +33,7 @@ class SymbolsScope:
         self.assign( name, value, container = "internal" )
 
     def fork ( self ):
-        return SymbolScope( self )
+        return SymbolsScope( self )
 
     def unref ( self ):
         for name, value in self.symbols:

@@ -7,7 +7,7 @@ class VariableDeclarationStatementNode( StatementNode ):
         self.name = name
         self.expression = expression
 
-    def get_events ( self, context ):
-        context.symbols.assign( self.name, self.expression.as_assignment( context ) )
+    def eval ( self, context, assignment : bool = False ):
+        context.symbols.assign( self.name, self.expression.eval( context, assignment = True ) )
 
-        return iter(())
+        return None
