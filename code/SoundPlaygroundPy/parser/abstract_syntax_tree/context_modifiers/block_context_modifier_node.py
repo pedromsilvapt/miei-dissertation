@@ -15,7 +15,10 @@ class BlockContextModifierNode( MusicNode ):
     def get_events ( self, context ):
         block_context = context.fork()
 
-        self.modify( block_context )
+        events = self.modify( block_context )
+
+        if events != None:
+            for event in events: yield event
 
         try:
             if self.body != None:

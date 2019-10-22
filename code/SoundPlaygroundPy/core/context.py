@@ -3,7 +3,10 @@ from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
 
 class Library:
-    def on_link ( self, context ):
+    def __init__ ( self ):
+        self.context = None
+
+    def on_link ( self ):
         pass
 
 class Context():
@@ -66,9 +69,11 @@ class Context():
         return int( whole_note_duration * value )
 
     def link ( self, library : Library ):
-        library.on_link( self )
+        library.context = self
 
         self.symbols.assign( library.__class__, library, container = "libraries" )
 
+        library.on_link()
+
     def library ( self, library ):
-        return self.symbols.lookup( library )
+        return self.symbols.lookup( library, container = "libraries" )

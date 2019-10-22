@@ -25,7 +25,9 @@ def function_debug ( context : Context, expr ):
         print( "<%s>%s" % ( value.kind, value.value ) )
 
 class StandardLibrary(Library):
-    def on_link ( self, context : Context ):
+    def on_link ( self ):
+        context : Context = self.context
+
         context.symbols.assign( "debug", CallableValue( function_debug ) )
         context.symbols.assign( "discard", CallableValue( function_discard ) )
         context.symbols.assign( "play", CallableValue( function_play ) )

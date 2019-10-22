@@ -10,7 +10,7 @@ class MidiCommand():
     def apply ( self, synth ):
         pass
 
-    def sequence ( self, now, sequencer, dest ):
+    def sequence ( self, now, sequencer, dest, synth ):
         pass
 
 class ProgramChangeCommand( MidiCommand ):
@@ -21,10 +21,10 @@ class ProgramChangeCommand( MidiCommand ):
         self.program = program
 
     def apply ( self, synth ):
-        fs.program_change( self.channel, self.program )
+        synth.program_change( self.channel, self.program )
 
-    def sequence ( self, now, sequencer, dest ):
-        pass
+    def sequence ( self, now, sequencer, dest, synth ):
+        synth.program_change( self.channel, self.program )
         # raise BaseException( "Program Changes are currently not supported by the sequencer" )
 
 class NoteOnCommand( MidiCommand ):
@@ -38,7 +38,7 @@ class NoteOnCommand( MidiCommand ):
     def apply ( self, synth ):
         synth.noteon( self.channel, self.key, self.velocity )
 
-    def sequence ( self, now, sequencer, dest ):
+    def sequence ( self, now, sequencer, dest, synth ):
         # sequencer = fluidsynth.Sequencer()
         # sequencer._schedule_event(  )
         sequencer.note_on( now + self.timestamp, self.channel, self.key, self.velocity, dest = dest )
@@ -57,7 +57,7 @@ class NoteOffCommand( MidiCommand ):
     def apply ( self, synth ):
         synth.noteoff( self.channel, self.key )
 
-    def sequence ( self, now, sequencer, dest ):
+    def sequence ( self, now, sequencer, dest, synth ):
         sequencer.note_off( now + self.timestamp, self.channel, self.key, dest = dest )
 
     def __str__ ( self ):
@@ -95,9 +95,6 @@ class MidiPlayer():
         
         sfid = self.fs.sfload( "/usr/share/sounds/sf2/FluidR3_GM.sf2", update_midi_preset = 1 )
 
-        # TODO Hardcoded Violin Program
-        self.fs.program_change(1, 41)
-
         self.fs.cc( 0, 64, 127 )
     
         self.sequencer = fluidsynth.Sequencer()
@@ -111,7 +108,7 @@ class MidiPlayer():
         now = self.sequencer.get_tick()
 
         for command in self.commands:
-            command.sequence( now, self.sequencer, self.synthSeqId )
+            command.sequence( now, self.sequencer, self.synthSeqId, self.fs )
 
     def play_more ( self, events ):
         if self.fs == None:
@@ -122,4 +119,4 @@ class MidiPlayer():
         commands = MidiPlayer.notes_to_commands( events )
 
         for command in commands:
-            command.sequence( now, self.sequencer, self.synthSeqId )
+            command.sequence( now, self.sequencer, self.synthSeqId, self.fs )

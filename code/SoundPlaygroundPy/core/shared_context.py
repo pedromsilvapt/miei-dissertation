@@ -4,6 +4,7 @@ class SharedContext():
     def __init__ ( self ):
         self.channel_count = 24
         self.channels = dict()
+        self.release_channels = True
 
     @property
     def available_channels ( self ):
@@ -22,6 +23,7 @@ class SharedContext():
         instrument.channel = channel
 
     def unregister_instrument ( self, instrument ):
-        del self.channels[ instrument.channel ]
+        if self.release_channels:
+            del self.channels[ instrument.channel ]
 
-        instrument.channel = None
+            instrument.channel = None

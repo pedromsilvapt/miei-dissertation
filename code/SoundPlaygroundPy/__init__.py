@@ -111,37 +111,40 @@ register_key( "ctrl+b"; B );
                 imgui.text( str( command ) )
         imgui.end_child()
 
-    def get_pressed_keystroke ( self ):
+    def get_pressed_keystrokes ( self ):
         for i in range( glfw.KEY_A, glfw.KEY_Z + 1 ):
             if imgui.get_io().keys_down[ i ]:
-                return KeyStroke( 
+                yield KeyStroke( 
                     imgui.get_io().key_ctrl, 
                     imgui.get_io().key_alt, 
                     imgui.get_io().key_shift, 
                     chr( ord( 'a' ) + ( i - glfw.KEY_A ) )
                 )
 
-        return None
-
     def render_inspector_keyboard ( self ):
         imgui.begin_child( "keyboard", 0, 0, border = True )
 
         if self.context != None:
-            current_key = self.get_pressed_keystroke()
+            current_keys = self.get_pressed_keystrokes()
 
-            for key, expr in self.context.symbols.lookup_internal( "keyboard_keys" ).items():
-                is_pressed = current_key == key
+            pressed = set()
+
+            keyboard = self.context.library( KeyboardLibrary )
+
+            for key, events in keyboard.trigger_keys( set( current_keys ) ):
+                pressed.add( key )
+
+                if events != None and events.kind == VALUE_KIND_MUSIC:
+                    self.player.play_more( events )
+
+
+            for key, expr in keyboard.registered_keys():
+                is_pressed = key in pressed
 
                 imgui.bullet()
 
                 if is_pressed: imgui.text_colored( str( key ), 0, 1, 0 )
                 else: imgui.text( str( key ) )
-
-                if is_pressed:
-                    value = expr.eval( self.context.fork( 0 ) )
-                
-                    if value and value.kind == VALUE_KIND_MUSIC:
-                        self.player.play_more( value )
 
         imgui.end_child()
 

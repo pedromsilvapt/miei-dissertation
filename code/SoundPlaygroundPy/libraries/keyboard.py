@@ -1,4 +1,5 @@
 from core import Context, Library, CallableValue
+from typing import Set
 
 class KeyStroke:
     def parse ( s ):
@@ -52,16 +53,27 @@ def register_key ( context : Context, key, expression ):
     keys[ KeyStroke.parse( key_value.value ) ] = expression
 
 class KeyboardLibrary(Library):
-    def on_link ( self, context : Context ):
+    def on_link ( self ):
+        context = self.context
+
         context.symbols.assign_internal( "keyboard_keys", dict() )
+        context.symbols.assign_internal( "keyboard_triggered", dict() )
 
         context.symbols.assign( "register_key", CallableValue( register_key ) )
 
-    def trigger_key ( context : Context, pressed : KeyStroke ):
+    def trigger_keys ( self, pressed : KeyStroke ):
+        context = self.context
+
         registered = context.symbols.lookup_internal( "keyboard_keys" )
+        triggered = context.symbols.lookup_internal( "keyboard_triggered" )
 
         for key, expr in registered.items():
-            if key == pressed:
-                return expr.eval( context )
+            if key in pressed and key not in triggered:
+                triggered[ key ] = True
 
-        return None
+                yield key, expr.eval( context.fork( 0 ) )
+            elif key in triggered:
+                del triggered[ key ]
+
+    def registered_keys ( self ):    
+        return self.context.symbols.lookup_internal( "keyboard_keys" ).items()
