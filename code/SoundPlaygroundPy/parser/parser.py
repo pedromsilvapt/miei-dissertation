@@ -185,3 +185,7 @@ class Parser():
         tree = self.internal_parser.parse( expression )
 
         return visit_parse_tree( tree, ParserVisitor( debug = False ),  )
+
+    def parse_file ( self, file ):
+        with open( file, 'r' ) as f:
+            return self.parse( f.read() )

@@ -1,5 +1,6 @@
 import time
 import fluidsynth
+from threading import Semaphore
 from py_linq import Enumerable
 from core import Note
 
@@ -80,11 +81,15 @@ class MidiPlayer():
 
         return Enumerable( commands ).order_by( lambda command: command.timestamp ).to_list()
 
-    def __init__ ( self, events ):
+    def __init__ ( self, events = [] ):
         self.events = events
         self.notes = [ ev for ev in events if isinstance( ev, Note ) ]
         self.commands = MidiPlayer.notes_to_commands( events )
         self.fs = None
+        
+        self.latest_command_timestamp = 0
+        self.join_client = None
+        self.join_client_lock = None
     
     def setup ( self ):
         self.fs = fluidsynth.Synth()
@@ -95,7 +100,7 @@ class MidiPlayer():
         
         sfid = self.fs.sfload( "/usr/share/sounds/sf2/FluidR3_GM.sf2", update_midi_preset = 1 )
 
-        self.fs.cc( 0, 64, 127 )
+        # self.fs.cc( 0, 64, 127 )
     
         self.sequencer = fluidsynth.Sequencer()
         
@@ -110,6 +115,9 @@ class MidiPlayer():
         for command in self.commands:
             command.sequence( now, self.sequencer, self.synthSeqId, self.fs )
 
+            if command.timestamp + now > self.latest_command_timestamp:
+                self.latest_command_timestamp = command.timestamp + now
+
     def play_more ( self, events ):
         if self.fs == None:
             self.setup()
@@ -120,3 +128,29 @@ class MidiPlayer():
 
         for command in commands:
             command.sequence( now, self.sequencer, self.synthSeqId, self.fs )
+
+            if command.timestamp + now > self.latest_command_timestamp:
+                self.latest_command_timestamp = command.timestamp + now
+
+    def _joined ( self, time, event, seq, data ):
+        self.join_client_lock.release()
+
+        self.join_client_lock = None
+
+    def join ( self ):
+        if self.fs == None: return
+
+        now = self.sequencer.get_tick()
+
+        if now >= self.latest_command_timestamp: return
+
+        self.join_client_lock = Semaphore(0)
+
+        self.join_client = self.sequencer.register_client( "join", self._joined )
+        
+        # Right now we wait until 1 second after the last event
+        # In the future we might research a better way
+        self.sequencer.timer( self.latest_command_timestamp + 1000, dest = self.join_client )
+
+        self.join_client_lock.acquire()
+

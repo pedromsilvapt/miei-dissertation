@@ -12,8 +12,19 @@ Python port of the experiments that were started in the .NET project.
  >```
  
 ## Usage
+To launch the graphical application, run:
 ```shell
-python3 __init__.py
+python3 __init__.py --gui
+```
+
+To run the app in the terminal:
+```shell
+python3 __init__.py -i keyboard examples/westworld.ml
+```
+
+For a more detailed view of the available options, check:
+```shell
+python3 __init__.py -h
 ```
 
 ## Porting

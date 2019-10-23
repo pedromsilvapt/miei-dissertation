@@ -10,6 +10,11 @@ class Library:
         pass
 
 class Context():
+    def create ():
+        return Context(
+            instruments = [ Instrument( 'default', program = 1, channel = 0, ref_count = 1 ) ]
+        )
+
     def __init__ ( self, 
                    shared = SharedContext(), 
                    time_signature = ( 4, 4 ),
@@ -68,12 +73,16 @@ class Context():
 
         return int( whole_note_duration * value )
 
+    def is_linked ( self, library : Library ):
+        return self.symbols.lookup( library.__class__, container = 'libraries' ) != None
+
     def link ( self, library : Library ):
-        library.context = self
+        if not self.is_linked( library ):
+            library.context = self
 
-        self.symbols.assign( library.__class__, library, container = "libraries" )
+            self.symbols.assign( library.__class__, library, container = "libraries" )
 
-        library.on_link()
+            library.on_link()
 
     def library ( self, library ):
         return self.symbols.lookup( library, container = "libraries" )

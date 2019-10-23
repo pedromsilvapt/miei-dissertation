@@ -8,13 +8,9 @@ class Value:
         self.kind = kind
         self.value = value
     
-    # def as_assignment ( self ):
-    #     return self
-
-    # def get_events ( self, context ):
-    #     if self.value != None and callable( getattr( self.value, "get_events", None ) ):
-    #         for ev in self.value.get_events( context ):
-    #             yield ev
+    @property
+    def is_music ( self ):
+        return self.kind == VALUE_KIND_MUSIC
 
     def __iter__ ( self ):
         return iter( self.value )
