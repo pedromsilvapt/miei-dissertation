@@ -1,4 +1,4 @@
-from core import Context, CallableValue
+from core import Context, SymbolsScope, CallableValue
 from .statement_node import StatementNode
 
 class FunctionDeclarationStatementNode( StatementNode ):
@@ -9,13 +9,15 @@ class FunctionDeclarationStatementNode( StatementNode ):
         self.arguments = arguments
         self.body = body
 
-    def eval ( self, context, assignment : bool = False ):
-        context.symbols.assign( self.name, CallableValue( self.exec ) )
+    def eval ( self, context : Context, assignment : bool = False ):
+        fn = CallableValue( lambda *args: self.exec( context.symbols, *args ) )
+
+        context.symbols.assign( self.name, fn )
 
         return None
 
-    def exec ( self, context : Context, *args ):
-        forked = context.fork( symbols = context.symbols.fork() )
+    def exec ( self, symbols_scope : SymbolsScope, context : Context, *args ):
+        forked = context.fork( symbols = symbols_scope.fork() )
 
         for i in range( len( self.arguments ) ):
             ( name, is_expr ) = self.arguments[ i ]
