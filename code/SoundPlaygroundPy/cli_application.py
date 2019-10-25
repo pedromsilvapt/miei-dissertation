@@ -13,7 +13,7 @@ class CliApplication:
             'keyboard': KeyboardLibrary,
         }
         self.parser = Parser()
-        self.player = MidiPlayer()
+        self.player = None
 
     def create_context ( self ):
         return Context.create()
@@ -40,10 +40,15 @@ class CliApplication:
 
         parser.add_argument( 'file', type = str, nargs = '?', help = 'Files to evaluate. No file means the input will be read from the stdin' )
         parser.add_argument( '-i', '--import', dest = 'imports', action = 'append', type = str, help = 'Import an additional library. These can be builtin libraries, or path to .ml and .py files' )
-        # TODO Add outputs
-        # parser.add_argument( '-o', '--output', action = 'append', type = str, help = 'Where to output to. By default outputs the sounds to the device\'s speakers.' )
+        parser.add_argument( '-o', '--output', type = str, help = 'Where to output to. By default outputs the sounds to the device\'s speakers.' )
+        parser.add_argument( '--soundfont', type = str, help = 'Use a custom soundfont .sf2 file' )
         
         options = parser.parse_args( self.argv )
+
+        self.player = MidiPlayer( options.output or "pulseaudio" )
+
+        if options.soundfont != None:
+            self.player.soundfont = options.soundfont
 
         context = self.create_context()
 

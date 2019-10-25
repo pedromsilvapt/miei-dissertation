@@ -158,7 +158,7 @@ class GuiApplication( BaseApplication ):
 
                     self.context = self.create_context()
 
-                    self.player = MidiPlayer( list( self.parsedTree.eval( self.context ) ) )
+                    self.player = MidiPlayer( events = list( self.parsedTree.eval( self.context ) ) )
 
                     self.parsedException = None
                 

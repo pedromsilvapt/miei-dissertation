@@ -81,24 +81,39 @@ class MidiPlayer():
 
         return Enumerable( commands ).order_by( lambda command: command.timestamp ).to_list()
 
-    def __init__ ( self, events = [] ):
+    def __init__ ( self, output = 'pulseaudio', events = [] ):
+        self.output = output
         self.events = events
         self.notes = [ ev for ev in events if isinstance( ev, Note ) ]
         self.commands = MidiPlayer.notes_to_commands( events )
         self.fs = None
-        
+        self.soundfont = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+
         self.latest_command_timestamp = 0
         self.join_client = None
         self.join_client_lock = None
     
+    @property
+    def is_output_file ( self ):
+        if self.output != None and isinstance( self.output, str ):
+            return '.' in self.output
+        else:
+            return False
+
     def setup ( self ):
         self.fs = fluidsynth.Synth()
 
-        fluidsynth.fluid_settings_setint(self.fs.settings, b'audio.period-size', 1024)
+        # 'alsa', 'oss', 'jack', 'portaudio', 'sndmgr', 'coreaudio', 'Direct Sound', 'pulseaudio'
+        fluidsynth.fluid_settings_setint(self.fs.settings, b'audio.period-size', 1024 )
+
+        if self.is_output_file:
+            fluidsynth.fluid_settings_setstr( self.fs.settings, b'audio.file.name', self.output.encode() )
+            fluidsynth.fluid_settings_setstr( self.fs.settings, b'audio.driver', 'file'.encode() )
+            self.fs.audio_driver = fluidsynth.new_fluid_audio_driver( self.fs.settings, self.fs.synth )
+        else:
+            self.fs.start( driver = self.output )        
         
-        self.fs.start( driver = "pulseaudio" )
-        
-        sfid = self.fs.sfload( "/usr/share/sounds/sf2/FluidR3_GM.sf2", update_midi_preset = 1 )
+        sfid = self.fs.sfload( self.soundfont, update_midi_preset = 1 )
 
         # self.fs.cc( 0, 64, 127 )
     
