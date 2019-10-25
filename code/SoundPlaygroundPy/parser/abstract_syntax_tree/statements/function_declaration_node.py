@@ -1,5 +1,6 @@
 from core import Context, SymbolsScope, CallableValue
 from .statement_node import StatementNode
+from ..expressions import VariableExpressionNode
 
 class FunctionDeclarationStatementNode( StatementNode ):
     def __init__ ( self, name, arguments, body ):
@@ -20,12 +21,17 @@ class FunctionDeclarationStatementNode( StatementNode ):
         forked = context.fork( symbols = symbols_scope.fork() )
 
         for i in range( len( self.arguments ) ):
-            ( name, is_expr ) = self.arguments[ i ]
+            ( name, arg_mod ) = self.arguments[ i ]
 
             node = args[ i ]
 
-            if is_expr:
+            if arg_mod == 'expr':
                 forked.symbols.assign( name, node )
+            elif arg_mod == 'ref':
+                if not isinstance( node, VariableExpressionNode ):
+                    raise BaseException( f"Only variable references can be passed to a function (function { self.name }, parameter { name })" )
+
+                forked.symbols.using( node.name, name )
             else:
                 forked.symbols.assign( name, node.eval( context, assignment = True ) )
         

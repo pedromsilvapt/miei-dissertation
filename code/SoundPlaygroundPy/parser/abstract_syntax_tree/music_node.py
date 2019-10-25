@@ -14,27 +14,6 @@ class MusicNode( ExpressionNode ):
 
         return Value( VALUE_KIND_MUSIC, self.get_events( context ) )
 
-# class SharedIterator():
-#     def __init__ ( self, iterator ):
-#         self.iterator = iterator
-#         self.cursor = IterCursor( self.iterator )
-#         self.buffer = list()
-
-#     def __iter__ ():
-#         index = 0
-
-#         while not self.cursor.ended:
-#             if index <= len( self.buffer ):
-#                 if self.cursor.move_next():
-#                     self.buffer.append( self.cursor.current )
-#                 else:
-#                     break
-
-#             yield self.buffer[ index ]
-
-#             index += 1
-
-
 class SharedMusicEvents():
     def __init__ ( self, context, node ):
         self.context = context
@@ -43,8 +22,7 @@ class SharedMusicEvents():
     def get_events ( self, context ):
         forked = self.context.fork( cursor = context.cursor )
 
-        for event in self.node.get_events( forked ):
-            
+        for event in self.node.eval( forked ):
             context.join( forked )
             
             yield event
