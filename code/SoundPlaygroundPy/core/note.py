@@ -3,9 +3,11 @@ class MusicEvent():
         self.timestamp = timestamp
 
 class NoteAccidental():
-    FLAT = 0
-    NONE = 1
-    SHARP = 2
+    DOUBLEFLAT = 0
+    FLAT = 1
+    NONE = 2
+    SHARP = 3
+    DOUBLESHARP = 4
 
 class Note( MusicEvent ):
     def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, channel = 0, velocity = 127, accidental = NoteAccidental.NONE ):
@@ -19,7 +21,7 @@ class Note( MusicEvent ):
         self.accidental = accidental
 
     def __int__ ( self ):
-        accidental = self.accidental - 1
+        accidental = self.accidental - 2
 
         return ( self.octave + 1 ) * 12 + self.pitch_class + accidental
 

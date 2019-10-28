@@ -1,16 +1,13 @@
-S6/8 T70 L/8 V120;
+fun mainTheme () {
+    S6/8 T70 L/8 V120;
 
-:violin = 41;
+    :violin = 41;
 
-fun music( $chorus; $melody ) {
+    $chorus = (A*11 G F*12 | A,6 A,5 G, F,6*2);
+
+    $melody = (r24   (:violin a3 c'3 d'3 e'9) r9 e'3 d'3 c'3 a9);
+
     play( $chorus*3 | $melody );
 };
 
-$chorus = (A/8*11 G/8 F/8*12 | A,6/8 A,5/8 G,/8 F,6/8*2);
-
-$melody = (r3 L3/8 (:violin a c' d' e'9/8) r9/8 e' d' c' a9/8);
-
-play( music( $chorus; $melody ) );
-
-register_key( "ctrl+a"; A );
-register_key( "ctrl+b"; B );
+play( mainTheme() );

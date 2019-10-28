@@ -6,7 +6,7 @@ var_declaration <- "$" alphanumeric _ "=" _ expression;
 
 instrument_declaration <- ":" alphanumeric _ "=" _ integer;
 
-function_declaration <- "fun" _ alphanumeric "(" _ arguments? _ ")" _ "{" body "}";
+function_declaration <- "fun" _ alphanumeric _ "(" _ arguments? _ ")" _ "{" body "}";
 
 arguments <- single_argument ( _ ";" _ single_argument )*;
 
@@ -34,7 +34,7 @@ expression_unambiguous
 
 group <- "(" _ music_expression _ ")";
 
-note <- note_pitch ( _ note_value )?;
+note <- note_accidental _ note_pitch ( _ note_value )?;
 
 variable <- "$" alphanumeric;
 
@@ -51,6 +51,8 @@ note_value
      / integer _ "/" _ integer
      / integer
      ;
+
+note_accidental <- "^" / "^^" / "__" / "_" / "";
 
 note_pitch
     <- r"[cdefgab]" "'"*

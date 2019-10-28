@@ -21,7 +21,7 @@ class Context():
                    channel = 0,
                    velocity = 127,
                    octave = 4,
-                   value = 1 / 4,
+                   value = 1,
                    tempo = 120,
                    cursor = 0,
                    symbols = SymbolsScope(),
@@ -67,11 +67,13 @@ class Context():
             return 1 / l
 
     def get_duration ( self, value ):
+        if value == None: value = 1
+
         beat_duration = 60 / self.tempo
 
         whole_note_duration = beat_duration * 1000.0 / self.get_duration_ratio()
 
-        return int( whole_note_duration * value )
+        return int( whole_note_duration * value * self.value )
 
     def is_linked ( self, library : Library ):
         return self.symbols.lookup( library.__class__, container = 'libraries' ) != None

@@ -24,7 +24,7 @@ class NoteNode( MusicNode ):
         note = Note(
             timestamp = context.cursor,
             pitch_class = self.pitch_class,
-            duration = context.get_duration( self.value or context.value ),
+            duration = context.get_duration( self.value ),
             octave = context.octave + ( self.octave or 0 ),
             channel = context.channel,
             velocity = context.velocity,

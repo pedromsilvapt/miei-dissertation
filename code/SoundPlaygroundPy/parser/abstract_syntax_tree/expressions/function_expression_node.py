@@ -17,4 +17,4 @@ class FunctionExpressionNode( ExpressionNode ):
         if value.kind != VALUE_KIND_CALLABLE:
             raise BaseException( f"Value is of type {value.kind}, expected callable." )
 
-        return value.value( context, *self.parameters )
+        return value.call( context, self.parameters, assignment = assignment )

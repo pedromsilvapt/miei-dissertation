@@ -6,6 +6,6 @@ class RestNode( MusicNode ):
         self.visible = visible
 
     def get_events ( self, context ):
-        context.cursor += context.get_duration( self.value or context.value );
+        context.cursor += context.get_duration( self.value );
 
         return iter(())

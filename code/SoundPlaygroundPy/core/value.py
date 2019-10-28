@@ -19,5 +19,16 @@ class CallableValue(Value):
     def __init__ ( self, value ):
         super().__init__( VALUE_KIND_CALLABLE, value )
 
-    def call ( self, context, args ):
-        return self.value( context, *args )
+    def call ( self, context, args, assignment : bool = False ):
+        value = self.value( context, *args )
+
+        if isinstance( value, Value ):
+            return value
+        elif hasattr( value, '__iter__' ):
+            if assignment:
+                # return Value( VALUE_KIND_MUSIC, SharedMusicEvents( context.fork(), self ) )
+                pass
+            else:
+                return Value( VALUE_KIND_MUSIC, value )
+        else:
+            return value

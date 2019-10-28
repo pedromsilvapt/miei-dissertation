@@ -115,7 +115,7 @@ class MidiPlayer():
         
         sfid = self.fs.sfload( self.soundfont, update_midi_preset = 1 )
 
-        # self.fs.cc( 0, 64, 127 )
+        self.fs.cc( 0, 64, 127 )
     
         self.sequencer = fluidsynth.Sequencer()
         

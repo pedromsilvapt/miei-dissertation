@@ -3,7 +3,7 @@ import argparse
 from audio import MidiPlayer
 from core import Context, Value
 from parser import Parser
-from libraries import KeyboardLibrary, StandardLibrary
+from libraries import KeyboardLibrary, StandardLibrary, MusicLibrary
 
 class CliApplication:
     def __init__ ( self, argv,  ):
@@ -11,6 +11,7 @@ class CliApplication:
         self.builtin_libraries = {
             'std': StandardLibrary,
             'keyboard': KeyboardLibrary,
+            'music': MusicLibrary
         }
         self.parser = Parser()
         self.player = None
@@ -54,6 +55,7 @@ class CliApplication:
 
         # Always import the std library
         self.import_library( context, 'std' )
+        self.import_library( context, 'music' )
 
         for lib in options.imports:
             self.import_library( context, lib )
