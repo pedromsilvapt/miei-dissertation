@@ -1,0 +1,33 @@
+# TODO
+ > \* Notes means partially done/in development
+
+ - [ ] Language
+    - [x] Notes, Lenghts, Pitches and Accidentals
+    - [x] Context Modifiers/metadata (time signature, tempo, etc...)
+    - [x] Instruments
+    - [x] Parallel and sequenced notes
+    - [x] Variables
+    - [ ] Functions
+        - [x] Functions with/without positional arguments
+        - [x] Reference parameters / modify global variables
+        - [ ] Optional Arguments (with default values)
+        - [ ] Named Arguments
+    - [ ] Import
+        - [x] Standard Libraries
+        - [ ] Music files
+        - [ ] Python Files
+ - [ ] Output Formats
+    - [x] Speakers
+    - [x] WAV
+    - [ ] ABC
+    - [ ] MIDI
+    - [ ] Music Sheet
+ - [ ] Music Library
+    - [ ] Arpeggios \*
+    - [ ] Common chords
+ - [ ] Keyboard
+    - [x] GUI
+        - [ ] Fix handling of repeated keys
+    - [ ] CLI
+    - [ ] Add more options (toggle keys, etc...)
+    - [ ] Possible sintactic sugar **?**
