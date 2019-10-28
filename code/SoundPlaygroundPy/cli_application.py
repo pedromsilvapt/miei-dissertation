@@ -1,6 +1,7 @@
 import sys
 import argparse
 from audio import MidiPlayer
+from audio.sequencers import FluidSynthSequencer
 from core import Context, Value
 from parser import Parser
 from libraries import KeyboardLibrary, StandardLibrary, MusicLibrary
@@ -46,7 +47,8 @@ class CliApplication:
         
         options = parser.parse_args( self.argv )
 
-        self.player = MidiPlayer( options.output or "pulseaudio" )
+        self.player = MidiPlayer()
+        self.player.sequencers.append( FluidSynthSequencer( options.output or "pulseaudio", options.soundfont ) )
 
         if options.soundfont != None:
             self.player.soundfont = options.soundfont
@@ -57,7 +59,7 @@ class CliApplication:
         self.import_library( context, 'std' )
         self.import_library( context, 'music' )
 
-        for lib in options.imports:
+        for lib in options.imports or []:
             self.import_library( context, lib )
 
         if options.file == None:

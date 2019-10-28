@@ -1,5 +1,5 @@
 from .block_context_modifier_node import BlockContextModifierNode
-from audio import ProgramChangeCommand
+from core.events import ProgramChangeEvent
 
 class InstrumentBlockModifier( BlockContextModifierNode ):
     def __init__ ( self, body, instrument_name ):
@@ -17,7 +17,7 @@ class InstrumentBlockModifier( BlockContextModifierNode ):
         if instrument.channel == None:
             context.shared.register_instrument( instrument )
 
-            yield ProgramChangeCommand( context.cursor, instrument.channel, instrument.program )
+            yield ProgramChangeEvent( context.cursor, instrument.channel, instrument.program )
 
         instrument.ref_count += 1
 

@@ -58,6 +58,12 @@ class Context():
             if context.cursor > self.cursor:
                 self.cursor = context.cursor
     
+    def get_value ( self, value ):
+        if value == None:
+            return self.value
+        else:
+            return self.value * value
+
     def get_duration_ratio ( self ):
         ( u, l ) = self.time_signature
 
@@ -67,13 +73,11 @@ class Context():
             return 1 / l
 
     def get_duration ( self, value ):
-        if value == None: value = 1
-
         beat_duration = 60 / self.tempo
 
         whole_note_duration = beat_duration * 1000.0 / self.get_duration_ratio()
 
-        return int( whole_note_duration * value * self.value )
+        return int( whole_note_duration * self.get_value( value ) )
 
     def is_linked ( self, library : Library ):
         return self.symbols.lookup( library.__class__, container = 'libraries' ) != None

@@ -1,5 +1,5 @@
 from .music_node import MusicNode
-from core import NoteAccidental, Note
+from core.events import NoteAccidental, NoteEvent
 
 _pitch_classes_dictionary = {
     'C': 0,
@@ -21,10 +21,11 @@ class NoteNode( MusicNode ):
         self.accidental = accidental
     
     def get_events ( self, context ):
-        note = Note(
+        note = NoteEvent(
             timestamp = context.cursor,
             pitch_class = self.pitch_class,
             duration = context.get_duration( self.value ),
+            value = context.get_value( self.value ),
             octave = context.octave + ( self.octave or 0 ),
             channel = context.channel,
             velocity = context.velocity,

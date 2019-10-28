@@ -19,7 +19,8 @@ python3 __init__.py --gui
 
 To run the app in the terminal:
 ```shell
-python3 __init__.py -i keyboard examples/westworld.ml
+python3 __init__.py examples/westworld.ml
+python3 __init__.py examples/minecraft.ml
 ```
 
 For a more detailed view of the available options, check:

@@ -1,6 +1,6 @@
 from arpeggio.peg import ParserPEG
 from arpeggio import PTNodeVisitor, visit_parse_tree
-from core import NoteAccidental
+from core.events import NoteEvent, NoteAccidental
 from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode
 from .abstract_syntax_tree import RestNode, MusicRepeatNode, MusicGroupNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier

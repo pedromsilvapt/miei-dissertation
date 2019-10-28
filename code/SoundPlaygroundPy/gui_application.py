@@ -4,15 +4,15 @@ from parser.abstract_syntax_tree.context_modifiers import ContextModifierNode
 from graphics import BaseApplication
 from libraries import KeyboardLibrary, KeyStroke, StandardLibrary
 from parser import Parser
-from audio.midi_player import MidiPlayer
+from audio import MidiPlayer
+from audio.sequencers import FluidSynthSequencer
 import imgui
 import glfw
 import traceback
 
 EXPRESSION_TAB_AST = 0
-EXPRESSION_TAB_NOTES = 1
-EXPRESSION_TAB_COMMANDS = 2
-EXPRESSION_TAB_KEYBOARD = 3
+EXPRESSION_TAB_EVENTS = 1
+EXPRESSION_TAB_KEYBOARD = 2
 
 class GuiApplication( BaseApplication ):
     def __init__ ( self ):
@@ -81,18 +81,11 @@ class GuiApplication( BaseApplication ):
             self.render_inspector( self.parsedTree )
         imgui.end_child()
 
-    def render_inspector_notes ( self ):
+    def render_inspector_events ( self ):
         imgui.begin_child( "notes", 0, 0, border = True )
         if self.player != None:
-            for note in self.player.notes:
+            for note in self.player.events:
                 imgui.text( str( note ) )
-        imgui.end_child()
-    
-    def render_inspector_commands ( self ):
-        imgui.begin_child( "commands", 0, 0, border = True )
-        if self.player != None:
-            for command in self.player.commands:
-                imgui.text( str( command ) )
         imgui.end_child()
 
     def get_pressed_keystrokes ( self ):
@@ -159,6 +152,7 @@ class GuiApplication( BaseApplication ):
                     self.context = self.create_context()
 
                     self.player = MidiPlayer( events = list( self.parsedTree.eval( self.context ) ) )
+                    self.player.sequencers.append( FluidSynthSequencer() )
 
                     self.parsedException = None
                 
@@ -175,8 +169,7 @@ class GuiApplication( BaseApplication ):
             
             self.expressionTab = self.imgui_tabbar( self.expressionTab, [
                 ( EXPRESSION_TAB_AST, "AST", self.render_inspector_ast ),
-                ( EXPRESSION_TAB_NOTES, "Notes", self.render_inspector_notes ),
-                ( EXPRESSION_TAB_COMMANDS, "Commands", self.render_inspector_commands ),
+                ( EXPRESSION_TAB_EVENTS, "Events", self.render_inspector_events ),
                 ( EXPRESSION_TAB_KEYBOARD, "Keyboard", self.render_inspector_keyboard )
             ] )
 

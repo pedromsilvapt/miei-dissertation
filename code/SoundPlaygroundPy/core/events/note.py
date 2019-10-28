@@ -1,6 +1,4 @@
-class MusicEvent():
-    def __init__ ( self, timestamp = 0 ):
-        self.timestamp = timestamp
+from .event import DurationEvent
 
 class NoteAccidental():
     DOUBLEFLAT = 0
@@ -9,14 +7,12 @@ class NoteAccidental():
     SHARP = 3
     DOUBLESHARP = 4
 
-class Note( MusicEvent ):
-    def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, channel = 0, velocity = 127, accidental = NoteAccidental.NONE ):
-        super().__init__( timestamp )
+class NoteEvent( DurationEvent ):
+    def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, channel = 0, velocity = 127, accidental = NoteAccidental.NONE, value = None ):
+        super().__init__( timestamp, duration, value, channel )
 
         self.pitch_class = pitch_class
-        self.duration = duration
         self.octave = octave
-        self.channel = channel
         self.velocity = velocity
         self.accidental = accidental
 

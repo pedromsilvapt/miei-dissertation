@@ -1,5 +1,6 @@
 from core import Context, Library, CallableValue
-from core import Value, VALUE_KIND_MUSIC, Note
+from core import Value, VALUE_KIND_MUSIC
+from core.events import NoteEvent
 from parser.abstract_syntax_tree.expressions import VariableExpressionNode
 
 def function_arpeggio ( context : Context, chord, pattern = None ):
@@ -13,7 +14,7 @@ def function_arpeggio ( context : Context, chord, pattern = None ):
     baseline : int = None
     
     for event in value:
-        if isinstance( event, Note ):
+        if isinstance( event, NoteEvent ):
             if baseline == None:
                 baseline = event.timestamp
             else:
