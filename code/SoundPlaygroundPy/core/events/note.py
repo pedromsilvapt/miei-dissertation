@@ -7,6 +7,16 @@ class NoteAccidental():
     SHARP = 3
     DOUBLESHARP = 4
 
+NotePitchClasses = {
+    'C': 0,
+    'D': 2,
+    'E': 4,
+    'F': 5,
+    'G': 7,
+    'A': 9,
+    'B': 11
+}
+
 class NoteEvent( DurationEvent ):
     def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, channel = 0, velocity = 127, accidental = NoteAccidental.NONE, value = None ):
         super().__init__( timestamp, duration, value, channel )

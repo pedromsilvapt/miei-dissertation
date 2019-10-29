@@ -1,15 +1,5 @@
 from .music_node import MusicNode
-from core.events import NoteAccidental, NoteEvent
-
-_pitch_classes_dictionary = {
-    'C': 0,
-    'D': 2,
-    'E': 4,
-    'F': 5,
-    'G': 7,
-    'A': 9,
-    'B': 11
-}
+from core.events import NoteAccidental, NoteEvent, NotePitchClasses
 
 class NoteNode( MusicNode ):
     def __init__ ( self, pitch_class = 0, value = None, octave = None, accidental = NoteAccidental.NONE ):
@@ -40,12 +30,12 @@ class NoteNode( MusicNode ):
     # Static
     def parse_pitch_octave ( pitch ):
         if pitch[ 0 ].islower():
-            pitch_class = _pitch_classes_dictionary[ pitch[ 0 ].upper() ]
+            pitch_class = NotePitchClasses[ pitch[ 0 ].upper() ]
             octave = len( pitch ) - 1
 
             return ( pitch_class, octave )
         else:
-            pitch_class = _pitch_classes_dictionary[ pitch[ 0 ] ]
+            pitch_class = NotePitchClasses[ pitch[ 0 ] ]
             octave = -len( pitch )
             
             return ( pitch_class, octave )

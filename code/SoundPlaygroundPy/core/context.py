@@ -1,6 +1,7 @@
 from .instrument import Instrument
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
+from typing import List
 
 class Library:
     def __init__ ( self ):
@@ -16,31 +17,31 @@ class Context():
         )
 
     def __init__ ( self, 
-                   shared = SharedContext(), 
-                   time_signature = ( 4, 4 ),
-                   channel = 0,
-                   velocity = 127,
-                   octave = 4,
-                   value = 1,
-                   tempo = 120,
-                   cursor = 0,
-                   symbols = SymbolsScope(),
-                   instruments = list()
+                   shared : SharedContext = SharedContext(), 
+                   time_signature : (int, int) = ( 4, 4 ),
+                   channel : int = 0,
+                   velocity : int = 127,
+                   octave : int = 4,
+                   value : float = 1,
+                   tempo : int = 120,
+                   cursor : int = 0,
+                   symbols : SymbolsScope = SymbolsScope(),
+                   instruments : List[Instrument] = list()
                  ):
-        self.shared = shared
-        self.time_signature = time_signature
-        self.channel = channel
-        self.velocity = velocity
-        self.octave = octave
-        self.value = value
-        self.tempo = tempo
-        self.cursor = cursor
-        self.symbols = symbols
+        self.shared : SharedContext = shared
+        self.time_signature : (int, int) = time_signature
+        self.channel : int = channel
+        self.velocity : int = velocity
+        self.octave : int = octave
+        self.value : float = value
+        self.tempo : int = tempo
+        self.cursor : int = cursor
+        self.symbols : SymbolsScope = symbols
 
         for instrument in instruments:
             self.symbols.assign_instrument( instrument )
     
-    def fork ( self, cursor = None, symbols = None ):
+    def fork ( self, cursor : int = None, symbols : SymbolsScope = None ) -> 'Context':
         return Context(
             shared = self.shared,
             time_signature = self.time_signature,
@@ -58,13 +59,13 @@ class Context():
             if context.cursor > self.cursor:
                 self.cursor = context.cursor
     
-    def get_value ( self, value ):
+    def get_value ( self, value : float ) -> float:
         if value == None:
             return self.value
         else:
             return self.value * value
 
-    def get_duration_ratio ( self ):
+    def get_duration_ratio ( self ) -> float:
         ( u, l ) = self.time_signature
 
         if u >= 6 and u % 3 == 0:
@@ -72,14 +73,14 @@ class Context():
         else:
             return 1 / l
 
-    def get_duration ( self, value ):
+    def get_duration ( self, value : float = None ) -> int:
         beat_duration = 60 / self.tempo
 
         whole_note_duration = beat_duration * 1000.0 / self.get_duration_ratio()
 
         return int( whole_note_duration * self.get_value( value ) )
 
-    def is_linked ( self, library : Library ):
+    def is_linked ( self, library : Library ) -> bool:
         return self.symbols.lookup( library.__class__, container = 'libraries' ) != None
 
     def link ( self, library : Library ):
@@ -90,5 +91,5 @@ class Context():
 
             library.on_link()
 
-    def library ( self, library ):
+    def library ( self, library ) -> Library:
         return self.symbols.lookup( library, container = "libraries" )

@@ -3,6 +3,7 @@ from core.events import MusicEvent, NoteEvent, ProgramChangeEvent
 from .sequencer import Sequencer
 from ctypes import py_object, c_void_p
 from threading import Semaphore
+from typing import Dict, Any
 
 fluid_event_get_data = fluidsynth.cfunc('fluid_event_get_data', c_void_p,
                                     ('evt', c_void_p, 1))
@@ -53,23 +54,23 @@ class FluidSynthSequencer ( Sequencer ):
     def __init__ ( self, output : str = None, soundfont : str = None ):
         super().__init__()
 
-        self.output = output or "pulseaudio"
-        self.soundfont = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+        self.output : str = output or "pulseaudio"
+        self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
 
-        self.synth = None
-        self.synthId = None
-        self.soundfontId = None
-        self.sequencer = None
-        self.client = None
+        self.synth : fluidsynth.Synth = None
+        self.synthId : int = None
+        self.soundfontId : int = None
+        self.sequencer : fluidsynth.Sequencer = None
+        self.client : int = None
 
-        self.last_note = None
-        self.join_lock = None
+        self.last_note : int = None
+        self.join_lock : threading.Semaphore = None
 
-        self.events_data = dict()
-        self.events_data_id = 1
+        self.events_data : Dict[int, Any] = dict()
+        self.events_data_id : int = 1
     
     @property
-    def is_output_file ( self ):
+    def is_output_file ( self ) -> bool:
         if self.output != None and isinstance( self.output, str ):
             return '.' in self.output
         else:
@@ -175,9 +176,9 @@ class FluidSynthSequencer ( Sequencer ):
         if self.is_output_file:
             fluidsynth.fluid_settings_setstr( self.synth.settings, b'audio.file.name', self.output.encode() )
             fluidsynth.fluid_settings_setstr( self.synth.settings, b'audio.driver', 'file'.encode() )
-            self.synth.audio_driver = fluidsynth.new_fluid_audio_driver( self.fs.settings, self.fs.synth )
+            self.synth.audio_driver = fluidsynth.new_fluid_audio_driver( self.synth.settings, self.synth.synth )
         else:
-            self.synth.start( driver = self.output )        
+            self.synth.start( driver = self.output )
         
         self.soundfontId = self.synth.sfload( self.soundfont, update_midi_preset = 1 )
 
@@ -189,5 +190,6 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.client = self.sequencer.register_client( "eventClient", self.apply_event_callback )
         
-    def close ():
+    def close ( self ):
+        # TODO Release fluidsynth resources
         pass
