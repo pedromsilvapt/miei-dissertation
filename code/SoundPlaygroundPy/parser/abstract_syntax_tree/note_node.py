@@ -2,8 +2,8 @@ from .music_node import MusicNode
 from core.events import NoteAccidental, NoteEvent, NotePitchClasses
 
 class NoteNode( MusicNode ):
-    def __init__ ( self, pitch_class = 0, value = None, octave = None, accidental = NoteAccidental.NONE ):
-        super().__init__()
+    def __init__ ( self, pitch_class = 0, value = None, octave = None, accidental = NoteAccidental.NONE, position : (int, int) = None ):
+        super().__init__( position )
 
         self.pitch_class = pitch_class
         self.value = value

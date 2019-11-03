@@ -3,23 +3,26 @@ from typing import Iterable
 
 class Sequencer:
     def __init__ ( self ):
-        pass
+        self.realtime = False
 
     @property
     def playing ( self ) -> bool:
-        raise BaseException( "Asbtract property Sequencer.playing accessed." )
+        raise BaseException( "Abstract property Sequencer.playing accessed." )
+
+    def get_time ( self ) -> int:
+        raise BaseException( "Abstract method Sequencer.get_time called." )
 
     def register_event ( self, event : MusicEvent ):
-        raise BaseException( "Asbtract method Sequencer.register_event called." )
+        raise BaseException( "Abstract method Sequencer.register_event called." )
 
     def register_events_many ( self, events : Iterable[MusicEvent] ):
-        raise BaseException( "Asbtract method Sequencer.register_events_many called." )
+        raise BaseException( "Abstract method Sequencer.register_events_many called." )
 
     def join ( self ):
-        raise BaseException( "Asbtract method Sequencer.join called." )
+        raise BaseException( "Abstract method Sequencer.join called." )
 
     def start ( self ):
-        raise BaseException( "Asbtract method Sequencer.start called." )
+        raise BaseException( "Abstract method Sequencer.start called." )
 
     def close ( self ):
-        raise BaseException( "Asbtract method Sequencer.close called." )
+        raise BaseException( "Abstract method Sequencer.close called." )

@@ -2,8 +2,8 @@ from .block_context_modifier_node import BlockContextModifierNode
 from core.events import ProgramChangeEvent
 
 class InstrumentBlockModifier( BlockContextModifierNode ):
-    def __init__ ( self, body, instrument_name ):
-        super().__init__( body )
+    def __init__ ( self, body, instrument_name, position : (int, int) = None ):
+        super().__init__( body, position )
 
         self.instrument_name = instrument_name
 

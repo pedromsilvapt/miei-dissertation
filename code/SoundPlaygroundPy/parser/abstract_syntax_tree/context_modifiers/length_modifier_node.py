@@ -3,8 +3,8 @@ from core.events import ContextChangeEvent
 from core import Context
 
 class LengthModifierNode( ContextModifierNode ):
-    def __init__ ( self, length ):
-        super().__init__()
+    def __init__ ( self, length, position : (int, int) = None ):
+        super().__init__( position )
 
         self.length = length
         

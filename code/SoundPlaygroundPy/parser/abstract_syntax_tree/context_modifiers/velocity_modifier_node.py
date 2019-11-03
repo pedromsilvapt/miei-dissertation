@@ -3,8 +3,8 @@ from core.events import ContextChangeEvent
 from core import Context
 
 class VelocityModifierNode( ContextModifierNode ):
-    def __init__ ( self, velocity ):
-        super().__init__()
+    def __init__ ( self, velocity, position : (int, int) = None ):
+        super().__init__( position )
 
         self.velocity = velocity
 

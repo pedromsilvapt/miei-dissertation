@@ -2,7 +2,9 @@ from .music_node import MusicNode
 from core.events import RestEvent
 
 class RestNode( MusicNode ):
-    def __init__ ( self, value = None, visible = False ):
+    def __init__ ( self, value = None, visible = False, position : (int, int) = None ):
+        super().__init__( position )
+        
         self.value = value
         self.visible = visible
 

@@ -130,4 +130,4 @@ class ABCFile:
         self.body : ABCBody = ABCBody()
 
     def __str__ ( self ):
-        return f"{ self.header }\n{ self.body }"
+        return f"{ self.header }\n{ self.body }\n"

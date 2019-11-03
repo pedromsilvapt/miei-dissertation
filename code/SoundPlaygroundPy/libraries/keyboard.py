@@ -1,5 +1,9 @@
 from core import Context, Library, CallableValue
-from typing import Set
+from core.events import MusicEvent
+from typing import List, Dict, Iterable, ItemsView, ValuesView
+from parser.abstract_syntax_tree import Node
+from audio import MidiPlayer, AsyncMidiPlayer
+from asyncio import Future, sleep, wait, FIRST_COMPLETED, create_task
 
 class KeyStroke:
     def parse ( s ):
@@ -45,35 +49,170 @@ class KeyStroke:
         return '+'.join( mods )
 
 
-def register_key ( context : Context, key, expression ):
+def register_key ( context : Context, key : Node, expression : Node, toggle : bool = False, hold : bool = False ):
     key_value = key.eval( context )
     
-    keys = context.symbols.lookup_internal( "keyboard_keys" )
+    keys = context.symbols.lookup_internal( "keyboard\\keys" )
 
-    keys[ KeyStroke.parse( key_value.value ) ] = expression
+    action = KeyAction( 
+        key = KeyStroke.parse( key_value.value ), 
+        expr = expression,
+        toggle = toggle,
+        hold = hold
+    )
+
+    keys[ action.key ] = action
+
+def register_key_toggle ( context : Context, key : Node, expression : Node ):
+    register_key( context, key, expression, toggle = True )
+
+def register_key_hold ( context : Context, key : Node, expression : Node ):
+    register_key( context, key, expression, hold = True )
+
+def keyboard_close ( context : Context ):
+    keyboard : KeyboardLibrary = context.library( KeyboardLibrary )
+
+    keyboard.close()
+
+class KeyAction:
+    def __init__ ( self, key : KeyStroke, expr : Node, hold : bool = False, toggle : bool = False, repeat : bool = False ):
+        self.key : KeyStroke = key 
+        self.expr : Node = expr
+        self.hold : bool = hold
+        self.toggle : bool = toggle
+        self.repeat : bool = repeat
+
+        self.is_active : bool = False
+        self.is_pressed : bool = False
+
+        self.async_player : AsyncMidiPlayer = None
+
+    def play ( self, context : Context, player : MidiPlayer ):
+        forked_context : Context = None
+
+        def eval ():
+            nonlocal forked_context
+
+            now = player.get_time() if forked_context == None else forked_context.cursor
+
+            forked_context = context.fork( cursor = now )
+
+            value = self.expr.eval( forked_context )
+
+            if value != None and value.is_music:
+                return value
+            elif value != None and isinstance( value, CallableValue ):
+                value = value.call( forked_context )
+
+                if value != None and value.is_music:
+                    return value
+
+            return None
+
+        self.async_player = AsyncMidiPlayer( eval, player, 0, self.repeat )
+
+        create_task( self.async_player.start() )
+
+    def stop ( self, context : Context, player : MidiPlayer ):
+        if self.async_player != None:
+            create_task( self.async_player.stop() )
+
+        self.async_player = None
+
+    def on_press ( self, context : Context, player : MidiPlayer ):
+        if self.is_pressed:
+            return
+
+        self.is_pressed = True
+
+        if self.toggle:
+            if self.async_player != None and self.async_player.is_playing:
+                self.stop( context, player )
+            else:
+                self.play( context, player )
+        else:
+            self.play( context, player )
+
+    def on_release ( self, context : Context, player : MidiPlayer ):
+        if not self.is_pressed:
+            return
+
+        self.is_pressed = False
+
+        if self.hold:
+            self.stop( context, player )
 
 class KeyboardLibrary(Library):
+    def __init__ ( self, player : MidiPlayer ):
+        super().__init__( "keyboard" )
+
+        self.player : MidiPlayer = player
+    
     def on_link ( self ):
         context = self.context
 
-        context.symbols.assign_internal( "keyboard_keys", dict() )
-        context.symbols.assign_internal( "keyboard_triggered", dict() )
+        self.assign_internal( "keys", dict() )
 
-        context.symbols.assign( "register_key", CallableValue( register_key ) )
+        self.assign( "register", CallableValue( register_key ) )
+        self.assign( "register_hold", CallableValue( register_key_hold ) )
+        self.assign( "register_toggle", CallableValue( register_key_toggle ) )
+        self.assign( "close", CallableValue( keyboard_close ) )
+        
+    @property
+    def registered ( self ) -> Dict[KeyStroke, KeyAction]:
+        return self.lookup_internal( "keys" )
 
-    def trigger_keys ( self, pressed : KeyStroke ):
-        context = self.context
+    @property
+    def actions ( self ) -> ValuesView[KeyAction]:
+        return self.registered.values()
 
-        registered = context.symbols.lookup_internal( "keyboard_keys" )
-        triggered = context.symbols.lookup_internal( "keyboard_triggered" )
+    @property
+    def keys ( self ) -> ItemsView[KeyStroke, KeyAction]:
+        return self.registered.items()
 
-        for key, expr in registered.items():
-            if key in pressed and key not in triggered:
-                triggered[ key ] = True
+    @property
+    def pressed ( self ) -> Iterable[KeyAction]:
+        return ( action for action in self.actions if action.is_active )
 
-                yield key, expr.eval( context.fork( 0 ) )
-            elif key in triggered:
-                del triggered[ key ]
+    @property
+    def pressed_keys ( self ) -> Iterable[KeyStroke]:
+        return ( action.key for action in self.pressed )
 
-    def registered_keys ( self ):    
-        return self.context.symbols.lookup_internal( "keyboard_keys" ).items()
+    def close ( self ):
+        for action in self.actions:
+            action.stop( self.context, self.player )
+
+        close_future : Future = self.lookup_internal( "close_future" )
+        
+        if close_future != None:
+            close_future.set_result( None )
+
+    def start ( self, key : KeyStroke ):
+        if key in registered:
+            registered[ key ].start( self.context, self.player )
+        
+    def stop ( self, key : KeyStroke ):
+        if key in registered:
+            registered[ key ].stop( self.context, self.player )
+
+    def on_press ( self, key : KeyStroke ):
+        registered = self.registered
+
+        if key in registered:
+            registered[ key ].on_press( self.context, self.player )
+
+    def on_release ( self, key : KeyStroke ):
+        registered = self.registered
+
+        if key in registered:
+            registered[ key ].on_release( self.context, self.player )
+
+    async def join_async ( self ):
+        close_future : Future = self.lookup_internal( "close_future" )
+
+        if close_future == None:
+            close_future = Future()
+
+            self.assign_internal( "close_future", close_future )
+        
+        await close_future

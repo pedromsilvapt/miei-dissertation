@@ -2,8 +2,8 @@ from .expression_node import ExpressionNode
 from core import VALUE_KIND_CALLABLE
 
 class FunctionExpressionNode( ExpressionNode ):
-    def __init__ ( self, name, parameters = [] ):
-        super().__init__()
+    def __init__ ( self, name, parameters = [], position : (int, int) = None ):
+        super().__init__( position )
 
         self.name = name
         self.parameters = parameters

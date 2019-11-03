@@ -2,8 +2,8 @@ from .statement_node import StatementNode
 from core import Instrument
 
 class InstrumentDeclarationStatementNode( StatementNode ):
-    def __init__ ( self, name, program ):
-        super().__init__()
+    def __init__ ( self, name, program, position : (int, int) = None ):
+        super().__init__( position )
 
         self.name = name
         self.program = program

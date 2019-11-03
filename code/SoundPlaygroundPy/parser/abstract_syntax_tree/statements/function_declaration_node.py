@@ -3,8 +3,8 @@ from .statement_node import StatementNode
 from ..expressions import VariableExpressionNode
 
 class FunctionDeclarationStatementNode( StatementNode ):
-    def __init__ ( self, name, arguments, body ):
-        super().__init__()
+    def __init__ ( self, name, arguments, body, position : (int, int) = None ):
+        super().__init__( position )
 
         self.name = name
         self.arguments = arguments

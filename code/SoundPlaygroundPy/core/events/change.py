@@ -21,3 +21,6 @@ class ContextChangeEvent( MusicEvent ):
 
         self.property = property
         self.value = value
+
+    def __str__ ( self ) -> str:
+        return f"[{self.property}={self.value}]"

@@ -1,5 +1,10 @@
+from core import Context, Value
+
 class Node():
-    def eval ( self, context, assignment : bool = False ):
+    def __init__ ( self, position : (int, int) = None ):
+        self.position : int = position
+
+    def eval ( self, context : Context, assignment : bool = False ) -> Value:
         pass
 
     def __repr__ ( self ):

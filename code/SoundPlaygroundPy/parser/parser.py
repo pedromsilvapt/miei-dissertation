@@ -1,6 +1,7 @@
 from arpeggio.peg import ParserPEG
 from arpeggio import PTNodeVisitor, visit_parse_tree
 from core.events import NoteEvent, NoteAccidental
+from .abstract_syntax_tree import Node
 from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode
 from .abstract_syntax_tree import RestNode, MusicRepeatNode, MusicGroupNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier
@@ -16,22 +17,30 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        return StatementsListNode( list( children ) )
+        position = ( node.position, node.position_end )
+
+        return StatementsListNode( list( children ), position )
 
     def visit_statement ( self, node, children ):
         return children[ 0 ]
 
     def visit_var_declaration ( self, node, children ):
-        return VariableDeclarationStatementNode( children[ 0 ], children[ 1 ] )
+        position = ( node.position, node.position_end )
+
+        return VariableDeclarationStatementNode( children[ 0 ], children[ 1 ], position )
 
     def visit_instrument_declaration ( self, node, children ):
-        return InstrumentDeclarationStatementNode( children[ 0 ], children[ 1 ] )
+        position = ( node.position, node.position_end )
+
+        return InstrumentDeclarationStatementNode( children[ 0 ], children[ 1 ], position )
     
     def visit_function_declaration ( self, node, children ):
-        if len( children ) == 3:
-            return FunctionDeclarationStatementNode( children[ 0 ], children[ 1 ], children[ 2 ] )
+        position = ( node.position, node.position_end )
 
-        return FunctionDeclarationStatementNode( children[ 0 ], [], children[ 1 ] )
+        if len( children ) == 3:
+            return FunctionDeclarationStatementNode( children[ 0 ], children[ 1 ], children[ 2 ], position )
+
+        return FunctionDeclarationStatementNode( children[ 0 ], [], children[ 1 ], position )
     
     def visit_arguments ( self, node, children ):
         return list( children )
@@ -55,7 +64,9 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        return MusicParallelNode( list( children ) )
+        position = ( node.position, node.position_end )
+
+        return MusicParallelNode( list( children ), position = position )
 
     def visit_parallel ( self, node, children ):
         pass
@@ -64,52 +75,74 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        return MusicSequenceNode( list( children ) )
+        position = ( node.position, node.position_end )
+
+        return MusicSequenceNode( list( children ), position )
 
     def visit_repeat ( self, node, children ):
         if len( children ) == 1:
             return children[ 0 ]
+
+        position = ( node.position, node.position_end )
     
-        return MusicRepeatNode( children[ 0 ], children[ 1 ] )
+        return MusicRepeatNode( children[ 0 ], children[ 1 ], position )
 
      
     def visit_expression_unambiguous ( self, node, children ):
         return children[ 0 ]
 
     def visit_group ( self, node, children ):
-        return MusicGroupNode( children[ 0 ] )
+        position = ( node.position, node.position_end )
+
+        return MusicGroupNode( children[ 0 ], position )
 
     def visit_note ( self, node, children ):
+        position = ( node.position, node.position_end )
+
         if len( children ) == 3:
             return NoteNode( 
                 pitch_class = children[ 1 ][ 0 ],
                 octave = children[ 1 ][ 1 ],
                 value = children[ 2 ],
-                accidental = children[ 0 ]
+                accidental = children[ 0 ],
+                position = position
             )
         
-        return NoteNode( pitch_class = children[ 1 ][ 0 ], octave = children[ 1 ][ 1 ], accidental = children[ 0 ] )
+        return NoteNode( 
+            pitch_class = children[ 1 ][ 0 ], 
+            octave = children[ 1 ][ 1 ], 
+            accidental = children[ 0 ] ,
+            position = position
+        )
 
     def visit_variable ( self, node, children ):
-        return VariableExpressionNode( children[ 0 ] )
+        position = ( node.position, node.position_end )
+
+        return VariableExpressionNode( children[ 0 ], position )
 
     def visit_function ( self, node, children ):
+        position = ( node.position, node.position_end )
+
         if len( children ) == 2:
-            return FunctionExpressionNode( children[ 0 ], children[ 1 ] )
+            return FunctionExpressionNode( children[ 0 ], children[ 1 ], position )
         
-        return FunctionExpressionNode( children[ 0 ] )
+        return FunctionExpressionNode( children[ 0 ], position = position )
 
     def visit_function_parameters ( self, node, children ):
         return list( children )
 
     def visit_chord ( self, node, children ):
-        return MusicParallelNode( list( children ) )
+        position = ( node.position, node.position_end )
+
+        return MusicParallelNode( list( children ), position )
 
     def visit_rest ( self, node, children ):
-        if len( children ) == 1:
-            return RestNode( value = children[ 0 ] )
+        position = ( node.position, node.position_end )
 
-        return RestNode()
+        if len( children ) == 1:
+            return RestNode( value = children[ 0 ], position = position )
+
+        return RestNode( position = position )
 
     def visit_note_accidental ( self, node, children ):
         if node.value == '^^':
@@ -135,27 +168,33 @@ class ParserVisitor(PTNodeVisitor):
         return NoteNode.parse_pitch_octave( ''.join( children ) )
 
     def visit_modifier ( self, node, children ):
+        position = ( node.position, node.position_end )
+
         c = children[ 0 ].lower()
         
-        if c == 't': return TempoModifierNode( children[ 1 ] )
-        elif c == 'v': return VelocityModifierNode( children[ 1 ] )
-        elif c == 'l': return LengthModifierNode( children[ 1 ] )
+        if c == 't': return TempoModifierNode( children[ 1 ], position )
+        elif c == 'v': return VelocityModifierNode( children[ 1 ], position )
+        elif c == 'l': return LengthModifierNode( children[ 1 ], position )
         elif c == 's':
             if len( children ) == 3:
-                return SignatureModifierNode( children[ 1 ], children[ 2 ] )
+                return SignatureModifierNode( children[ 1 ], children[ 2 ], position )
             else:
-                return SignatureModifierNode( lower = children[ 1 ] )
-        elif c == 'o': return OctaveModifierNode( children[ 1 ] )
+                return SignatureModifierNode( lower = children[ 1 ], position = position )
+        elif c == 'o': return OctaveModifierNode( children[ 1 ], position )
 
     def visit_instrument_modifier ( self, node, children ):
-        return InstrumentBlockModifier( children[ 1 ], children[ 0 ] )
+        position = ( node.position, node.position_end )
+
+        return InstrumentBlockModifier( children[ 1 ], children[ 0 ], position )
 
     def visit_value_expression ( self, node, children ):
         return children[ 0 ]
 
     # Strings
     def visit_string_value ( self, node, children ):
-        return StringLiteralNode( children[ 0 ] )
+        position = ( node.position, node.position_end )
+
+        return StringLiteralNode( children[ 0 ], position )
 
     def visit_double_string ( self, node, children ):
         return ''.join( children )
@@ -179,8 +218,13 @@ class ParserVisitor(PTNodeVisitor):
         else:
             return node.value
 
-    def integer_value ( self, node, children ):
-        return NumberValueLiteral( children[ 0 ] )
+    def visit_number_value ( self, node, children ):
+        position = ( node.position, node.position_end )
+        
+        return NumberLiteralNode( children[ 0 ], position )
+
+    def visit_namespaced ( self, node, children ):
+        return '\\'.join( children )
 
     def visit_alphanumeric ( self, node, children ):
         return node.value
@@ -199,11 +243,11 @@ class Parser():
         with open( "parser/grammar.peg", "r" ) as f:
             self.internal_parser = ParserPEG( f.read(), "body", skipws=False )
 
-    def parse ( self, expression ):
+    def parse ( self, expression ) -> Node:
         tree = self.internal_parser.parse( expression )
 
         return visit_parse_tree( tree, ParserVisitor( debug = False ) )
 
-    def parse_file ( self, file ):
+    def parse_file ( self, file ) -> Node:
         with open( file, 'r' ) as f:
             return self.parse( f.read() )

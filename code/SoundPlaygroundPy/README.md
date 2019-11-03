@@ -2,6 +2,7 @@
 Python port of the experiments that were started in the .NET project.
 
 ## Python Dependencies
+ - `pynput`
  - `imgui[glfw]` (requires `libglfw3` and `libglfw3-dev`)
  - `py_linq`
  - `arpeggio`
@@ -21,6 +22,7 @@ To run the app in the terminal:
 ```shell
 python3 __init__.py examples/westworld.ml
 python3 __init__.py examples/minecraft.ml -o pulseaudio -o minecraft.abc
+python3 __init__.py examples/keyboard.ml -i keyboard
 ```
 
 For a more detailed view of the available options, check:

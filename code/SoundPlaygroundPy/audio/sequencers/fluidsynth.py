@@ -1,5 +1,5 @@
 import fluidsynth
-from core.events import MusicEvent, NoteEvent, ProgramChangeEvent
+from core.events import MusicEvent, NoteEvent, ProgramChangeEvent, CallbackEvent
 from .sequencer import Sequencer
 from ctypes import py_object, c_void_p
 from threading import Semaphore
@@ -54,6 +54,8 @@ class FluidSynthSequencer ( Sequencer ):
     def __init__ ( self, output : str = None, soundfont : str = None ):
         super().__init__()
 
+        self.realtime = True
+
         self.output : str = output or "pulseaudio"
         self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
 
@@ -65,6 +67,7 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.last_note : int = None
         self.join_lock : threading.Semaphore = None
+        self.start_time : int = 0
 
         self.events_data : Dict[int, Any] = dict()
         self.events_data_id : int = 1
@@ -81,15 +84,15 @@ class FluidSynthSequencer ( Sequencer ):
         if self.synth == None:
             return False
 
-        now = self.get_tick()
+        now = self.get_time()
 
         return self.last_note != None and now <= self.last_note
         
-    def get_tick ( self ):
+    def get_time ( self ):
         if self.sequencer == None:
             return 0
         
-        return self.sequencer.get_tick()
+        return self.sequencer.get_tick() - self.start_time
 
     def timer ( self, time, data = None, source = -1, dest = -1, absolute = True ):
         if self.last_note == None or self.last_note < time:
@@ -129,25 +132,27 @@ class FluidSynthSequencer ( Sequencer ):
                 self.synth.noteoff( event.channel, int( event ) )
             elif isinstance( event, ProgramChangeEvent ):
                 self.synth.program_change( event.channel, event.program )
+            elif isinstance( event, CallbackEvent ):
+                event.call()
             else:
                 pass
 
     def register_event ( self, event : MusicEvent, now = None ):
         if now == None:
-            now = self.get_tick()
+            now = self.get_time()
         
         if isinstance( event, NoteEvent ):
             noteon = NoteOnEvent.from_note( event )
             noteoff = NoteOffEvent.from_note( event )
 
-            self.timer( now + noteon.timestamp, data = noteon, dest = self.client )
-            self.timer( now + noteoff.timestamp, data = noteoff, dest = self.client )
+            self.timer( now - self.start_time + noteon.timestamp, data = noteon, dest = self.client )
+            self.timer( now - self.start_time + noteoff.timestamp, data = noteoff, dest = self.client )
         else:
             self.timer( now + event.timestamp, data = event, dest = self.client )
 
     def register_events_many ( self, events, now = None ):
         if now == None:
-            now = self.get_tick()
+            now = self.get_time()
         
         for event in events:
             self.register_event( event, now = now )
@@ -163,7 +168,7 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.join_lock = Semaphore( 0 )
 
-        self.timer( self.get_tick() + self.last_note, dest = self.client )
+        self.timer( self.get_time() + self.last_note, dest = self.client )
         
         self.join_lock.acquire()
 
@@ -172,10 +177,12 @@ class FluidSynthSequencer ( Sequencer ):
 
         # 'alsa', 'oss', 'jack', 'portaudio', 'sndmgr', 'coreaudio', 'Direct Sound', 'pulseaudio'
         fluidsynth.fluid_settings_setint(self.synth.settings, b'audio.period-size', 1024 )
+        fluidsynth.fluid_settings_setint( self.synth.settings, b'synth.verbose', 0 )
 
         if self.is_output_file:
             fluidsynth.fluid_settings_setstr( self.synth.settings, b'audio.file.name', self.output.encode() )
             fluidsynth.fluid_settings_setstr( self.synth.settings, b'audio.driver', 'file'.encode() )
+            
             self.synth.audio_driver = fluidsynth.new_fluid_audio_driver( self.synth.settings, self.synth.synth )
         else:
             self.synth.start( driver = self.output )
@@ -189,6 +196,8 @@ class FluidSynthSequencer ( Sequencer ):
         self.synthId = self.sequencer.register_fluidsynth( self.synth )
 
         self.client = self.sequencer.register_client( "eventClient", self.apply_event_callback )
+
+        self.start_time = self.sequencer.get_tick()
         
     def close ( self ):
         # TODO Release fluidsynth resources

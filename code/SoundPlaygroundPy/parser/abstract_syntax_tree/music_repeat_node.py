@@ -1,8 +1,8 @@
 from .music_node import MusicNode
 
 class MusicRepeatNode( MusicNode ):
-    def __init__ ( self, expression, count ):
-        super().__init__()
+    def __init__ ( self, expression, count, position : (int, int) = None ):
+        super().__init__( position )
 
         self.expression = expression
         self.count = count

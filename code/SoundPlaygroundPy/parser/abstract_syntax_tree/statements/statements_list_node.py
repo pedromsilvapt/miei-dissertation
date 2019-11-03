@@ -2,8 +2,8 @@ from .statement_node import StatementNode
 from core import Value, VALUE_KIND_MUSIC
 
 class StatementsListNode( StatementNode ):
-    def __init__ ( self, nodes ):
-        super().__init__()
+    def __init__ ( self, nodes, position : (int, int) = None ):
+        super().__init__( position )
 
         self.statements = nodes
 

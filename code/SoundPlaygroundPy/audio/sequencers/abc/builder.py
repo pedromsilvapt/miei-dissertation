@@ -1,9 +1,7 @@
-from core.events import MusicEvent, ContextChangeEvent, NoteEvent, RestEvent, NotePitchClasses
+from core.events import MusicEvent, ContextChangeEvent, NoteEvent, RestEvent, NotePitchClassesInv
 from fractions import Fraction
 from .file import ABCFile, ABCStaff, ABCBar, ABCNote, ABCRest
 from typing import Dict
-
-NotePitchClassesInv : Dict[int, str] = { v: k for k, v in NotePitchClasses.items() }
 
 class ABCBuilder:
     def __init__ ( self ):
@@ -108,8 +106,6 @@ class ABCBuilder:
         current_bar.symbols.append( rest )
 
     def add_event ( self, event : MusicEvent ):
-        print( event )
-        
         if isinstance( event, ContextChangeEvent ):
             self.add_context_change( event )
         elif isinstance( event, NoteEvent ):

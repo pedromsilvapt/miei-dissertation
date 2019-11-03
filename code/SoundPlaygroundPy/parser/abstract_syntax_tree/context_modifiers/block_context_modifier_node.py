@@ -1,8 +1,8 @@
 from .. import MusicNode
 
 class BlockContextModifierNode( MusicNode ):
-    def __init__ ( self, body ):
-        super().__init__()
+    def __init__ ( self, body, position : (int, int) = None ):
+        super().__init__( position )
 
         self.body = body
     

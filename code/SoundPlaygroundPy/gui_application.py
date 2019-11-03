@@ -2,7 +2,7 @@ from core import Context, Instrument, VALUE_KIND_MUSIC
 from parser.abstract_syntax_tree import MusicSequenceNode
 from parser.abstract_syntax_tree.context_modifiers import ContextModifierNode
 from graphics import BaseApplication
-from libraries import KeyboardLibrary, KeyStroke, StandardLibrary
+from libraries import KeyboardLibrary, KeyStroke, MusicLibrary, StandardLibrary
 from parser import Parser
 from audio import MidiPlayer
 from audio.sequencers import FluidSynthSequencer
@@ -16,7 +16,7 @@ EXPRESSION_TAB_KEYBOARD = 2
 
 class GuiApplication( BaseApplication ):
     def __init__ ( self ):
-        with open( 'examples/westworld.ml', 'r' ) as f:
+        with open( 'examples/keyboard.ml', 'r' ) as f:
             self.code = f.read()
 
 
@@ -45,6 +45,7 @@ class GuiApplication( BaseApplication ):
         )
 
         ctx.link( StandardLibrary() )
+        ctx.link( MusicLibrary() )
         ctx.link( KeyboardLibrary() )
 
         return ctx
@@ -102,25 +103,22 @@ class GuiApplication( BaseApplication ):
         imgui.begin_child( "keyboard", 0, 0, border = True )
 
         if self.context != None:
-            current_keys = self.get_pressed_keystrokes()
+            current_keys = list( self.get_pressed_keystrokes() )
 
-            pressed = set()
+            keyboard : KeyboardLibrary = self.context.library( KeyboardLibrary )
 
-            keyboard = self.context.library( KeyboardLibrary )
+            for key in current_keys:
+                keyboard.on_press( key, self.player )
 
-            for key, events in keyboard.trigger_keys( set( current_keys ) ):
-                pressed.add( key )
+            released = set( keyboard.pressed_keys ) - set( current_keys )
+            
+            for key in released:
+                keyboard.on_release( key, self.player )
 
-                if events != None and events.kind == VALUE_KIND_MUSIC:
-                    self.player.play_more( events )
-
-
-            for key, expr in keyboard.registered_keys():
-                is_pressed = key in pressed
-
+            for key, expr in keyboard.keys:
                 imgui.bullet()
 
-                if is_pressed: imgui.text_colored( str( key ), 0, 1, 0 )
+                if expr.is_pressed: imgui.text_colored( str( key ), 0, 1, 0 )
                 else: imgui.text( str( key ) )
 
         imgui.end_child()
@@ -151,7 +149,9 @@ class GuiApplication( BaseApplication ):
 
                     self.context = self.create_context()
 
-                    self.player = MidiPlayer( events = list( self.parsedTree.eval( self.context ) ) )
+                    value = self.parsedTree.eval( self.context )
+
+                    self.player = MidiPlayer( events = list( value ) if value and value.is_music else [] )
                     self.player.sequencers.append( FluidSynthSequencer() )
 
                     self.parsedException = None

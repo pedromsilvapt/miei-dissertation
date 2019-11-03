@@ -5,35 +5,44 @@ from core.events import NoteEvent, RestEvent, ProgramChangeEvent
 from .sequencers import Sequencer
 from typing import List
 
+def get_milliseconds () -> int:
+    return int( round( time.time() * 1000 ) )
+
 class MidiPlayer():
     def __init__ ( self, sequencers : List[Sequencer] = [], events = [] ):
         self.events = events
         self.sequencers : List[Sequencer] = sequencers
-        self.started = False
+        self.started : bool = False
+        self.start_time : int = None
     
     def setup ( self ):
         for seq in self.sequencers:
             seq.start()
 
+        self.start_time = get_milliseconds()
+
+        self.started = True
+
+    def get_time ( self ):
+        if not self.started:
+            return 0
+        
+        return get_milliseconds() - self.start_time
+
     def play ( self ):
         if not self.started:
             self.setup()
 
-            self.started = True
-
         for seq in self.sequencers:
             seq.register_events_many( self.events )
 
-    def play_more ( self, events ):
+    def play_more ( self, events, now : int = None ):
         if not self.started:
             self.setup()
 
-            self.started = True
-
         for seq in self.sequencers:
-            seq.register_events_many( events )
+            seq.register_events_many( events, now )
             
-
     def join ( self ):
         if not self.started:
             return

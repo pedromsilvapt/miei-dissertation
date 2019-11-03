@@ -3,8 +3,8 @@ from core.events import ContextChangeEvent
 from core import Context
 
 class SignatureModifierNode( ContextModifierNode ):
-    def __init__ ( self, upper = None, lower = None ):
-        super().__init__()
+    def __init__ ( self, upper = None, lower = None, position : (int, int) = None ):
+        super().__init__( position )
 
         self.upper = upper
         self.lower = lower

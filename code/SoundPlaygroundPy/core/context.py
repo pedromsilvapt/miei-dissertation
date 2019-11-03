@@ -1,14 +1,46 @@
 from .instrument import Instrument
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
-from typing import List
+from typing import List, Hashable
 
 class Library:
-    def __init__ ( self ):
-        self.context = None
+    def __init__ ( self, namespace : str = None ):
+        self.namespace : str = namespace
+        self.context : 'Context' = None
 
     def on_link ( self ):
         pass
+
+    def resolve ( self, name : str ) -> str:
+        if self.namespace != None and self.namespace != '':
+            if self.namespace.endswith( '\\' ) and name.startswith( '\\' ):
+                return self.namespace + name[ 1: ]
+            elif self.namespace.endswith( '\\' ) or name.startswith( '\\' ):
+                return self.namespace + name
+            else:
+                return self.namespace + '\\' + name
+        else:
+            return name
+
+    def lookup ( self, name : Hashable, container : str = "", recursive : bool = True, follow_pointers : bool = True, default = None ):
+        return self.context.symbols.lookup( self.resolve( name ), container = container, recursive = recursive, follow_pointers = follow_pointers, default = default )
+
+    def assign ( self, name : Hashable, value, container = "", follow_pointers : bool = True ):
+        return self.context.symbols.assign( self.resolve( name ), value, container, follow_pointers )
+
+    def lookup_instrument ( self, name ):
+        return self.context.symbols.lookup_instrument( self.resolve( name ) )
+
+    def assign_instrument ( self, instrument ):
+        self.assign( instrument.name, instrument, container = "instruments" )
+        
+        return instrument
+
+    def lookup_internal ( self, name ):
+        return self.context.symbols.lookup_internal( self.resolve( name ) )
+
+    def assign_internal ( self, name, value ):
+        self.context.symbols.assign_internal( self.resolve( name ), value )
 
 class Context():
     def create ():

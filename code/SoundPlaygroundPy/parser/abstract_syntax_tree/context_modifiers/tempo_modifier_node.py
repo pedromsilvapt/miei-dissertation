@@ -3,8 +3,8 @@ from core.events import ContextChangeEvent
 from core import Context
 
 class TempoModifierNode( ContextModifierNode ):
-    def __init__ ( self, tempo ):
-        super().__init__()
+    def __init__ ( self, tempo, position : (int, int) = None ):
+        super().__init__( position )
 
         self.tempo = tempo
 

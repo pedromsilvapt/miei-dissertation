@@ -1,8 +1,8 @@
 from .music_node import MusicNode
 
 class MusicGroupNode( MusicNode ):
-    def __init__ ( self, expression ):
-        super().__init__()
+    def __init__ ( self, expression, position : (int, int) = None ):
+        super().__init__( position )
         
         self.expression = expression
 

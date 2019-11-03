@@ -1,8 +1,8 @@
 from .statement_node import StatementNode
 
 class VariableDeclarationStatementNode( StatementNode ):
-    def __init__ ( self, name, expression ):
-        super().__init__()
+    def __init__ ( self, name, expression, position : (int, int) = None ):
+        super().__init__( position )
 
         self.name = name
         self.expression = expression

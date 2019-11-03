@@ -18,7 +18,7 @@ class ABCSequencer ( Sequencer ):
     def playing ( self ) -> bool:
         return False
         
-    def get_tick ( self ):
+    def get_time ( self ):
         if self.start_time == None:
             return 0
         
@@ -29,7 +29,7 @@ class ABCSequencer ( Sequencer ):
 
     def register_events_many ( self, events, now = None ):
         if now == None:
-            now = self.get_tick()
+            now = self.get_time()
         
         for event in events:
             self.register_event( event, now = now )

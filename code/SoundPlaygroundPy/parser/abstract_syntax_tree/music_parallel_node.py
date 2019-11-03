@@ -2,7 +2,9 @@ from .music_node import MusicNode
 from py_linq import Enumerable
 
 class MusicParallelNode( MusicNode ):
-    def __init__ ( self, nodes ):
+    def __init__ ( self, nodes, position : (int, int) = None ):
+        super().__init__( position )
+        
         self.expressions = nodes
     
     def fork_and_get_events ( self, node, forks, context ):

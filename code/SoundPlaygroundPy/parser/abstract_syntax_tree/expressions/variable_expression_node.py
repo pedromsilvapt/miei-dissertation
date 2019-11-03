@@ -2,8 +2,8 @@ from .expression_node import ExpressionNode
 from core import Value, VALUE_KIND_MUSIC
 
 class VariableExpressionNode( ExpressionNode ):
-    def __init__ ( self, name ):
-        super().__init__()
+    def __init__ ( self, name, position : (int, int) = None ):
+        super().__init__( position )
 
         self.name = name
 
