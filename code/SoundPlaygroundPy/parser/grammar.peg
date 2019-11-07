@@ -1,4 +1,8 @@
-body <- statement ( ";" statement )* _ ";"? _;
+main <- body EOF;
+
+body <- statement ( ";" statement )* _ ";"? _
+      / ""
+      ;
 
 // Statements
 statement <- _ ( var_declaration / instrument_declaration / function_declaration / for_loop_statement / expression ) _;
@@ -25,19 +29,11 @@ while_loop_statement <- "while" _ expression _ "{" _ body _ "}";
 
 if_statement <- "if" _ expression _ "{" _ body _ "}";
 
-expression <- music_expression / value_expression;
+expression <- e music_expression;
 
 music_expression <- sequence ( _ "|" _ sequence )*;
 
-sequence <- repeat ( _ repeat)*;
-
-repeat
-    <- expression_unambiguous _ "*" _ integer
-     / expression_unambiguous
-     ;
-
-expression_unambiguous
-    <- variable / function / group / chord / note / rest / modifier / instrument_modifier;
+sequence <- value_expression ( _ value_expression)*;
 
 group <- "(" _ music_expression _ ")";
 
@@ -77,7 +73,29 @@ modifier
 
 instrument_modifier <- ":" alphanumeric _ sequence;
 
-value_expression <- string_value / number_value / variable / function;
+value_expression <- e binary_logic_operator_expression;
+
+binary_logic_operator_expression <- binary_comparison_operator_expression _ ("and" / "or") _ binary_logic_operator_expression
+                                  / binary_comparison_operator_expression
+                                  ;
+
+binary_comparison_operator_expression <- binary_sum_operator_expression _ (">=" / ">" / "==" / "!=" / "<=" / "<") _ binary_comparison_operator_expression
+                                       / binary_sum_operator_expression
+                                       ;
+
+binary_sum_operator_expression <- binary_mult_operator_expression _ r"[+\-]" _ binary_sum_operator_expression
+                                / binary_mult_operator_expression
+                                ;
+
+binary_mult_operator_expression <- unary_operator_expression _ r"[*/]" _ binary_mult_operator_expression
+                                 / unary_operator_expression
+                                 ;                            
+
+unary_operator_expression <- "not" _ expression
+                           / expression_single
+                           ;
+
+expression_single <- string_value / number_value / bool_value / none_value / variable / function /  group / chord / note / rest / modifier / instrument_modifier;
 
 string_value <- double_string / single_string;
 
@@ -99,6 +117,10 @@ single_string_char
 
 number_value <- float / integer;
 
+bool_value <- "true" / "false";
+
+none_value <- "none";
+
 float <- r"[0-9]+\.[0-9]+";
 
 integer <- r"[0-9]+";
@@ -108,3 +130,5 @@ namespaced <- ( alphanumeric "\\" )* alphanumeric;
 alphanumeric <- r"[a-zA-Z][a-zA-Z0-9\_]*";
 
 _ <- r"[ \t\r\n]*";
+
+e <- "";

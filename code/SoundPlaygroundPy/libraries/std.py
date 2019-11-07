@@ -1,5 +1,5 @@
 from core import Context, Library, CallableValue
-from core import Value, VALUE_KIND_MUSIC, VALUE_KIND_STRING
+from core import Value, VALUE_KIND_MUSIC, VALUE_KIND_STRING, VALUE_KIND_OBJECT, VALUE_KIND_BOOL, VALUE_KIND_NUMBER
 from parser import Parser
 from parser.abstract_syntax_tree import Node
 from parser.abstract_syntax_tree.expressions import VariableExpressionNode
@@ -22,6 +22,31 @@ def function_discard ( context : Context, expr ):
     expr.eval( context.fork() )
 
     return None
+
+def function_ast ( context : Context, expr ):
+    return Value( VALUE_KIND_OBJECT, expr )
+
+
+def function_bool ( context : Context, expr ):
+    value = expr.eval( context )
+
+    return Value( VALUE_KIND_BOOL, bool( value.value if value != None else None ) )
+
+def function_int ( context : Context, expr ):
+    value = expr.eval( context )
+
+    return Value( VALUE_KIND_NUMBER, int( value.value if value != None else None ) )
+
+
+def function_float ( context : Context, expr ):
+    value = expr.eval( context )
+
+    return Value( VALUE_KIND_NUMBER, float( value.value if value != None else None ) )
+
+def function_str ( context : Context, expr ):
+    value = expr.eval( context )
+
+    return Value( VALUE_KIND_STRING, str( value.value if value != None else None ) )
 
 def function_debug ( context : Context, expr ):
     value = expr.eval( context.fork() )
@@ -52,4 +77,10 @@ class StandardLibrary(Library):
         context.symbols.assign( "play", CallableValue( function_play ) )
         context.symbols.assign( "using", CallableValue( function_using ) )
         context.symbols.assign( "import", CallableValue( function_import ) )
+        context.symbols.assign( "ast", CallableValue( function_ast ) )
+
+        context.symbols.assign( "bool", CallableValue( function_bool ) )
+        context.symbols.assign( "int", CallableValue( function_int ) )
+        context.symbols.assign( "float", CallableValue( function_float ) )
+        context.symbols.assign( "str", CallableValue( function_str ) )
 

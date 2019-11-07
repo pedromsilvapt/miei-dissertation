@@ -9,6 +9,7 @@ from audio.sequencers import FluidSynthSequencer
 import imgui
 import glfw
 import traceback
+import time
 
 EXPRESSION_TAB_AST = 0
 EXPRESSION_TAB_EVENTS = 1
@@ -16,15 +17,8 @@ EXPRESSION_TAB_KEYBOARD = 2
 
 class GuiApplication( BaseApplication ):
     def __init__ ( self ):
-        with open( 'examples/keyboard.ml', 'r' ) as f:
+        with open( 'examples/westworld.ml', 'r' ) as f:
             self.code = f.read()
-
-
-
-#         self.code = """S4/4 T74 L/8 V120;
-
-# register_key( "a"; A,, E, A, B, C B, A, E, D, F, C E C A, );
-# """
 
         self.parsedTree = None
         self.parsedException = None
@@ -33,7 +27,7 @@ class GuiApplication( BaseApplication ):
 
         self.expressionTab = EXPRESSION_TAB_AST
 
-    def create_context ( self, ):
+    def create_context ( self, player : MidiPlayer ):
         ctx = Context(
             time_signature = (6, 8),
             tempo = 75,
@@ -46,7 +40,7 @@ class GuiApplication( BaseApplication ):
 
         ctx.link( StandardLibrary() )
         ctx.link( MusicLibrary() )
-        ctx.link( KeyboardLibrary() )
+        ctx.link( KeyboardLibrary( player ) )
 
         return ctx
     
@@ -145,17 +139,21 @@ class GuiApplication( BaseApplication ):
 
             try:
                 if to_parse or to_play:
-                    self.parsedTree = Parser().parse( self.code )
+                    self.player = MidiPlayer()
 
-                    self.context = self.create_context()
-
-                    value = self.parsedTree.eval( self.context )
-
-                    self.player = MidiPlayer( events = list( value ) if value and value.is_music else [] )
                     self.player.sequencers.append( FluidSynthSequencer() )
 
+                    parser = Parser();
+
+                    self.parsedTree = parser.parse( self.code )
+                    
+                    self.context = self.create_context( self.player )
+
+                    value = self.parsedTree.eval( self.context )
+                    
+                    self.player.events = events = list( value ) if value and value.is_music else []
+
                     self.parsedException = None
-                
                 if to_play:
                     self.player.play()
             except Exception as ex:

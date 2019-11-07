@@ -23,6 +23,7 @@ class CliApplication:
         self.parser = Parser()
         self.keyboard_state = dict()
         self.player = None
+        self.tasks = set()
 
     def create_context ( self ):
         return Context.create()
@@ -37,11 +38,22 @@ class CliApplication:
 
             ast.eval( context )
 
-    def eval ( self, context, ast ):
+    def eval_music ( self, context, ast ):
         value = ast.eval( context )
 
-        if value and value.is_music:
-            self.player.play_more( value )
+        if value != None and value.is_music:
+            return value
+        
+        return ()
+
+    def play ( self, context, ast ):
+        async_player = AsyncMidiPlayer( lambda: self.eval_music( context, ast ), self.player )
+
+        task = asyncio.create_task( async_player.start() )
+
+        self.tasks.add( task )
+
+        task.add_done_callback( lambda a: self.tasks.remove( task ) )
 
     def get_key_info ( self, key : keyboard.Key ) -> (bool, str):
         key_str = str( key )
@@ -149,16 +161,17 @@ class CliApplication:
             else:
                 ast = self.parser.parse_file( options.file )
 
-                async_player = AsyncMidiPlayer( lambda: ast.eval( context ), self.player )
-
-                await async_player.start()
+                self.play( context, ast )
 
             keyboard : KeyboardLibrary = context.library( KeyboardLibrary )
 
             if keyboard != None and len( keyboard.registered ) > 0:
                 await self.keyboard( context, keyboard )
             else:
+                for task in list( self.tasks ):
+                    await task
+
                 # Wait for the end of the player if there is anything left to play
-                self.player.join()
+                # self.player.join()
         finally:
             self.player.close()

@@ -3,18 +3,28 @@ from arpeggio import PTNodeVisitor, visit_parse_tree
 from core.events import NoteEvent, NoteAccidental
 from .abstract_syntax_tree import Node
 from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode
-from .abstract_syntax_tree import RestNode, MusicRepeatNode, MusicGroupNode
+from .abstract_syntax_tree import RestNode, MusicGroupNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier
+
 from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode
-from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode
+from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode, BoolLiteralNode, NoneLiteralNode
+
+from .abstract_syntax_tree.expressions import PlusBinaryOperatorNode, MinusBinaryOperatorNode, MultBinaryOperatorNode, DivBinaryOperatorNode
+from .abstract_syntax_tree.expressions import AndLogicOperatorNode, OrLogicOperatorNode
+
+from .abstract_syntax_tree.expressions import GreaterComparisonOperatorNode, GreaterEqualComparisonOperatorNode
+from .abstract_syntax_tree.expressions import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode
+from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, LesserEqualComparisonOperatorNode
+
 from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
 
+import time
+
 class ParserVisitor(PTNodeVisitor):
     def visit_body ( self, node, children ):
-        if len( children ) > 0 and children[ -1 ] == ";":
-            children = children[:-1]
-
+        children = children.statement
+        
         if len( children ) == 1:
             return children[ 0 ]
 
@@ -64,6 +74,98 @@ class ParserVisitor(PTNodeVisitor):
     def visit_expression ( self, node, children ):
         return children[ 0 ]
 
+    def visit_value_expression ( self, node, children ):
+        return children[ 0 ]
+
+    def visit_binary_logic_operator_expression ( self, node, children ):
+        if len( children ) == 1:
+            return children[ 0 ]
+
+        position = ( node.position, node.position_end )
+
+        left = children.binary_comparison_operator_expression[ 0 ]
+        right = children.binary_logic_operator_expression[ 0 ]
+
+        op = children[ 1 ]
+
+        if op == 'and':
+            return AndLogicOperatorNode( left, right, position )
+        elif op == 'or':
+            return OrLogicOperatorNode( left, right, position )
+        else:
+            raise BaseException( "Unknown binary operator: %s" % op )
+    
+    def visit_binary_comparison_operator_expression ( self, node, children ):
+        if len( children ) == 1:
+            return children[ 0 ]
+
+        position = ( node.position, node.position_end )
+
+        left = children.binary_sum_operator_expression[ 0 ]
+        right = children.binary_comparison_operator_expression[ 0 ]
+
+        op = children[ 1 ]
+
+        if op == '>=':
+            return GreaterEqualComparisonOperatorNode( left, right, position )
+        elif op == '>':
+            return GreaterComparisonOperatorNode( left, right, position )
+        elif op == '==':
+            return EqualComparisonOperatorNode( left, right, position )
+        elif op == '!=':
+            return NotEqualComparisonOperatorNode( left, right, position )
+        elif op == '<=':
+            return LesserEqualComparisonOperatorNode( left, right, position )
+        elif op == '<':
+            return LesserComparisonOperatorNode( left, right, position )
+        else:
+            raise BaseException( "Unknown binary operator: %s" % op )
+
+    def visit_binary_sum_operator_expression ( self, node, children ):
+        if len( children ) == 1:
+            return children[ 0 ]
+
+        position = ( node.position, node.position_end )
+
+        left = children.visit_binary_mult_operator_expression[ 0 ]
+        right = children.visit_binary_sum_operator_expression[ 0 ]
+
+        op = children[ 1 ]
+
+        if op == '+':
+            return PlusBinaryOperatorNode( left, right, position )
+        elif op == '-':
+            return MinusBinaryOperatorNode( left, right, position )
+        else:
+            raise BaseException( "Unknown binary operator: %s" % op )
+
+    def visit_binary_mult_operator_expression ( self, node, children ):
+        if len( children ) == 1:
+            return children[ 0 ]
+
+        position = ( node.position, node.position_end )
+
+        left = children.unary_operator_expression[ 0 ]
+        right = children.binary_mult_operator_expression[ 0 ]
+
+        op = children[ 1 ]
+
+        if op == '*':
+            return MultBinaryOperatorNode( left, right, position )
+        elif op == '/':
+            return DivBinaryOperatorNode( left, right, position )
+        else:
+            raise BaseException( "Unknown binary operator: %s" % op )
+
+    def visit_unary_operator_expression ( self, node, children ):
+        if len( children ) == 1:
+            return children[ 0 ]
+
+        raise BaseException( "Unknown unary operator: %s" % op )
+
+    def visit_expression_single ( self, node, children ):
+        return children[ 0 ]
+
     def visit_music_expression ( self, node, children ):
         if len( children ) == 1:
             return children[ 0 ]
@@ -82,18 +184,6 @@ class ParserVisitor(PTNodeVisitor):
         position = ( node.position, node.position_end )
 
         return MusicSequenceNode( list( children ), position )
-
-    def visit_repeat ( self, node, children ):
-        if len( children ) == 1:
-            return children[ 0 ]
-
-        position = ( node.position, node.position_end )
-    
-        return MusicRepeatNode( children[ 0 ], children[ 1 ], position )
-
-     
-    def visit_expression_unambiguous ( self, node, children ):
-        return children[ 0 ]
 
     def visit_group ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -191,9 +281,6 @@ class ParserVisitor(PTNodeVisitor):
 
         return InstrumentBlockModifier( children[ 1 ], children[ 0 ], position )
 
-    def visit_value_expression ( self, node, children ):
-        return children[ 0 ]
-
     # Strings
     def visit_string_value ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -227,6 +314,16 @@ class ParserVisitor(PTNodeVisitor):
         
         return NumberLiteralNode( children[ 0 ], position )
 
+    def visit_bool_value ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        return BoolLiteralNode( children[ 0 ] == "true", position )
+
+    def visit_none_value ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        return NoneLiteralNode( position )
+
     def visit_namespaced ( self, node, children ):
         return '\\'.join( children )
 
@@ -242,15 +339,22 @@ class ParserVisitor(PTNodeVisitor):
     def visit__ ( self, node, children ):
         return None
 
+    def visit_e ( self, node, children ):
+        return None
+
 class Parser():
     def __init__ ( self ):
+        self.debug : bool = False
+
         with open( "parser/grammar.peg", "r" ) as f:
-            self.internal_parser = ParserPEG( f.read(), "body", skipws=False )
+            self.internal_parser = ParserPEG( f.read(), "main", skipws=False, debug = False, memoization=True )
 
     def parse ( self, expression ) -> Node:
         tree = self.internal_parser.parse( expression )
-
-        return visit_parse_tree( tree, ParserVisitor( debug = False ) )
+        
+        result = visit_parse_tree( tree, ParserVisitor( debug = self.debug ) )
+        
+        return result
 
     def parse_file ( self, file ) -> Node:
         with open( file, 'r' ) as f:

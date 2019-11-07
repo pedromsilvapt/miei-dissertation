@@ -55,7 +55,7 @@ class AsyncMidiPlayer:
                 if self.events_iterator == None:
                     iterable = self.factory()
 
-                    if iterable != None:
+                    if iterable != None and hasattr( iterable, '__iter__' ):
                         self.is_playing = True
 
                         self.events_iterator = iter( iterable )
