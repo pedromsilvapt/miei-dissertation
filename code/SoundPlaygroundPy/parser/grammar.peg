@@ -1,6 +1,7 @@
 body <- statement ( ";" statement )* _ ";"? _;
 
-statement <- _ ( var_declaration / instrument_declaration / function_declaration / expression ) _;
+// Statements
+statement <- _ ( var_declaration / instrument_declaration / function_declaration / for_loop_statement / expression ) _;
 
 var_declaration <- "$" namespaced _ "=" _ expression;
 
@@ -17,6 +18,12 @@ single_argument_expr <- "expr" _ "$" alphanumeric;
 single_argument_ref <- "ref" _ "$" alphanumeric;
 
 single_argument_eval <- "$" alphanumeric;
+
+for_loop_statement <- "for" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ "{" _ body? _ "}";
+
+while_loop_statement <- "while" _ expression _ "{" _ body _ "}";
+
+if_statement <- "if" _ expression _ "{" _ body _ "}";
 
 expression <- music_expression / value_expression;
 

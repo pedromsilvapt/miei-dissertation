@@ -120,6 +120,7 @@ class KeyAction:
         self.async_player = None
 
     def on_press ( self, context : Context, player : MidiPlayer ):
+        print("on press", self.is_pressed)
         if self.is_pressed:
             return
 
@@ -134,6 +135,8 @@ class KeyAction:
             self.play( context, player )
 
     def on_release ( self, context : Context, player : MidiPlayer ):
+        print("on release", self.is_pressed)
+
         if not self.is_pressed:
             return
 

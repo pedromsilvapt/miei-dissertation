@@ -8,6 +8,7 @@ from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveMo
 from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode
 from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode
 from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
+from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
 
 class ParserVisitor(PTNodeVisitor):
     def visit_body ( self, node, children ):
@@ -56,6 +57,9 @@ class ParserVisitor(PTNodeVisitor):
 
     def visit_single_argument_eval ( self, node, children ):
         return ( children[ 0 ], None )
+
+    def visit_for_loop_statement ( self, node, children ):
+        return ForLoopStatementNode( children.namespaced[ 0 ], children.value_expression[ 0 ], children.value_expression[ 1 ], children.body[ 0 ] )
 
     def visit_expression ( self, node, children ):
         return children[ 0 ]

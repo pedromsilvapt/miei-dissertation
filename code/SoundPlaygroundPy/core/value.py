@@ -12,6 +12,10 @@ class Value:
     def is_music ( self ):
         return self.kind == VALUE_KIND_MUSIC
 
+    @property
+    def is_truthy ( self ):
+        return bool( self.value )
+
     def __iter__ ( self ):
         return iter( self.value )
 

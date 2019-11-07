@@ -101,7 +101,7 @@ class CliApplication:
         with keyboard.Listener(
                 on_press = lambda key: loop.call_soon_threadsafe( self.keyboard_on_press, virtual_keyboard, key ),
                 on_release = lambda key: loop.call_soon_threadsafe( self.keyboard_on_release, virtual_keyboard, key ),
-                suppress = True
+                suppress = False
             ) as listener:
 
             await virtual_keyboard.join_async()
