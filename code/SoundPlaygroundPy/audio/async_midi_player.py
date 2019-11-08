@@ -87,6 +87,8 @@ class AsyncMidiPlayer:
                         for event in self.buffer:
                             if event.timestamp > now:
                                 event.disabled = True
+
+                        break
         finally:
             self.is_playing = False
 

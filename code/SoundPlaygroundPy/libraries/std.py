@@ -48,6 +48,16 @@ def function_str ( context : Context, expr ):
 
     return Value( VALUE_KIND_STRING, str( value.value if value != None else None ) )
 
+def function_ord ( context : Context, expr ):
+    value = expr.eval( context )
+
+    return Value( VALUE_KIND_NUMBER, ord( value.value if value != None else None ) )
+
+def function_chr ( context : Context, expr ):
+    value = expr.eval( context )
+    
+    return Value( VALUE_KIND_STRING, chr( value.value if value != None else None ) )
+
 def function_debug ( context : Context, expr ):
     value = expr.eval( context.fork() )
 
@@ -84,3 +94,5 @@ class StandardLibrary(Library):
         context.symbols.assign( "float", CallableValue( function_float ) )
         context.symbols.assign( "str", CallableValue( function_str ) )
 
+        context.symbols.assign( "ord", CallableValue( function_ord ) )
+        context.symbols.assign( "chr", CallableValue( function_chr ) )

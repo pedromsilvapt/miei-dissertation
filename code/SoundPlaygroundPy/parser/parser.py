@@ -6,7 +6,7 @@ from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode
 from .abstract_syntax_tree import RestNode, MusicGroupNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier
 
-from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode
+from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode, ListComprehensionNode
 from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode, BoolLiteralNode, NoneLiteralNode
 
 from .abstract_syntax_tree.expressions import PlusBinaryOperatorNode, MinusBinaryOperatorNode, MultBinaryOperatorNode, DivBinaryOperatorNode
@@ -18,6 +18,8 @@ from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, Less
 
 from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
+
+from .abstract_syntax_tree.macros import KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode
 
 import time
 
@@ -69,7 +71,65 @@ class ParserVisitor(PTNodeVisitor):
         return ( children[ 0 ], None )
 
     def visit_for_loop_statement ( self, node, children ):
-        return ForLoopStatementNode( children.namespaced[ 0 ], children.value_expression[ 0 ], children.value_expression[ 1 ], children.body[ 0 ] )
+        position = ( node.position, node.position_end )
+
+        return ForLoopStatementNode( children.namespaced[ 0 ], children.value_expression[ 0 ], children.value_expression[ 1 ], children.body[ 0 ], position )
+
+    def visit_while_loop_statement ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        return WhileLoopStatementNode( children.expression[ 0 ], children.body[ 0 ], position )
+    
+    def visit_if_statement ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], position )
+
+    # KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode
+    def visit_keyboard_declaration ( self, node, children ):
+        return KeyboardDeclarationMacroNode( list( children.keyboard_shortcut ) )
+
+    def visit_keyboard_shortcut ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        if len( children.list_comprehension ) == 1:
+            return KeyboardShortcutComprehensionMacroNode(
+                children.list_comprehension[ 0 ],
+                list( children.alphanumeric ),
+                children.expression[ 0 ],
+                position
+            )
+        elif len( children.value_expression ) == 1:
+            return KeyboardShortcutDynamicMacroNode(
+                children.value_expression[ 0 ],
+                list( children.alphanumeric ),
+                children.expression[ 0 ],
+                position
+            )
+        else:
+            return KeyboardShortcutMacroNode(
+                list( children.alphanumeric ),
+                children.expression[ 0 ],
+                position
+            )
+
+    def visit_list_comprehension ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        expression = children.expression[ 0 ]
+        name = children.namespaced[ 0 ]
+        min = children.value_expression[ 0 ]
+        max = children.value_expression[ 1 ]
+
+        if len( children.value_expression ) == 2:
+            # Without if
+            return ListComprehensionNode( expression, name, min, max, position = position )
+
+        condition = children.value_expression[ 2 ]
+
+        # With if
+        return ListComprehensionNode( expression, name, min, max, condition, position = position )
+
 
     def visit_expression ( self, node, children ):
         return children[ 0 ]
@@ -218,7 +278,7 @@ class ParserVisitor(PTNodeVisitor):
         position = ( node.position, node.position_end )
 
         if len( children ) == 2:
-            return FunctionExpressionNode( children[ 0 ], children[ 1 ], position )
+            return FunctionExpressionNode( children[ 0 ], children[ 1 ], position = position )
         
         return FunctionExpressionNode( children[ 0 ], position = position )
 

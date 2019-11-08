@@ -17,7 +17,7 @@ EXPRESSION_TAB_KEYBOARD = 2
 
 class GuiApplication( BaseApplication ):
     def __init__ ( self ):
-        with open( 'examples/westworld.ml', 'r' ) as f:
+        with open( 'examples/keyboard.ml', 'r' ) as f:
             self.code = f.read()
 
         self.parsedTree = None
@@ -174,11 +174,11 @@ class GuiApplication( BaseApplication ):
             imgui.end()
 
     def render_inspector ( self, obj, prefix = None ):
-        properties = obj.__dict__
+        properties = obj.__dict__ if hasattr( obj, '__dict__' ) else obj
 
         node_name = f"{obj.__class__.__name__}###{id( obj )}";
 
-        if imgui.tree_node( node_name if prefix != None else f"{prefix}: {node_name}", imgui.TREE_NODE_DEFAULT_OPEN ):
+        if imgui.tree_node( node_name if prefix == None else f"{prefix}: {node_name}", imgui.TREE_NODE_DEFAULT_OPEN ):
             for key, value in properties.items():
                 self.render_inspector_value( key, value );
 

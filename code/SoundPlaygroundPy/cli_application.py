@@ -125,11 +125,14 @@ class CliApplication:
         parser.add_argument( '-i', '--import', dest = 'imports', action = 'append', type = str, help = 'Import an additional library. These can be builtin libraries, or path to .ml and .py files' )
         parser.add_argument( '-o', '--output', dest = 'outputs', type = str, action = 'append', help = 'Where to output to. By default outputs the sounds to the device\'s speakers.' )
         parser.add_argument( '--soundfont', type = str, help = 'Use a custom soundfont .sf2 file' )
+        parser.add_argument( '--print-events', dest = 'print_events', action='store_true', help = 'Print events (notes) to the console as they are played.' )
         
         options = parser.parse_args( self.argv )
 
         self.player = MidiPlayer()
 
+        self.player.print_events = bool( options.print_events );
+        
         for output in options.outputs or [ 'pulseaudio' ]:
             suffix = ( Path( output ).suffix or '' ).lower()
 
@@ -165,13 +168,11 @@ class CliApplication:
 
             keyboard : KeyboardLibrary = context.library( KeyboardLibrary )
 
+            # Wait for the end of the player if there is anything left to play
+            for task in list( self.tasks ):
+                await task
+
             if keyboard != None and len( keyboard.registered ) > 0:
                 await self.keyboard( context, keyboard )
-            else:
-                for task in list( self.tasks ):
-                    await task
-
-                # Wait for the end of the player if there is anything left to play
-                # self.player.join()
         finally:
             self.player.close()

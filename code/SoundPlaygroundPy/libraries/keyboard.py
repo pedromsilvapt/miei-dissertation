@@ -1,7 +1,8 @@
-from core import Context, Library, CallableValue
+from core import Context, Library, Value, CallableValue
 from core.events import MusicEvent
 from typing import List, Dict, Iterable, ItemsView, ValuesView
 from parser.abstract_syntax_tree import Node
+from parser.abstract_syntax_tree.expressions import BoolLiteralNode
 from audio import MidiPlayer, AsyncMidiPlayer
 from asyncio import Future, sleep, wait, FIRST_COMPLETED, create_task
 
@@ -49,7 +50,12 @@ class KeyStroke:
         return '+'.join( mods )
 
 
-def register_key ( context : Context, key : Node, expression : Node, toggle : bool = False, hold : bool = False ):
+def register_key ( context : Context, key : Node, expression : Node, toggle : Node = None, hold : Node = None, repeat : Node = None, release : Node = None ):
+    toggle_value : Value = toggle.eval( context ) if toggle != None else Value.create( False )
+    hold_value : Value = hold.eval( context ) if hold != None else Value.create( False )
+    repeat_value : Value = repeat.eval( context ) if repeat != None else Value.create( False )
+    release_value : Value = release.eval( context ) if release != None else Value.create( False )
+
     key_value = key.eval( context )
     
     keys = context.symbols.lookup_internal( "keyboard\\keys" )
@@ -57,17 +63,18 @@ def register_key ( context : Context, key : Node, expression : Node, toggle : bo
     action = KeyAction( 
         key = KeyStroke.parse( key_value.value ), 
         expr = expression,
-        toggle = toggle,
-        hold = hold
+        toggle = toggle_value.value,
+        hold = hold_value.value,
+        repeat = repeat_value.value
     )
 
     keys[ action.key ] = action
 
 def register_key_toggle ( context : Context, key : Node, expression : Node ):
-    register_key( context, key, expression, toggle = True )
+    register_key( context, key, expression, toggle = BoolLiteralNode( True ) )
 
 def register_key_hold ( context : Context, key : Node, expression : Node ):
-    register_key( context, key, expression, hold = True )
+    register_key( context, key, expression, hold = BoolLiteralNode( True ) )
 
 def keyboard_close ( context : Context ):
     keyboard : KeyboardLibrary = context.library( KeyboardLibrary )
@@ -120,7 +127,6 @@ class KeyAction:
         self.async_player = None
 
     def on_press ( self, context : Context, player : MidiPlayer ):
-        print("on press", self.is_pressed)
         if self.is_pressed:
             return
 
@@ -135,8 +141,6 @@ class KeyAction:
             self.play( context, player )
 
     def on_release ( self, context : Context, player : MidiPlayer ):
-        print("on release", self.is_pressed)
-
         if not self.is_pressed:
             return
 

@@ -5,7 +5,7 @@ body <- statement ( ";" statement )* _ ";"? _
       ;
 
 // Statements
-statement <- _ ( var_declaration / instrument_declaration / function_declaration / for_loop_statement / expression ) _;
+statement <- _ ( var_declaration / instrument_declaration / function_declaration / keyboard_declaration / for_loop_statement / expression ) _;
 
 var_declaration <- "$" namespaced _ "=" _ expression;
 
@@ -28,6 +28,20 @@ for_loop_statement <- "for" _ "$" namespaced _ "in" _ value_expression _ ".." _ 
 while_loop_statement <- "while" _ expression _ "{" _ body _ "}";
 
 if_statement <- "if" _ expression _ "{" _ body _ "}";
+
+// BEGIN Keyboard
+keyboard_declaration <- "keyboard" _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
+
+keyboard_shortcut <- alphanumeric (_"+"_ alphanumeric)* (_ alphanumeric)* _ ":" _ expression
+                   / "[" _ list_comprehension _ "]" (alphanumeric _)* _ ":" _ expression
+                   / "[" _ value_expression _ "]" (alphanumeric _)* _ ":" _ expression
+                   ;
+
+list_comprehension <- expression "for" _ "$" _ namespaced _ "in" _ value_expression _ ".." _ value_expression
+                    / expression "for" _ "$" _ namespaced _ "in" _ value_expression _ ".." _ value_expression _ "if" value_expression
+                    ;
+// END Keyboard
+
 
 expression <- e music_expression;
 

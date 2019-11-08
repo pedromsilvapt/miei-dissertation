@@ -14,6 +14,7 @@ class MidiPlayer():
         self.sequencers : List[Sequencer] = sequencers
         self.started : bool = False
         self.start_time : int = None
+        self.print_events = False
     
     def setup ( self ):
         for seq in self.sequencers:
@@ -39,6 +40,9 @@ class MidiPlayer():
     def play_more ( self, events, now : int = None ):
         if not self.started:
             self.setup()
+
+        if self.print_events and events:
+            print( 'playing', now + events[ 0 ].timestamp, ' '.join( str( e ) for e in events ) )
 
         for seq in self.sequencers:
             seq.register_events_many( events, now )

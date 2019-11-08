@@ -25,6 +25,8 @@ class StatementsListNode( StatementNode ):
     def eval ( self, context, assignment = False ):
         i = 0
 
+        value = Value.create( None )
+
         for node in self.statements:
             value = node.eval( context )
             # print( len( self.statements ), i, value.kind if value != None else None )
