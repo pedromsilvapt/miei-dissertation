@@ -18,8 +18,9 @@ def function_play ( context : Context, expr ):
 
     return Value( VALUE_KIND_MUSIC, iter(()) )
 
-def function_discard ( context : Context, expr ):
-    expr.eval( context.fork() )
+def function_discard ( context : Context, *expr ):
+    for e in expr:
+        e.eval( context.fork() )
 
     return None
 

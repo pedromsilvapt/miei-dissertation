@@ -1,6 +1,7 @@
 import sys
 import asyncio
 import argparse
+import termios
 from pathlib import Path
 
 from audio import MidiPlayer, AsyncMidiPlayer
@@ -108,19 +109,35 @@ class CliApplication:
         for keystroke in keystrokes:
             virtual_keyboard.on_release( keystroke )
 
+    def enable_echo(self, fd, enabled):
+        (iflag, oflag, cflag, lflag, ispeed, ospeed, cc) \
+            = termios.tcgetattr(fd)
+
+        if enabled:
+            lflag |= termios.ECHO
+        else:
+            lflag &= ~termios.ECHO
+
+        new_attr = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
+        termios.tcsetattr(fd, termios.TCSANOW, new_attr)
 
     async def keyboard ( self, context : Context, virtual_keyboard : KeyboardLibrary ):
         print( "Keyboard active." )
 
-        loop = asyncio.get_running_loop()
+        try:
+            self.enable_echo( sys.stdin.fileno(), False )
 
-        with keyboard.Listener(
-                on_press = lambda key: loop.call_soon_threadsafe( self.keyboard_on_press, virtual_keyboard, key ),
-                on_release = lambda key: loop.call_soon_threadsafe( self.keyboard_on_release, virtual_keyboard, key ),
-                suppress = False
-            ) as listener:
+            loop = asyncio.get_running_loop()
 
-            await virtual_keyboard.join_async()
+            with keyboard.Listener(
+                    on_press = lambda key: loop.call_soon_threadsafe( self.keyboard_on_press, virtual_keyboard, key ),
+                    on_release = lambda key: loop.call_soon_threadsafe( self.keyboard_on_release, virtual_keyboard, key ),
+                    suppress = False
+                ) as listener:
+
+                await virtual_keyboard.join_async()
+        finally:
+            self.enable_echo( sys.stdin.fileno(), True )
 
     async def run ( self ):
         parser = argparse.ArgumentParser( description = 'Evaluate musical expression' )
