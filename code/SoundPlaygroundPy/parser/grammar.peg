@@ -151,3 +151,5 @@ alphanumeric <- r"[a-zA-Z0-9\_]*";
 _ <- r"[ \t\r\n]*";
 
 e <- "";
+
+comment <- _ r"#[^\n]*";

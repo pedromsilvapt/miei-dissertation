@@ -35,6 +35,9 @@ class ParserVisitor(PTNodeVisitor):
 
         return StatementsListNode( list( children ), position )
 
+    def visit_comment ( self, node, children ):
+        return None
+
     def visit_statement ( self, node, children ):
         return children[ 0 ]
 
