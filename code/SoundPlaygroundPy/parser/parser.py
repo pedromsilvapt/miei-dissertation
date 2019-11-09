@@ -193,8 +193,8 @@ class ParserVisitor(PTNodeVisitor):
 
         position = ( node.position, node.position_end )
 
-        left = children.visit_binary_mult_operator_expression[ 0 ]
-        right = children.visit_binary_sum_operator_expression[ 0 ]
+        left = children.binary_mult_operator_expression[ 0 ]
+        right = children.binary_sum_operator_expression[ 0 ]
 
         op = children[ 1 ]
 

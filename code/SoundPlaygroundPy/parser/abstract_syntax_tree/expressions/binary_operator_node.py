@@ -102,7 +102,7 @@ class OrLogicOperatorNode(BinaryOperatorNode):
 
         return right_value if right_value != None and right_value.value else Value.create( False )
 
-ComparableValueKinds = [ VALUE_KIND_NUMBER, VALUE_KIND_STRING ]
+ComparableValueKinds = [ VALUE_KIND_NUMBER, VALUE_KIND_STRING, VALUE_KIND_BOOL ]
 
 class ComparisonOperatorNode(BinaryOperatorNode):
     def eval ( self, context, assignment : bool = False ):
