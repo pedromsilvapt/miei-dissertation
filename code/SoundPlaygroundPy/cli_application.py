@@ -57,6 +57,10 @@ class CliApplication:
 
     def get_key_info ( self, key : keyboard.Key ) -> (bool, str):
         key_str = str( key )
+
+        # Hardcoded fix for wrong value for 5 numpad key
+        if key_str == '<65437>': key_str = "'5'"
+
         key_str = key_str[ len( 'Key.' ): ] if key_str.startswith( 'Key.' ) else key_str[ 1:-1 ]
 
         is_modifier : bool = key_str in [ 'ctrl', 'alt', 'shift' ]
