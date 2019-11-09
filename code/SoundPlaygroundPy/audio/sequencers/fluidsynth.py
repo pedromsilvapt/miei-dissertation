@@ -1,5 +1,5 @@
 import fluidsynth
-from core.events import MusicEvent, NoteEvent, ProgramChangeEvent, CallbackEvent
+from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ProgramChangeEvent, CallbackEvent
 from .sequencer import Sequencer
 from ctypes import py_object, c_void_p
 from threading import Semaphore
@@ -7,48 +7,6 @@ from typing import Dict, Any
 
 fluid_event_get_data = fluidsynth.cfunc('fluid_event_get_data', c_void_p,
                                     ('evt', c_void_p, 1))
-class NoteOnEvent( NoteEvent ):
-    def from_note ( note : NoteEvent ):
-        event = NoteOnEvent(
-            timestamp = note.timestamp,
-            pitch_class = note.pitch_class,
-            duration = note.duration,
-            octave = note.octave,
-            channel = note.channel,
-            velocity = note.velocity,
-            accidental = note.accidental,
-            value = note.value
-        )
-
-        event.parent = note
-
-        return event
-
-    @property
-    def disabled ( self ):
-        return self.parent.disabled
-
-class NoteOffEvent( NoteEvent ):
-    def from_note ( note : NoteEvent ):
-        event = NoteOffEvent( 
-            timestamp = note.timestamp + note.duration,
-            pitch_class = note.pitch_class,
-            duration = note.duration,
-            octave = note.octave,
-            channel = note.channel,
-            velocity = note.velocity,
-            accidental = note.accidental,
-            value = note.value
-        )
-
-        event.parent = note
-
-        return event
-
-    @property
-    def disabled ( self ):
-        return self.parent.disabled
-
 
 class FluidSynthSequencer ( Sequencer ):
     def __init__ ( self, output : str = None, soundfont : str = None ):
@@ -142,9 +100,9 @@ class FluidSynthSequencer ( Sequencer ):
             now = self.get_time()
         
         if isinstance( event, NoteEvent ):
-            noteon = NoteOnEvent.from_note( event )
-            noteoff = NoteOffEvent.from_note( event )
-
+            noteon = event.note_on
+            noteoff = event.note_off
+            
             self.timer( now - self.start_time + noteon.timestamp, data = noteon, dest = self.client )
             self.timer( now - self.start_time + noteoff.timestamp, data = noteoff, dest = self.client )
         else:
@@ -190,6 +148,7 @@ class FluidSynthSequencer ( Sequencer ):
         self.soundfontId = self.synth.sfload( self.soundfont, update_midi_preset = 1 )
 
         self.synth.cc( 0, 64, 127 )
+        self.synth.program_change( 0, 1 )
     
         self.sequencer = fluidsynth.Sequencer()
         

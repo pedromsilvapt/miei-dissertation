@@ -14,20 +14,27 @@
         - [ ] Named Arguments
     - [ ] Import
         - [x] Standard Libraries
-        - [ ] Music files
+        - [x] Music files
         - [ ] Python Files
+        - [ ] Refactor Import and Modules System
  - [ ] Output Formats
     - [x] Speakers
     - [x] WAV
     - [ ] ABC
+        - [x] Sequential Notes
+        - [ ] Chords
+        - [ ] Multiple Voices
     - [ ] MIDI
     - [ ] Music Sheet
  - [ ] Music Library
     - [ ] Arpeggios \*
-    - [ ] Common chords
+    - [ ] Common Chords\Scales
+        - [x] Minor/Major Chords
+        - [ ] Tune Keys
+    - [ ] Transpose (semitones and octaves)
  - [ ] Keyboard
     - [x] GUI
-        - [ ] Fix handling of repeated keys
-    - [ ] CLI
-    - [ ] Add more options (toggle keys, etc...)
-    - [ ] Possible sintactic sugar **?**
+        - [x] Fix handling of repeated keys
+    - [x] CLI
+    - [x] Add more options (toggle keys, etc...)
+    - [x] Keyboard Sintactic sugar

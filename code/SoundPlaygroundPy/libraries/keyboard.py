@@ -1,10 +1,11 @@
-from core import Context, Library, Value, CallableValue
-from core.events import MusicEvent
+from core import Context, Library, Value, CallableValue, VALUE_KIND_STRING
+from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent
 from typing import List, Dict, Iterable, ItemsView, ValuesView
 from parser.abstract_syntax_tree import Node
 from parser.abstract_syntax_tree.expressions import BoolLiteralNode
 from audio import MidiPlayer, AsyncMidiPlayer
 from asyncio import Future, sleep, wait, FIRST_COMPLETED, create_task
+from asyncio import Event
 
 class KeyStroke:
     def parse ( s ):
@@ -49,12 +50,21 @@ class KeyStroke:
 
         return '+'.join( mods )
 
+def get_keyboard_flag ( context : Context, node : Node, name : str, global_flags : Dict[str, int] ) -> bool:
+    if node != None:
+        value : Value = node.eval( context )
 
-def register_key ( context : Context, key : Node, expression : Node, toggle : Node = None, hold : Node = None, repeat : Node = None, release : Node = None ):
-    toggle_value : Value = toggle.eval( context ) if toggle != None else Value.create( False )
-    hold_value : Value = hold.eval( context ) if hold != None else Value.create( False )
-    repeat_value : Value = repeat.eval( context ) if repeat != None else Value.create( False )
-    release_value : Value = release.eval( context ) if release != None else Value.create( False )
+        return value and value.value
+
+    return name in global_flags and global_flags[ name ] > 0
+
+def register_key ( context : Context, key : Node, expression : Node, toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
+    global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
+
+    toggle_value = get_keyboard_flag( context, toggle, "toggle", global_flags )
+    hold_value = get_keyboard_flag( context, hold, "hold", global_flags )
+    repeat_value = get_keyboard_flag( context, repeat, "repeat", global_flags )
+    extend_value = get_keyboard_flag( context, extend, "extend", global_flags )
 
     key_value = key.eval( context )
     
@@ -63,12 +73,39 @@ def register_key ( context : Context, key : Node, expression : Node, toggle : No
     action = KeyAction( 
         key = KeyStroke.parse( key_value.value ), 
         expr = expression,
-        toggle = toggle_value.value,
-        hold = hold_value.value,
-        repeat = repeat_value.value
+        toggle = toggle_value,
+        hold = hold_value,
+        repeat = repeat_value,
+        extend = extend_value
     )
 
     keys[ action.key ] = action
+
+def push_flags ( context : Context, *flags : List[Node] ):
+    global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
+
+    for flag in flags:
+        value : Value = flag.eval( context )
+
+        if value and value.kind == VALUE_KIND_STRING:
+            if value.value in global_flags:
+                global_flags[ value.value ] += 1
+            else:
+                global_flags[ value.value ] = 1
+
+def pop_flags ( context : Context, *flags : List[Node] ):
+    global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
+
+    for flag in flags:
+        value : Value = flag.eval( context )
+
+        if value and value.kind == VALUE_KIND_STRING:
+            if value.value in global_flags:
+                global_flags[ value.value ] -= 1
+
+                if global_flags[ value.value ] == 0:
+                    del global_flags[ value.value ]
+
 
 def register_key_toggle ( context : Context, key : Node, expression : Node ):
     register_key( context, key, expression, toggle = BoolLiteralNode( True ) )
@@ -82,23 +119,41 @@ def keyboard_close ( context : Context ):
     keyboard.close()
 
 class KeyAction:
-    def __init__ ( self, key : KeyStroke, expr : Node, hold : bool = False, toggle : bool = False, repeat : bool = False ):
+    def __init__ ( self, key : KeyStroke, expr : Node, hold : bool = False, toggle : bool = False, repeat : bool = False, extend : bool = False ):
         self.key : KeyStroke = key 
         self.expr : Node = expr
         self.hold : bool = hold
         self.toggle : bool = toggle
         self.repeat : bool = repeat
+        self.extend : bool = extend
 
         self.is_active : bool = False
         self.is_pressed : bool = False
 
+        self.extend_event : Event = Event()
         self.async_player : AsyncMidiPlayer = None
+        self.extended : List[NoteOffEvent] = []
+        self.extended_player : MidiPlayer = None
+
+    def extend_notes ( self, player : MidiPlayer, events ):
+        self.extended.clear()
+        self.extended_player = player
+
+        for event in events:
+            if isinstance( event, NoteEvent ):
+                self.extended.append( event.note_off )
+
+                yield event.note_on
+            elif isinstance( event, NoteOffEvent ):
+                self.extended.append( event.note_off )
 
     def play ( self, context : Context, player : MidiPlayer ):
         forked_context : Context = None
 
         def eval ():
             nonlocal forked_context
+
+            self.extend_event.clear()
 
             now = player.get_time() if forked_context == None else forked_context.cursor
 
@@ -107,22 +162,35 @@ class KeyAction:
             value = self.expr.eval( forked_context )
 
             if value != None and value.is_music:
+                if self.extend:
+                    return list( self.extend_notes( player, value ) )
+
                 return value
             elif value != None and isinstance( value, CallableValue ):
                 value = value.call( forked_context )
 
                 if value != None and value.is_music:
+                    if self.extend:
+                        return list( self.extend_notes( player, value ) )
+                        
                     return value
 
             return None
 
-        self.async_player = AsyncMidiPlayer( eval, player, 0, self.repeat )
+        self.async_player = AsyncMidiPlayer( eval, player, 0, self.repeat and not self.extend )
 
         create_task( self.async_player.start() )
 
     def stop ( self, context : Context, player : MidiPlayer ):
         if self.async_player != None:
-            create_task( self.async_player.stop() )
+            if self.extend:
+                for event in self.extended: event.timestamp = self.extended_player.get_time()
+
+                async_player = AsyncMidiPlayer( lambda: list( self.extended ), player, 0, self.repeat and not self.extend )
+
+                create_task( async_player.start() )
+            else:
+                create_task( self.async_player.stop() )
 
         self.async_player = None
 
@@ -133,7 +201,7 @@ class KeyAction:
         self.is_pressed = True
 
         if self.toggle:
-            if self.async_player != None and self.async_player.is_playing:
+            if self.async_player != None and ( self.extended or self.async_player.is_playing ):
                 self.stop( context, player )
             else:
                 self.play( context, player )
@@ -159,7 +227,10 @@ class KeyboardLibrary(Library):
         context = self.context
 
         self.assign_internal( "keys", dict() )
+        self.assign_internal( "global_flags", dict() )
 
+        self.assign( "push_flags", CallableValue( push_flags ) )
+        self.assign( "pop_flags", CallableValue( pop_flags ) )
         self.assign( "register", CallableValue( register_key ) )
         self.assign( "register_hold", CallableValue( register_key_hold ) )
         self.assign( "register_toggle", CallableValue( register_key_toggle ) )

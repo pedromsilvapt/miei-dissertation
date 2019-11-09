@@ -8,15 +8,15 @@ class MacroNode(Node):
     def eval ( self, context : Context, assignment : bool = False ):
         return self.virtual_node.eval( context, assignment = assignment )
 
-ModifierNames = [ 'hold', 'release', 'toggle', 'repeat' ]
+ModifierNames = [ 'hold', 'extend', 'toggle', 'repeat' ]
 
 def handle_modifiers ( modifiers : List[str] ) -> (dict, str):
-    props = dict( (m, False) for m in ModifierNames )
+    props = dict()
 
     rest = None
 
     for i in range( len( modifiers ) - 1, -1, -1 ):
-        if modifiers[ i ] in props:
+        if modifiers[ i ] in ModifierNames:
             props[ modifiers[ i ] ] = True
         else:
             rest = '+'.join( modifiers[ 0:i + 1 ] )
@@ -52,7 +52,7 @@ class KeyboardShortcutDynamicMacroNode(MacroNode):
 
         (kargs, rest) = handle_modifiers( modifiers )
 
-        kargs = dict( ( m, Value.create( v ) ) for m, v in kargs.items() )
+        kargs = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs.items() )
 
         if rest != None:
             raise BaseException( "Keyboard shortcut with invalid modifiers: %s" % rest )
@@ -74,7 +74,7 @@ class KeyboardShortcutComprehensionMacroNode(MacroNode):
 
         (kargs, rest) = handle_modifiers( modifiers )
 
-        kargs = dict( ( m, Value.create( v ) ) for m, v in kargs.items() )
+        kargs = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs.items() )
 
         if rest != None:
             raise BaseException( "Keyboard shortcut with invalid modifiers: %s" % rest )
@@ -97,7 +97,11 @@ class KeyboardShortcutComprehensionMacroNode(MacroNode):
         )
     
 class KeyboardDeclarationMacroNode(MacroNode):
-    def __init__ ( self, shortcuts : List[Node], position : (int, int) = None ):
+    def __init__ ( self, shortcuts : List[Node], flags : List[str], position : (int, int) = None ):
         super().__init__( position )
         
+        if flags:
+            shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_flags", [ StringLiteralNode( f ) for f in flags ] ) )
+            shortcuts.append( FunctionExpressionNode( "keyboard\\pop_flags", [ StringLiteralNode( f ) for f in flags ] ) )
+
         self.virtual_node = StatementsListNode( shortcuts, position )

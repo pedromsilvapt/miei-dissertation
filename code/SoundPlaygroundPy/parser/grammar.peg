@@ -9,7 +9,7 @@ statement <- _ ( var_declaration / instrument_declaration / function_declaration
 
 var_declaration <- "$" namespaced _ "=" _ expression;
 
-instrument_declaration <- ":" alphanumeric _ "=" _ integer;
+instrument_declaration <- ":" identifier _ "=" _ integer;
 
 function_declaration <- "fun" _ namespaced _ "(" _ arguments? _ ")" _ "{" body "}";
 
@@ -17,11 +17,11 @@ arguments <- single_argument ( _ ";" _ single_argument )*;
 
 single_argument <- single_argument_expr / single_argument_ref / single_argument_eval;
 
-single_argument_expr <- "expr" _ "$" alphanumeric;
+single_argument_expr <- "expr" _ "$" identifier;
 
-single_argument_ref <- "ref" _ "$" alphanumeric;
+single_argument_ref <- "ref" _ "$" identifier;
 
-single_argument_eval <- "$" alphanumeric;
+single_argument_eval <- "$" identifier;
 
 for_loop_statement <- "for" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ "{" _ body? _ "}";
 
@@ -30,9 +30,10 @@ while_loop_statement <- "while" _ expression _ "{" _ body _ "}";
 if_statement <- "if" _ expression _ "{" _ body _ "}";
 
 // BEGIN Keyboard
-keyboard_declaration <- "keyboard" _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
+keyboard_declaration <- "keyboard" (_ alphanumeric)* _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
 
 keyboard_shortcut <- alphanumeric (_"+"_ alphanumeric)* (_ alphanumeric)* _ ":" _ expression
+                   / string_value (_ alphanumeric)* _ ":" _ expression
                    / "[" _ list_comprehension _ "]" (alphanumeric _)* _ ":" _ expression
                    / "[" _ value_expression _ "]" (alphanumeric _)* _ ":" _ expression
                    ;
@@ -51,7 +52,9 @@ sequence <- value_expression ( _ value_expression)*;
 
 group <- "(" _ music_expression _ ")";
 
-note <- note_accidental _ note_pitch ( _ note_value )?;
+note <- note_accidental _ note_pitch ( _ chord_suffix )? ( _ note_value )?;
+
+chord_suffix <- 'M' / 'm';
 
 variable <- "$" namespaced;
 
@@ -85,7 +88,7 @@ modifier
      / r"[oO]" _ integer
      ;
 
-instrument_modifier <- ":" alphanumeric _ sequence;
+instrument_modifier <- ":" identifier _ sequence;
 
 value_expression <- e binary_logic_operator_expression;
 
@@ -139,9 +142,11 @@ float <- r"[0-9]+\.[0-9]+";
 
 integer <- r"[0-9]+";
 
-namespaced <- ( alphanumeric "\\" )* alphanumeric;
+namespaced <- ( identifier "\\" )* identifier;
 
-alphanumeric <- r"[a-zA-Z][a-zA-Z0-9\_]*";
+identifier <- r"[a-zA-Z][a-zA-Z0-9\_]*";
+
+alphanumeric <- r"[a-zA-Z0-9\_]*";
 
 _ <- r"[ \t\r\n]*";
 

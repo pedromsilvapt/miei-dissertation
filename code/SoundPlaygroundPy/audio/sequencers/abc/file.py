@@ -1,6 +1,6 @@
 from typing import List
 from fractions import Fraction
-from core.events import NoteAccidental
+from core.theory import NoteAccidental
 
 class ABCHeader:
     def __init__ ( self ):

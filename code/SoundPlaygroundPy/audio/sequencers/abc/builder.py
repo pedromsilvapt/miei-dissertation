@@ -1,4 +1,5 @@
-from core.events import MusicEvent, ContextChangeEvent, NoteEvent, RestEvent, NotePitchClassesInv
+from core.events import MusicEvent, ContextChangeEvent, NoteEvent, RestEvent
+from core.theory import NotePitchClassesInv
 from fractions import Fraction
 from .file import ABCFile, ABCStaff, ABCBar, ABCNote, ABCRest
 from typing import Dict
