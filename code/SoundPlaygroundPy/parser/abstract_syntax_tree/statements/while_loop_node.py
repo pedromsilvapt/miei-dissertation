@@ -12,8 +12,10 @@ class WhileLoopStatementNode( StatementNode ):
     def eval ( self, context : Context, assignment : bool = False ):
         condition_value : Value = self.condition.eval( context )
 
+        result = Value.create( None )
+
         while condition_value != None and condition_value.is_truthy:
-            result = body.eval( forked )
+            result = self.body.eval( forked )
 
             condition_value = self.condition.eval( context )
 

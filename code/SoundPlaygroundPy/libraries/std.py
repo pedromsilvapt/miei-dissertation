@@ -1,5 +1,6 @@
 from core import Context, Library, CallableValue
 from core import Value, VALUE_KIND_MUSIC, VALUE_KIND_STRING, VALUE_KIND_OBJECT, VALUE_KIND_BOOL, VALUE_KIND_NUMBER
+from core.events import ControlChangeEvent
 from parser import Parser
 from parser.abstract_syntax_tree import Node
 from parser.abstract_syntax_tree.expressions import VariableExpressionNode
@@ -59,6 +60,15 @@ def function_chr ( context : Context, expr ):
     
     return Value( VALUE_KIND_STRING, chr( value.value if value != None else None ) )
 
+def function_cc ( context : Context, channel : Node, control : int, value : int ):
+    channel_value : Value = channel.eval( context )
+    control_value : Value = control.eval( context )
+    value_value : Value = value.eval( context )
+    
+    event = ControlChangeEvent( context.cursor, channel_value.value, control_value.value, value_value.value )
+    
+    return Value( VALUE_KIND_MUSIC, [ event ] )
+
 def function_debug ( context : Context, expr ):
     value = expr.eval( context.fork() )
 
@@ -97,3 +107,4 @@ class StandardLibrary(Library):
 
         context.symbols.assign( "ord", CallableValue( function_ord ) )
         context.symbols.assign( "chr", CallableValue( function_chr ) )
+        context.symbols.assign( "cc", CallableValue( function_cc ) )

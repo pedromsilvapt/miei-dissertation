@@ -5,7 +5,7 @@ body <- statement ( ";" statement )* _ ";"? _
       ;
 
 // Statements
-statement <- _ ( var_declaration / instrument_declaration / function_declaration / keyboard_declaration / for_loop_statement / expression ) _;
+statement <- _ ( var_declaration / instrument_declaration / function_declaration / keyboard_declaration / for_loop_statement / while_loop_statement / if_statement / expression ) _;
 
 var_declaration <- "$" namespaced _ "=" _ expression;
 
@@ -27,7 +27,8 @@ for_loop_statement <- "for" _ "$" namespaced _ "in" _ value_expression _ ".." _ 
 
 while_loop_statement <- "while" _ expression _ "{" _ body _ "}";
 
-if_statement <- "if" _ expression _ "{" _ body _ "}";
+if_statement <- "if" _ expression _ "{" _ body _ "}" _ "else" _ "{" _ body _ "}"
+              / "if" _ expression _ "{" _ body _ "}";
 
 // BEGIN Keyboard
 keyboard_declaration <- "keyboard" (_ alphanumeric)* _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
@@ -50,7 +51,7 @@ music_expression <- sequence ( _ "|" _ sequence )*;
 
 sequence <- value_expression ( _ value_expression)*;
 
-group <- "(" _ music_expression _ ")";
+group <- "(" _ expression _ ")";
 
 note <- note_accidental _ note_pitch ( _ chord_suffix )? ( _ note_value )?;
 
@@ -108,11 +109,9 @@ binary_mult_operator_expression <- unary_operator_expression _ r"[*/]" _ binary_
                                  / unary_operator_expression
                                  ;                            
 
-unary_operator_expression <- "not" _ expression
-                           / expression_single
-                           ;
+unary_operator_expression <- ( "not" / ""  ) _  expression_single;
 
-expression_single <- string_value / number_value / bool_value / none_value / variable / function /  group / chord / note / rest / modifier / instrument_modifier;
+expression_single <- string_value / number_value / bool_value / none_value / variable / function / group / chord / note / rest / modifier / instrument_modifier;
 
 string_value <- double_string / single_string;
 

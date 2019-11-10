@@ -20,8 +20,8 @@ class SymbolsScope:
         self.symbols : dict = dict()
         self.opaque : bool = opaque
 
-    def using ( self, name : Hashable, alias : str = None, container : str = "", shallow : bool = False, soft : bool = False ) -> 'SymbolsScope':
-        scope : SymbolsScope = self.parent
+    def pointer ( self, name : Hashable, container : str = "", shallow : bool = False ) -> Pointer:
+        scope : SymbolsScope = self
 
         while scope != None:
             value = scope.lookup( name, container = container, recursive = False, follow_pointers = False )
@@ -37,19 +37,33 @@ class SymbolsScope:
             else:
                 scope = scope.parent
 
-        if scope == None and not soft:
-            raise BaseException( f"Trying to use global undefined symbol { name }" )
-        elif scope != None:
-            self.assign( alias or name, Pointer( scope, name ), container = container, local = True )
+        if scope == None:
+            return None
+        else:
+            return Pointer( scope, name )
+
+    def using ( self, name : Hashable, alias : str = None, container : str = "", shallow : bool = False, soft : bool = False ) -> 'SymbolsScope':
+        if isinstance( name, Pointer ):
+            pointer = name
+            name = pointer.name
+        elif name != None and self.parent != None:
+            pointer = self.parent.pointer( name, container = container, shallow = shallow )
+        else:
+            pointer = None
         
-        return scope
+        if pointer == None and not soft:
+            raise BaseException( f"Trying to use global undefined symbol { name }" )
+        elif pointer != None:
+            self.assign( alias or name, pointer, container = container, local = True )
+        
+        return pointer.scope if pointer != None else None
 
     def lookup ( self, name : Hashable, container : str = "", recursive : bool = True, follow_pointers : bool = True, default = None ):
         if container in self.symbols and name in self.symbols[ container ]:
             value = self.symbols[ container ][ name ]
 
             if follow_pointers and isinstance( value, Pointer ):
-                return pointer.scope.lookup( pointer.name, container = container )
+                return value.scope.lookup( value.name, container = container )
 
             return value
         

@@ -31,7 +31,7 @@ class FunctionDeclarationStatementNode( StatementNode ):
                 if not isinstance( node, VariableExpressionNode ):
                     raise BaseException( f"Only variable references can be passed to a function (function { self.name }, parameter { name })" )
 
-                forked.symbols.using( node.name, name )
+                forked.symbols.using( context.symbols.pointer( node.name ), name )
             else:
                 forked.symbols.assign( name, node.eval( context, assignment = True ) )
         

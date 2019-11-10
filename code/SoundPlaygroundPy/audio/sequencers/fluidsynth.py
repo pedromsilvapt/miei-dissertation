@@ -1,5 +1,5 @@
 import fluidsynth
-from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ProgramChangeEvent, CallbackEvent
+from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
 from .sequencer import Sequencer
 from ctypes import py_object, c_void_p
 from threading import Semaphore
@@ -90,6 +90,8 @@ class FluidSynthSequencer ( Sequencer ):
                 self.synth.noteoff( event.channel, int( event ) )
             elif isinstance( event, ProgramChangeEvent ):
                 self.synth.program_change( event.channel, event.program )
+            elif isinstance( event, ControlChangeEvent ):
+                self.synth.cc( event.channel, event.control, event.value )
             elif isinstance( event, CallbackEvent ):
                 event.call()
             else:

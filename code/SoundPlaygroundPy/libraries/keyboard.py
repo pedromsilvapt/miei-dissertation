@@ -73,10 +73,11 @@ def register_key ( context : Context, key : Node, expression : Node, toggle : No
     action = KeyAction( 
         key = KeyStroke.parse( key_value.value ), 
         expr = expression,
+        context = context,
         toggle = toggle_value,
         hold = hold_value,
         repeat = repeat_value,
-        extend = extend_value
+        extend = extend_value,
     )
 
     keys[ action.key ] = action
@@ -119,9 +120,10 @@ def keyboard_close ( context : Context ):
     keyboard.close()
 
 class KeyAction:
-    def __init__ ( self, key : KeyStroke, expr : Node, hold : bool = False, toggle : bool = False, repeat : bool = False, extend : bool = False ):
+    def __init__ ( self, key : KeyStroke, expr : Node, context : Context, hold : bool = False, toggle : bool = False, repeat : bool = False, extend : bool = False ):
         self.key : KeyStroke = key 
         self.expr : Node = expr
+        self.context : Context = context
         self.hold : bool = hold
         self.toggle : bool = toggle
         self.repeat : bool = repeat
@@ -146,6 +148,8 @@ class KeyAction:
                 yield event.note_on
             elif isinstance( event, NoteOffEvent ):
                 self.extended.append( event.note_off )
+            else:
+                yield event
 
     def play ( self, context : Context, player : MidiPlayer ):
         forked_context : Context = None
@@ -157,8 +161,8 @@ class KeyAction:
 
             now = player.get_time() if forked_context == None else forked_context.cursor
 
-            forked_context = context.fork( cursor = now )
-
+            forked_context = self.context.fork( cursor = now )
+            
             value = self.expr.eval( forked_context )
 
             if value != None and value.is_music:

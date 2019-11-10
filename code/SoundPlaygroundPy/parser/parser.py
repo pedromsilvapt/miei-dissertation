@@ -17,6 +17,8 @@ from .abstract_syntax_tree.expressions import GreaterComparisonOperatorNode, Gre
 from .abstract_syntax_tree.expressions import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode
 from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, LesserEqualComparisonOperatorNode
 
+from .abstract_syntax_tree.expressions import NotOperatorNode
+
 from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
 
@@ -87,7 +89,10 @@ class ParserVisitor(PTNodeVisitor):
     def visit_if_statement ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], position )
+        if len( children.body ) == 2:
+            return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], children.body[ 1 ], position )
+
+        return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], position = position )
 
     def visit_keyboard_declaration ( self, node, children ):
         return KeyboardDeclarationMacroNode( list( children.keyboard_shortcut ), list( children.alphanumeric ) )
@@ -227,10 +232,13 @@ class ParserVisitor(PTNodeVisitor):
             raise BaseException( "Unknown binary operator: %s" % op )
 
     def visit_unary_operator_expression ( self, node, children ):
-        if len( children ) == 1:
-            return children[ 0 ]
+        if children[ 0 ] == '':
+            return children.expression_single[ 0 ]
 
-        raise BaseException( "Unknown unary operator: %s" % op )
+        position = ( node.position, node.position_end )
+
+        return NotOperatorNode( children.expression_single[ 0 ], position =  position )
+        # raise BaseException( "Unknown unary operator: %s" % op )
 
     def visit_expression_single ( self, node, children ):
         return children[ 0 ]

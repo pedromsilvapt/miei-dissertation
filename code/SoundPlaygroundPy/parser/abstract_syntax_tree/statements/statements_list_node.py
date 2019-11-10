@@ -29,7 +29,6 @@ class StatementsListNode( StatementNode ):
 
         for node in self.statements:
             value = node.eval( context )
-            # print( len( self.statements ), i, value.kind if value != None else None )
 
             if value and value.kind == VALUE_KIND_MUSIC:
                 return Value( VALUE_KIND_MUSIC, self.get_events( context, value, i + 1 ) )
