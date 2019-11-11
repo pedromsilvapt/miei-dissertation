@@ -95,6 +95,9 @@ class ParserVisitor(PTNodeVisitor):
         return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], position = position )
 
     def visit_keyboard_declaration ( self, node, children ):
+        if len( children.group ):
+            return KeyboardDeclarationMacroNode( list( children.keyboard_shortcut ), list( children.alphanumeric ), children.group[ 0 ].expression )
+
         return KeyboardDeclarationMacroNode( list( children.keyboard_shortcut ), list( children.alphanumeric ) )
 
     def visit_keyboard_shortcut ( self, node, children ):

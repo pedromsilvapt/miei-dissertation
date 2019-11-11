@@ -97,11 +97,15 @@ class KeyboardShortcutComprehensionMacroNode(MacroNode):
         )
     
 class KeyboardDeclarationMacroNode(MacroNode):
-    def __init__ ( self, shortcuts : List[Node], flags : List[str], position : (int, int) = None ):
+    def __init__ ( self, shortcuts : List[Node], flags : List[str] = None, prefix : Node = None, position : (int, int) = None ):
         super().__init__( position )
         
         if flags:
             shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_flags", [ StringLiteralNode( f ) for f in flags ] ) )
             shortcuts.append( FunctionExpressionNode( "keyboard\\pop_flags", [ StringLiteralNode( f ) for f in flags ] ) )
+
+        if prefix:
+            shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_prefix", [ prefix ] ) )
+            shortcuts.append( FunctionExpressionNode( "keyboard\\pop_prefix" ) )
 
         self.virtual_node = StatementsListNode( shortcuts, position )

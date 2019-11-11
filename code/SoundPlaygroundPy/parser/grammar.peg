@@ -31,7 +31,7 @@ if_statement <- "if" _ expression _ "{" _ body _ "}" _ "else" _ "{" _ body _ "}"
               / "if" _ expression _ "{" _ body _ "}";
 
 // BEGIN Keyboard
-keyboard_declaration <- "keyboard" (_ alphanumeric)* _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
+keyboard_declaration <- "keyboard" (_ alphanumeric)* ( _ group )? _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
 
 keyboard_shortcut <- alphanumeric (_"+"_ alphanumeric)* (_ alphanumeric)* _ ":" _ expression
                    / string_value (_ alphanumeric)* _ ":" _ expression

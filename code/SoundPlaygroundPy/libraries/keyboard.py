@@ -1,7 +1,7 @@
 from core import Context, Library, Value, CallableValue, VALUE_KIND_STRING
 from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent
 from typing import List, Dict, Iterable, ItemsView, ValuesView
-from parser.abstract_syntax_tree import Node
+from parser.abstract_syntax_tree import Node, MusicSequenceNode
 from parser.abstract_syntax_tree.expressions import BoolLiteralNode
 from audio import MidiPlayer, AsyncMidiPlayer
 from asyncio import Future, sleep, wait, FIRST_COMPLETED, create_task
@@ -60,6 +60,7 @@ def get_keyboard_flag ( context : Context, node : Node, name : str, global_flags
 
 def register_key ( context : Context, key : Node, expression : Node, toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
     global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
+    global_prefixes = context.symbols.lookup_internal( "keyboard\\global_prefixes" );
 
     toggle_value = get_keyboard_flag( context, toggle, "toggle", global_flags )
     hold_value = get_keyboard_flag( context, hold, "hold", global_flags )
@@ -69,6 +70,9 @@ def register_key ( context : Context, key : Node, expression : Node, toggle : No
     key_value = key.eval( context )
     
     keys = context.symbols.lookup_internal( "keyboard\\keys" )
+
+    if global_prefixes:
+        expression = MusicSequenceNode( [ *global_prefixes, expression ] )
 
     action = KeyAction( 
         key = KeyStroke.parse( key_value.value ), 
@@ -107,6 +111,15 @@ def pop_flags ( context : Context, *flags : List[Node] ):
                 if global_flags[ value.value ] == 0:
                     del global_flags[ value.value ]
 
+def push_prefix ( context : Context, expression : Node ):
+    global_prefixes : List[Node] = context.symbols.lookup_internal( "keyboard\\global_prefixes" );
+
+    global_prefixes.append( expression )
+
+def pop_prefix ( context : Context, *flags : List[Node] ):
+    global_prefixes : List[Node] = context.symbols.lookup_internal( "keyboard\\global_prefixes" );
+
+    global_prefixes.pop()
 
 def register_key_toggle ( context : Context, key : Node, expression : Node ):
     register_key( context, key, expression, toggle = BoolLiteralNode( True ) )
@@ -232,9 +245,12 @@ class KeyboardLibrary(Library):
 
         self.assign_internal( "keys", dict() )
         self.assign_internal( "global_flags", dict() )
+        self.assign_internal( "global_prefixes", list() )
 
         self.assign( "push_flags", CallableValue( push_flags ) )
         self.assign( "pop_flags", CallableValue( pop_flags ) )
+        self.assign( "push_prefix", CallableValue( push_prefix ) )
+        self.assign( "pop_prefix", CallableValue( pop_prefix ) )
         self.assign( "register", CallableValue( register_key ) )
         self.assign( "register_hold", CallableValue( register_key_hold ) )
         self.assign( "register_toggle", CallableValue( register_key_toggle ) )
