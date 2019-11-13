@@ -3,8 +3,7 @@ from arpeggio import PTNodeVisitor, visit_parse_tree
 from core.events import NoteEvent
 from core.theory import scales, NoteAccidental, Note
 from .abstract_syntax_tree import Node
-from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode
-from .abstract_syntax_tree import RestNode, MusicGroupNode
+from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode, RestNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier
 
 from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode, ListComprehensionNode
@@ -17,7 +16,7 @@ from .abstract_syntax_tree.expressions import GreaterComparisonOperatorNode, Gre
 from .abstract_syntax_tree.expressions import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode
 from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, LesserEqualComparisonOperatorNode
 
-from .abstract_syntax_tree.expressions import NotOperatorNode
+from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode
 
 from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
@@ -268,7 +267,7 @@ class ParserVisitor(PTNodeVisitor):
     def visit_group ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return MusicGroupNode( children[ 0 ], position )
+        return GroupNode( children[ 0 ], position )
 
     def visit_note ( self, node, children ):
         position = ( node.position, node.position_end )

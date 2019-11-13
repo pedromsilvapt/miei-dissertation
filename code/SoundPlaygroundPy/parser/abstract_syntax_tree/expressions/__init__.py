@@ -1,6 +1,7 @@
 from .expression_node import ExpressionNode
 from .variable_expression_node import VariableExpressionNode
 from .function_expression_node import FunctionExpressionNode
+from .group_node import GroupNode
 from .string_literal_node import StringLiteralNode
 from .number_literal_node import NumberLiteralNode
 from .bool_literal_node import BoolLiteralNode
