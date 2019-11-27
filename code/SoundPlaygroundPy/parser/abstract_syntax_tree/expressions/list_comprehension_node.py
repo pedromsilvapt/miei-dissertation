@@ -1,4 +1,4 @@
-from core import Context, Value, VALUE_KIND_OBJECT
+from core import Context, Value
 from ..node import Node
 from ..expressions import ExpressionNode
 
@@ -15,4 +15,4 @@ class ListComprehensionNode(ExpressionNode):
         self.condition : Node = condition
     
     def eval ( self, context, assignment : bool = False ): 
-        return Value.create( None )
+        return None

@@ -10,7 +10,7 @@ class FunctionDeclarationStatementNode( StatementNode ):
         self.arguments = arguments
         self.body = body
 
-    def eval ( self, context : Context, assignment : bool = False ):
+    def eval ( self, context : Context ):
         fn = CallableValue( lambda *args: self.exec( context.symbols, *args ) )
 
         context.symbols.assign( self.name, fn )
@@ -33,6 +33,6 @@ class FunctionDeclarationStatementNode( StatementNode ):
 
                 forked.symbols.using( context.symbols.pointer( node.name ), name )
             else:
-                forked.symbols.assign( name, node.eval( context, assignment = True ) )
-        
+                forked.symbols.assign( name, Value.assignment( node.eval( context.fork() ) ) )
+
         return self.body.eval( forked )

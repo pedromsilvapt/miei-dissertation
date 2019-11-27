@@ -4,7 +4,7 @@ from core.events import NoteEvent
 from core.theory import scales, NoteAccidental, Note
 from .abstract_syntax_tree import Node
 from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode, RestNode
-from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, InstrumentBlockModifier
+from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, VoiceBlockModifier
 
 from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode, ListComprehensionNode
 from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode, BoolLiteralNode, NoneLiteralNode
@@ -18,7 +18,7 @@ from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, Less
 
 from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode
 
-from .abstract_syntax_tree.statements import StatementsListNode, InstrumentDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
+from .abstract_syntax_tree.statements import StatementsListNode, VoiceDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
 
 from .abstract_syntax_tree.macros import KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode
@@ -50,7 +50,7 @@ class ParserVisitor(PTNodeVisitor):
     def visit_instrument_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return InstrumentDeclarationStatementNode( children[ 0 ], children[ 1 ], position )
+        return VoiceDeclarationStatementNode( children[ 0 ], children[ 1 ], position )
     
     def visit_function_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -372,7 +372,7 @@ class ParserVisitor(PTNodeVisitor):
     def visit_instrument_modifier ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return InstrumentBlockModifier( children[ 1 ], children[ 0 ], position )
+        return VoiceBlockModifier( children[ 1 ], children[ 0 ], position )
 
     # Strings
     def visit_string_value ( self, node, children ):

@@ -1,32 +1,51 @@
 from typing import Callable, Any
+from ..voice import Voice
+from copy import copy
 
 class MusicEvent():
     def __init__ ( self, timestamp : int = 0 ):
-        self.timestamp = timestamp
-        try:
-            self.disabled = False
-        except AttributeError: 
-            pass
-    
+        self.timestamp : int = timestamp
+        self.disabled : bool = False
+
+    @property
+    def end_timestamp ( self ) -> int:
+        if hasattr( self, 'duration' ):
+            return self.timestamp + self.duration
+        else:
+            return self.timestamp
+
+    def clone ( self, **kargs ):
+        instance = copy( self )
+
+        for key, value in kargs.items():
+            setattr( instance, key, value )
+        
+        return instance
+
     def __repr__ ( self ):
         return "<%s>(%r)" % (self.__class__.__name__, self.__dict__)
 
-class DurationEvent ( MusicEvent ):
-    def __init__ ( self, timestamp = 0, duration = 0, value = 0, channel = 0 ):
+class VoiceEvent(MusicEvent):
+    def __init__ ( self, timestamp : int = 0, voice : Voice = None ):
         super().__init__( timestamp )
+
+        self.voice : Voice = voice or Voice.unknown
+
+class DurationEvent ( VoiceEvent ):
+    def __init__ ( self, timestamp = 0, duration = 0, value = 0, voice : Voice = None ):
+        super().__init__( timestamp, voice )
 
         # Value stores information about the note duration independent of the tempo and time signature
         self.value = value
         # While duration stores the note's duration as milliseconds
         self.duration = duration
-        self.channel = channel
 
 class CallbackEvent ( MusicEvent ):
     def __init__ ( self, timestamp : int, callback : Callable, data : Any = None ):
         super().__init__( timestamp )
 
         self.callback : Callable = callback
-        self.data = data
+        self.data  : Any= data
 
     def call ():
         self.callback( self.timestamp, self.data )

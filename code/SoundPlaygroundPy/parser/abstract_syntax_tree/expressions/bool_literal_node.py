@@ -1,11 +1,11 @@
 from .expression_node import ExpressionNode
-from core import Value, VALUE_KIND_BOOL
+from core import Value
 
 class BoolLiteralNode( ExpressionNode ):
     def __init__ ( self, value, position : (int, int) = None ):
         super().__init__( position )
 
-        self.value = Value( VALUE_KIND_BOOL, value )
+        self.value = value
 
-    def eval ( self, context, assignment : bool = False ):
+    def eval ( self, context ):
         return self.value

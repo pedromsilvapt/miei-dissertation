@@ -16,9 +16,9 @@ class NoteNode( MusicNode ):
             pitch_class = self.note.pitch_class,
             duration = context.get_duration( self.note.value ),
             value = context.get_value( self.note.value ),
-            octave = context.octave + ( self.note.octave or 0 ),
-            channel = context.channel,
-            velocity = context.velocity,
+            octave = context.voice.octave + ( self.note.octave or 0 ),
+            voice = context.voice,
+            velocity = context.voice.velocity,
             accidental = self.note.accidental
         )
 

@@ -1,6 +1,16 @@
 from fractions import Fraction
 from typing import List, Dict
 
+def keysToIndexes (d : Dict) -> Dict:
+    i : int = 0
+    result = dict()
+
+    for key in d.keys():
+        result[ key ] = i
+        i += 1
+
+    return result
+
 class NoteAccidental():
     DOUBLEFLAT = -2
     FLAT = 2
@@ -19,6 +29,8 @@ NotePitchClasses = {
 }
 
 NotePitchClassesInv : Dict[int, str] = { v: k for k, v in NotePitchClasses.items() }
+
+NotePitchClassesIndexes : Dict[str, str] = keysToIndexes( NotePitchClasses )
 
 class Note:
     # Static

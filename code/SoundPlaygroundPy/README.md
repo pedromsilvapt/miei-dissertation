@@ -2,6 +2,7 @@
 Python port of the experiments that were started in the .NET project.
 
 ## Python Dependencies
+ - `typeguard`
  - `pynput`
  - `imgui[glfw]` (requires `libglfw3` and `libglfw3-dev`)
  - `py_linq`

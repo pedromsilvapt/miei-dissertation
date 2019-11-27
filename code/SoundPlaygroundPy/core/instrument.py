@@ -1,9 +1,7 @@
 class Instrument():
-    def __init__ ( self, name, program, channel = None, ref_count = 0 ):
+    def __init__ ( self, name, program ):
         self.name = name
         self.program = program
-        self.channel = channel
-        self.ref_count = ref_count
 
 class GeneralMidi():
     # Piano

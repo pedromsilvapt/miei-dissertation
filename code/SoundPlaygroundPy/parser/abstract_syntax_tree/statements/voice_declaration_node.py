@@ -1,7 +1,7 @@
 from .statement_node import StatementNode
 from core import Instrument
 
-class InstrumentDeclarationStatementNode( StatementNode ):
+class VoiceDeclarationStatementNode( StatementNode ):
     def __init__ ( self, name, program, position : (int, int) = None ):
         super().__init__( position )
 

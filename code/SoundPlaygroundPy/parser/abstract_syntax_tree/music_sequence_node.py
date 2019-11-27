@@ -1,4 +1,4 @@
-from core import Value
+from core import Value, Music
 from .music_node import MusicNode
 
 class MusicSequenceNode( MusicNode ):
@@ -9,9 +9,11 @@ class MusicSequenceNode( MusicNode ):
 
     def get_events ( self, context ):
         for node in self.expressions:
-            value : Value = node.eval( context )
+            value = node.eval( context )
 
-            if value != None and value.is_music:
+            if isinstance( value, Music ):
                 for event in value:
                     yield event
     
+    def __iter__ ( self ):
+        return iter( self.expressions )

@@ -1,4 +1,4 @@
-from core import Context, Library, Value, CallableValue, VALUE_KIND_STRING
+from core import Context, Library, Value, CallableValue, Music
 from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent
 from typing import List, Dict, Iterable, ItemsView, ValuesView
 from parser.abstract_syntax_tree import Node, MusicSequenceNode
@@ -54,7 +54,7 @@ def get_keyboard_flag ( context : Context, node : Node, name : str, global_flags
     if node != None:
         value : Value = node.eval( context )
 
-        return value and value.value
+        return bool( value )
 
     return name in global_flags and global_flags[ name ] > 0
 
@@ -75,7 +75,7 @@ def register_key ( context : Context, key : Node, expression : Node, toggle : No
         expression = MusicSequenceNode( [ *global_prefixes, expression ] )
 
     action = KeyAction( 
-        key = KeyStroke.parse( key_value.value ), 
+        key = KeyStroke.parse( key_value ), 
         expr = expression,
         context = context,
         toggle = toggle_value,
@@ -90,26 +90,26 @@ def push_flags ( context : Context, *flags : List[Node] ):
     global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
 
     for flag in flags:
-        value : Value = flag.eval( context )
+        value : str = flag.eval( context )
 
-        if value and value.kind == VALUE_KIND_STRING:
-            if value.value in global_flags:
-                global_flags[ value.value ] += 1
+        if Value.typeof( value ) == str:
+            if value in global_flags:
+                global_flags[ value ] += 1
             else:
-                global_flags[ value.value ] = 1
+                global_flags[ value ] = 1
 
 def pop_flags ( context : Context, *flags : List[Node] ):
     global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
 
     for flag in flags:
-        value : Value = flag.eval( context )
+        value : str = flag.eval( context )
 
-        if value and value.kind == VALUE_KIND_STRING:
-            if value.value in global_flags:
-                global_flags[ value.value ] -= 1
+        if Value.typeof( value ) == str:
+            if value in global_flags:
+                global_flags[ value ] -= 1
 
-                if global_flags[ value.value ] == 0:
-                    del global_flags[ value.value ]
+                if global_flags[ value ] == 0:
+                    del global_flags[ value ]
 
 def push_prefix ( context : Context, expression : Node ):
     global_prefixes : List[Node] = context.symbols.lookup_internal( "keyboard\\global_prefixes" );
@@ -178,15 +178,15 @@ class KeyAction:
             
             value = self.expr.eval( forked_context )
 
-            if value != None and value.is_music:
+            if isinstance( value, Music ):
                 if self.extend:
                     return list( self.extend_notes( player, value ) )
 
                 return value
-            elif value != None and isinstance( value, CallableValue ):
+            elif callable( value ):
                 value = value.call( forked_context )
 
-                if value != None and value.is_music:
+                if isinstance( value, Music ):
                     if self.extend:
                         return list( self.extend_notes( player, value ) )
                         

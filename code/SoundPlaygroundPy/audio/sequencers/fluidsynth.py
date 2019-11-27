@@ -1,12 +1,16 @@
 import fluidsynth
-from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
+from core.events import MusicEvent, VoiceEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
 from .sequencer import Sequencer
-from ctypes import py_object, c_void_p
+from ctypes import py_object, c_void_p, c_int
 from threading import Semaphore
 from typing import Dict, Any
+from time import sleep
 
 fluid_event_get_data = fluidsynth.cfunc('fluid_event_get_data', c_void_p,
                                     ('evt', c_void_p, 1))
+
+fluid_synth_get_active_voice_count = fluidsynth.cfunc('fluid_synth_get_active_voice_count', c_int,
+                                    ('synth', c_void_p, 1))
 
 class FluidSynthSequencer ( Sequencer ):
     def __init__ ( self, output : str = None, soundfont : str = None ):
@@ -29,7 +33,18 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.events_data : Dict[int, Any] = dict()
         self.events_data_id : int = 1
+        self.voices : Dict[str, int] = dict()
     
+    def _get_voice_channel ( self, voice ) -> int:
+        if voice.name in self.voices:
+            return self.voices[ voice.name ]
+
+        self.voices[ voice.name ] = len( self.voices )
+
+        self.synth.program_change( self.voices[ voice.name ], voice.instrument.program )
+
+        return self.voices[ voice.name ]
+
     @property
     def is_output_file ( self ) -> bool:
         if self.output != None and isinstance( self.output, str ):
@@ -84,14 +99,17 @@ class FluidSynthSequencer ( Sequencer ):
 
     def apply_event ( self, event : MusicEvent ):
         if not event.disabled:
-            if isinstance( event, NoteOnEvent ):
-                self.synth.noteon( event.channel, int( event ), event.velocity )
-            elif isinstance( event, NoteOffEvent ):
-                self.synth.noteoff( event.channel, int( event ) )
-            elif isinstance( event, ProgramChangeEvent ):
-                self.synth.program_change( event.channel, event.program )
-            elif isinstance( event, ControlChangeEvent ):
-                self.synth.cc( event.channel, event.control, event.value )
+            if isinstance( event, VoiceEvent ):
+                channel = self._get_voice_channel( event.voice )
+                
+                if isinstance( event, NoteOnEvent ):
+                     self.synth.noteon( channel, int( event ), event.velocity )
+                elif isinstance( event, NoteOffEvent ):
+                    self.synth.noteoff( channel, int( event ) )
+                elif isinstance( event, ProgramChangeEvent ):
+                    self.synth.program_change( channel, event.program )
+                elif isinstance( event, ControlChangeEvent ):
+                    self.synth.cc( channel, event.control, event.value )
             elif isinstance( event, CallbackEvent ):
                 event.call()
             else:
@@ -101,6 +119,9 @@ class FluidSynthSequencer ( Sequencer ):
         if now == None:
             now = self.get_time()
         
+        if isinstance( event, VoiceEvent ):
+            self._get_voice_channel( event.voice )
+
         if isinstance( event, NoteEvent ):
             noteon = event.note_on
             noteoff = event.note_off
@@ -128,9 +149,19 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.join_lock = Semaphore( 0 )
 
-        self.timer( self.get_time() + self.last_note, dest = self.client )
+        self.timer( self.last_note + 1000, dest = self.client )
         
         self.join_lock.acquire()
+
+        # while True:
+        #     voices = fluid_synth_get_active_voice_count( self.synth.synth )
+
+        #     print( voices )
+
+        #     sleep( 0.3 )
+
+        #     if voices == 0:
+        #         break
 
     def start ( self ):
         self.synth = fluidsynth.Synth()

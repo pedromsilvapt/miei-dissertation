@@ -42,9 +42,9 @@ fun melody () {
 
 fun toggle_sustain ( ref $enabled ) {
     if $enabled {
-        cc( 0; 64; 0 );
+        cc( 64; 0 );
     } else {
-        cc( 0; 64; 127 );
+        cc( 64; 127 );
     };
 
     $enabled = not $enabled;

@@ -1,5 +1,5 @@
 from .statement_node import StatementNode
-from core import Value, VALUE_KIND_MUSIC
+from core import Value, Music
 
 class StatementsListNode( StatementNode ):
     def __init__ ( self, nodes, position : (int, int) = None ):
@@ -16,22 +16,22 @@ class StatementsListNode( StatementNode ):
 
             # print( len( self.statements ), index, value.kind if value != None else None )
 
-            if value and value.kind == VALUE_KIND_MUSIC:
+            if isinstance( value, Music ):
                 for event in value:
                     yield event
 
             index += 1
     
-    def eval ( self, context, assignment = False ):
+    def eval ( self, context ):
         i = 0
 
-        value = Value.create( None )
+        value = None
 
         for node in self.statements:
             value = node.eval( context )
 
-            if value and value.kind == VALUE_KIND_MUSIC:
-                return Value( VALUE_KIND_MUSIC, self.get_events( context, value, i + 1 ) )
+            if isinstance( value, Music ):
+                return Music( self.get_events( context, value, i + 1 ) )
 
             i += 1
 

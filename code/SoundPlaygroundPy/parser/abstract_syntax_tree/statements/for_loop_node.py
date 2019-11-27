@@ -1,4 +1,4 @@
-from core import Context, SymbolsScope, Value, VALUE_KIND_NUMBER
+from core import Context, SymbolsScope, Value
 from ..node import Node
 from .statement_node import StatementNode
 
@@ -11,23 +11,21 @@ class ForLoopStatementNode( StatementNode ):
         self.max : Node = max
         self.body : Node = body
 
-    def eval ( self, context : Context, assignment : bool = False ):
-        min_value : Value = self.min.eval( context )
+    def eval ( self, context : Context ):
+        min_value = self.min.eval( context )
 
-        if min_value.kind != VALUE_KIND_NUMBER:
-            raise BaseException( "For loop minimum value expected a number, got %s" % min_value.kind )
+        Value.expect( min_value, float, "For loop minimum" )
         
-        max_value : Value = self.max.eval( context )
+        max_value = self.max.eval( context )
 
-        if max_value.kind != VALUE_KIND_NUMBER:
-            raise BaseException( "For loop maximum value expected a number, got %s" % max_value.kind )
+        Value.expect( max_value, float, "For loop maximum" )
 
         result = None
 
         # TODO Study creating a custom scope for this loop
         forked = context.fork( symbols = context.symbols.fork( opaque = False ) )
         for i in range( min_value.value, max_value.value ):
-            forked.symbols.assign( self.variable, Value( VALUE_KIND_NUMBER, i ), local = True )
+            forked.symbols.assign( self.variable, i, local = True )
 
             result = self.body.eval( forked )
             

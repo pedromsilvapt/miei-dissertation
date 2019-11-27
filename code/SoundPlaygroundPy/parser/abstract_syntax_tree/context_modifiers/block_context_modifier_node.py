@@ -1,4 +1,5 @@
 from .. import MusicNode
+from core import Music
 
 class BlockContextModifierNode( MusicNode ):
     def __init__ ( self, body, position : (int, int) = None ):
@@ -17,14 +18,19 @@ class BlockContextModifierNode( MusicNode ):
 
         events = self.modify( block_context )
 
-        if events != None:
+        if isinstance( events, Music ):
             for event in events: yield event
 
         try:
             if self.body != None:
-                for event in self.body.eval( block_context ):
-                    yield event
-        finally:
-            self.restore( block_context )
+                events = self.body.eval( block_context )
 
+                if isinstance( events, Music ):
+                    for event in events: yield event
+
+            events = self.restore( block_context )
+
+            if isinstance( events, Music ):
+                for event in events: yield event
+        finally:
             context.join( block_context )

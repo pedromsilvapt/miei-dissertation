@@ -1,9 +1,10 @@
+from ..voice import Voice
 from .event import DurationEvent
 from fractions import Fraction
 
 class RestEvent( DurationEvent ):
-    def __init__ ( self, timestamp = 0, duration = 0, value = 0, channel = 0, visible = True ):
-        super().__init__( timestamp, duration, value, channel )
+    def __init__ ( self, timestamp = 0, duration = 0, value = 0, voice : Voice = None, visible = True ):
+        super().__init__( timestamp, duration, value, voice )
 
         self.visible = visible
 

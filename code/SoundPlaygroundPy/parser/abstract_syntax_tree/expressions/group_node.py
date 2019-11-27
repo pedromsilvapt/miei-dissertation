@@ -1,4 +1,4 @@
-from core import Context, Value
+from core import Context, Value, Music
 from ..node import Node
 
 class GroupNode( Node ):
@@ -17,10 +17,10 @@ class GroupNode( Node ):
     def eval ( self, context : Context, assignment : bool = False ):
         forked = context.fork()
 
-        value : Value = self.expression.eval( forked )
+        value = self.expression.eval( forked )
 
-        if value.is_music:
-            return Value.create( self.get_events( context, forked, value ) )
+        if isinstance( value, Music ):
+            return Music( self.get_events( context, forked, value ) )
         else:
             context.join( forked )
 

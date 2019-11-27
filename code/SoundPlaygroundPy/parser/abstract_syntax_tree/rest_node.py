@@ -13,7 +13,7 @@ class RestNode( MusicNode ):
             timestamp = context.cursor,
             duration = context.get_duration( self.value ),
             value = context.get_value( self.value ),
-            channel = context.channel,
+            voice = context.voice,
             visible = self.visible
         )
 

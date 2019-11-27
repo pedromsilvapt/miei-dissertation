@@ -5,9 +5,4 @@ class ContextModifierNode( MusicNode ):
         pass
 
     def get_events ( self, context ):
-        value = self.modify( context )
-
-        if value != None:
-            return value
-
-        return iter( () )
+        return self.modify( context )

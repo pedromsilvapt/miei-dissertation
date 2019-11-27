@@ -13,9 +13,6 @@ class UnaryOperatorNode( ExpressionNode ):
 
 class NotOperatorNode ( UnaryOperatorNode ):
     def eval ( self, context : Context, assignment : bool = False ):
-        value : Value = self.node.eval( context )
+        value = self.node.eval( context )
 
-        if value == None:
-            return Value.create( True )
-        else:
-            return Value.create( not value.is_truthy )
+        return not bool( value )

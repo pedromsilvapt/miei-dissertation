@@ -1,25 +1,24 @@
-from .event import MusicEvent
+from .event import MusicEvent, VoiceEvent
+from ..voice import Voice
 
-class ProgramChangeEvent ( MusicEvent ):
-    def __init__ ( self, timestamp, channel, program ):
-        super().__init__( timestamp )
+class ProgramChangeEvent ( VoiceEvent ):
+    def __init__ ( self, timestamp : int, voice : Voice, program : int ):
+        super().__init__( timestamp, voice )
 
-        self.channel = channel
-        self.program = program
+        self.program : int = program
 
-class ControlChangeEvent ( MusicEvent ):
-    def __init__ ( self, timestamp, channel, control, value ):
-        super().__init__( timestamp )
+class ControlChangeEvent ( VoiceEvent ):
+    def __init__ ( self, timestamp : int, voice : Voice, control : int, value : int ):
+        super().__init__( timestamp, voice )
 
-        self.channel = channel
-        self.control = control
-        self.value = value
+        self.control : int = control
+        self.value : int = value
 
 class ContextChangeEvent( MusicEvent ):
-    def __init__ ( self, timestamp, property, value ):
+    def __init__ ( self, timestamp : int, property : str, value ):
         super().__init__( timestamp )
 
-        self.property = property
+        self.property : str = property
         self.value = value
 
     def __str__ ( self ) -> str:

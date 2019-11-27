@@ -1,6 +1,6 @@
 from .context_modifier_node import ContextModifierNode
 from core.events import ContextChangeEvent
-from core import Context
+from core import Context, Voice
 
 class TempoModifierNode( ContextModifierNode ):
     def __init__ ( self, tempo, position : (int, int) = None ):
@@ -8,7 +8,10 @@ class TempoModifierNode( ContextModifierNode ):
 
         self.tempo = tempo
 
-    def modify ( self, context : Context ):
-        context.tempo = self.tempo
+    def apply ( self, voice : Voice ):
+        voice.tempo = self.tempo
 
-        yield ContextChangeEvent( context.cursor, "tempo", context.tempo )
+    def modify ( self, context : Context ):
+        context.voice = context.voice.clone( tempo = self.tempo )
+
+        yield ContextChangeEvent( context.cursor, "tempo", context.voice.tempo )

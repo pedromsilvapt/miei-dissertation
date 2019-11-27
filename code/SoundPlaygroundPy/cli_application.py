@@ -6,7 +6,7 @@ from pathlib import Path
 
 from audio import MidiPlayer, AsyncMidiPlayer
 from audio.sequencers import FluidSynthSequencer, ABCSequencer
-from core import Context, Value
+from core import Context, Value, Music
 from parser import Parser
 from libraries import KeyboardLibrary, KeyStroke, StandardLibrary, MusicLibrary
 
@@ -42,7 +42,7 @@ class CliApplication:
     def eval_music ( self, context, ast ):
         value = ast.eval( context )
 
-        if value != None and value.is_music:
+        if isinstance( value, Music ):
             return value
         
         return ()
@@ -192,6 +192,8 @@ class CliApplication:
             # Wait for the end of the player if there is anything left to play
             for task in list( self.tasks ):
                 await task
+
+            self.player.sequencers[0].join()
 
             if keyboard != None and len( keyboard.registered ) > 0:
                 await self.keyboard( context, keyboard )

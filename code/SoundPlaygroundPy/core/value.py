@@ -1,13 +1,33 @@
-VALUE_KIND_NONE = 0
-VALUE_KIND_MUSIC = 1
-VALUE_KIND_BOOL = 2
-VALUE_KIND_NUMBER = 3
-VALUE_KIND_STRING = 4
-VALUE_KIND_CALLABLE = 5
-VALUE_KIND_OBJECT = 6
+from typeguard import check_type
+from .music import Music
 
 class Value:
+    def assignment ( value ):
+        # TODO
+        if isinstance( value, Music ):
+            return value.shared()
+        
+        return value
+
+    def expect ( value, typehint, name : str = "", soft : bool = False ) -> bool:
+        if soft:
+            try:
+                check_type( name, value, typehint )
+
+                return True
+            except:
+                return False
+        else:
+            check_type( name, value, typehint )
+            
+            return True
+
+    def typeof ( value ):
+        return type( value )
+
     def create ( value ):
+        # return value
+
         if isinstance( value, Value ):
             return Value( value.kind, value.value )
 
@@ -21,10 +41,16 @@ class Value:
             return Value( VALUE_KIND_STRING, value )
         elif callable( value ):
             return Value( VALUE_KIND_CALLABLE, value )
-        elif hasattr( value, '__iter__' ):
+        elif isinstance( value, Music ) or hasattr( value, '__iter__' ):
             return Value( VALUE_KIND_MUSIC, value )
         else:
             return Value( VALUE_KIND_OBJECT, value )
+
+    def eval ( context, node ):
+        if node == None: 
+            return None
+
+        return node.eval( context )
 
     def __init__ ( self, kind, value ):
         self.kind = kind
@@ -47,21 +73,24 @@ class Value:
     def __repr__ ( self ):
         return repr( self.value )
 
-class CallableValue(Value):
-    def __init__ ( self, value ):
-        super().__init__( VALUE_KIND_CALLABLE, value )
+class CallableValue:
+    def __init__ ( self, fn ):
+        self.fn = fn
 
-    def call ( self, context, args = [], kargs = {}, assignment : bool = False ):
-        value = self.value( context, *args, **kargs )
+    def call ( self, context, args = [], kargs = {} ):
+        return self.fn( context, *args, **kargs )
 
-        if isinstance( value, Value ):
-            return value
-        elif hasattr( value, '__iter__' ):
-            if assignment:
+        # if isinstance( value, Value ):
+        #     return value
+        # elif isinstance( value, Music ):
+            # if assignment:
                 # FIXME
                 # return Value( VALUE_KIND_MUSIC, SharedMusicEvents( context.fork(), self ) )
-                pass
-            else:
-                return Value( VALUE_KIND_MUSIC, value )
-        else:
-            return value
+                # pass
+            # else:
+                # return value
+        # else:
+        #     return value
+
+    def __call__ ( self, context, args, kargs ):
+        return self.call( context, args, kargs )

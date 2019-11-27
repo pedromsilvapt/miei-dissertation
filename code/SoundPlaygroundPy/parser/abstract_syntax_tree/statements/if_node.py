@@ -10,15 +10,15 @@ class IfStatementNode( StatementNode ):
         self.body : Node = body
         self.else_body : Node = else_body
 
-    def eval ( self, context : Context, assignment : bool = False ):
-        condition_value : Value = self.condition.eval( context )
+    def eval ( self, context : Context ):
+        condition_value = self.condition.eval( context )
 
-        if condition_value != None and condition_value.is_truthy:
+        result = None
+
+        if condition_value:
             result = self.body.eval( context )
         elif self.else_body != None:
             result = self.else_body.eval( context )
-        else:
-            result = Value.create( None )
 
         return result
 

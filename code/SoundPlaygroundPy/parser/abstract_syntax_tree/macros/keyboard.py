@@ -5,8 +5,8 @@ from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteral
 from ..statements import ForLoopStatementNode, IfStatementNode, StatementsListNode
 
 class MacroNode(Node):
-    def eval ( self, context : Context, assignment : bool = False ):
-        return self.virtual_node.eval( context, assignment = assignment )
+    def eval ( self, context : Context ):
+        return self.virtual_node.eval( context )
 
 ModifierNames = [ 'hold', 'extend', 'toggle', 'repeat' ]
 

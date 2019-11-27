@@ -1,4 +1,4 @@
-from core import Context, Instrument, VALUE_KIND_MUSIC
+from core import Context, Instrument, Music
 from parser.abstract_syntax_tree import MusicSequenceNode
 from parser.abstract_syntax_tree.context_modifiers import ContextModifierNode
 from graphics import BaseApplication
@@ -6,6 +6,7 @@ from libraries import KeyboardLibrary, KeyStroke, MusicLibrary, StandardLibrary
 from parser import Parser
 from audio import MidiPlayer
 from audio.sequencers import FluidSynthSequencer
+from fractions import Fraction
 import imgui
 import glfw
 import traceback
@@ -17,7 +18,7 @@ EXPRESSION_TAB_KEYBOARD = 2
 
 class GuiApplication( BaseApplication ):
     def __init__ ( self ):
-        with open( 'examples/keyboard.ml', 'r' ) as f:
+        with open( 'examples/minecraft.ml', 'r' ) as f:
             self.code = f.read()
 
         self.parsedTree = None
@@ -28,15 +29,7 @@ class GuiApplication( BaseApplication ):
         self.expressionTab = EXPRESSION_TAB_AST
 
     def create_context ( self, player : MidiPlayer ):
-        ctx = Context(
-            time_signature = (6, 8),
-            tempo = 75,
-            velocity = 127,
-            instruments = [
-                Instrument( 'piano', 0, 0, 1 )
-                # Instrument( 'violin', 41, 1, 1 )
-            ]
-        )
+        ctx = Context.create()
 
         ctx.link( StandardLibrary() )
         ctx.link( MusicLibrary() )
@@ -151,7 +144,7 @@ class GuiApplication( BaseApplication ):
 
                     value = self.parsedTree.eval( self.context )
                     
-                    self.player.events = events = list( value ) if value and value.is_music else []
+                    self.player.events = events = list( value ) if isinstance( value, Music ) else []
 
                     self.parsedException = None
                 if to_play:
@@ -190,6 +183,7 @@ class GuiApplication( BaseApplication ):
         or isinstance( value, float )\
         or isinstance( value, str )\
         or isinstance( value, tuple )\
+        or isinstance( value, Fraction ) \
         or value is None:
             imgui.bullet_text( f"{key}: {value}" )
         elif isinstance( value, list ):
