@@ -14,7 +14,7 @@ def decompose_notes ( notes ):
 
             offs = [ ev for ev in offs if ev.timestamp > next_off ]
 
-            next_off = min( ev.timestamp for ev in offs )
+            next_off = min( ev.timestamp for ev in offs ) if offs else None
 
         if isinstance( event, NoteEvent ):
             event_off = event.note_off
