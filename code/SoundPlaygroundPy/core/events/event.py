@@ -5,8 +5,7 @@ from copy import copy
 class MusicEvent():
     def __init__ ( self, timestamp : int = 0 ):
         self.timestamp : int = timestamp
-        self.disabled : bool = False
-
+        
     @property
     def end_timestamp ( self ) -> int:
         if hasattr( self, 'duration' ):
@@ -47,5 +46,5 @@ class CallbackEvent ( MusicEvent ):
         self.callback : Callable = callback
         self.data  : Any= data
 
-    def call ():
+    def call ( self ):
         self.callback( self.timestamp, self.data )

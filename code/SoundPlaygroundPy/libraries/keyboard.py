@@ -145,24 +145,24 @@ class KeyAction:
         self.is_active : bool = False
         self.is_pressed : bool = False
 
-        self.extend_event : Event = Event()
         self.async_player : AsyncMidiPlayer = None
-        self.extended : List[NoteOffEvent] = []
-        self.extended_player : MidiPlayer = None
+        # self.extend_event : Event = Event()
+        # self.extended : List[NoteOffEvent] = []
+        # self.extended_player : MidiPlayer = None
 
-    def extend_notes ( self, player : MidiPlayer, events ):
-        self.extended.clear()
-        self.extended_player = player
+    # def extend_notes ( self, player : MidiPlayer, events ):
+    #     self.extended.clear()
+    #     self.extended_player = player
 
-        for event in events:
-            if isinstance( event, NoteEvent ):
-                self.extended.append( event.note_off )
+    #     for event in events:
+    #         if isinstance( event, NoteEvent ):
+    #             self.extended.append( event.note_off )
 
-                yield event.note_on
-            elif isinstance( event, NoteOffEvent ):
-                self.extended.append( event.note_off )
-            else:
-                yield event
+    #             yield event.note_on
+    #         elif isinstance( event, NoteOffEvent ):
+    #             self.extended.append( event.note_off )
+    #         else:
+    #             yield event
 
     def play ( self, context : Context, player : MidiPlayer ):
         forked_context : Context = None
@@ -170,7 +170,7 @@ class KeyAction:
         def eval ():
             nonlocal forked_context
 
-            self.extend_event.clear()
+            # self.extend_event.clear()
 
             now = player.get_time() if forked_context == None else forked_context.cursor
 
@@ -179,35 +179,22 @@ class KeyAction:
             value = self.expr.eval( forked_context )
 
             if isinstance( value, Music ):
-                if self.extend:
-                    return list( self.extend_notes( player, value ) )
-
                 return value
             elif callable( value ):
                 value = value.call( forked_context )
 
                 if isinstance( value, Music ):
-                    if self.extend:
-                        return list( self.extend_notes( player, value ) )
-                        
                     return value
 
             return None
 
-        self.async_player = AsyncMidiPlayer( eval, player, 0, self.repeat and not self.extend )
+        self.async_player = AsyncMidiPlayer( eval, player, 0, self.repeat and not self.extend, self.extend )
 
         create_task( self.async_player.start() )
 
     def stop ( self, context : Context, player : MidiPlayer ):
         if self.async_player != None:
-            if self.extend:
-                for event in self.extended: event.timestamp = self.extended_player.get_time()
-
-                async_player = AsyncMidiPlayer( lambda: list( self.extended ), player, 0, self.repeat and not self.extend )
-
-                create_task( async_player.start() )
-            else:
-                create_task( self.async_player.stop() )
+            create_task( self.async_player.stop() )
 
         self.async_player = None
 
@@ -218,7 +205,7 @@ class KeyAction:
         self.is_pressed = True
 
         if self.toggle:
-            if self.async_player != None and ( self.extended or self.async_player.is_playing ):
+            if self.async_player != None and self.async_player.is_playing:
                 self.stop( context, player )
             else:
                 self.play( context, player )
@@ -241,8 +228,6 @@ class KeyboardLibrary(Library):
         self.player : MidiPlayer = player
     
     def on_link ( self ):
-        context = self.context
-
         self.assign_internal( "keys", dict() )
         self.assign_internal( "global_flags", dict() )
         self.assign_internal( "global_prefixes", list() )
@@ -286,12 +271,12 @@ class KeyboardLibrary(Library):
             close_future.set_result( None )
 
     def start ( self, key : KeyStroke ):
-        if key in registered:
-            registered[ key ].start( self.context, self.player )
+        if key in self.registered:
+            self.registered[ key ].start( self.context, self.player )
         
     def stop ( self, key : KeyStroke ):
-        if key in registered:
-            registered[ key ].stop( self.context, self.player )
+        if key in self.registered:
+            self.registered[ key ].stop( self.context, self.player )
 
     def on_press ( self, key : KeyStroke ):
         registered = self.registered

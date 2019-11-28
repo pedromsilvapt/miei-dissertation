@@ -17,24 +17,12 @@ class NoteOnEvent ( VoiceEvent ):
 
         super().__init__( timestamp, voice )
 
-
-    @property
-    def disabled ( self ) -> bool:
-        if self.parent != None:
-            return self.parent.disabled
-        
-        return self._disabled
-
-    @disabled.setter
-    def disabled ( self, value : bool ):
-        if self.parent != None:
-            self.parent.disabled = value
-        else:
-            self._disabled = value
-
     @property
     def note ( self ) -> Note:
         return Note( self.pitch_class, self.octave, self.accidental )
+
+    def note_off ( self, timestamp : int ) -> 'NoteOffEvent':
+        return NoteOffEvent( timestamp, self.pitch_class, self.octave, self.accidental, self.voice, self.parent )
 
     def __int__ ( self ):
         return int( self.note )
@@ -51,21 +39,6 @@ class NoteOffEvent ( VoiceEvent ):
         self.parent : 'NoteEvent' = parent
 
         super().__init__( timestamp, voice )
-
-
-    @property
-    def disabled ( self ) -> bool:
-        if self.parent != None:
-            return self.parent.disabled
-        
-        return self._disabled
-
-    @disabled.setter
-    def disabled ( self, value : bool ):
-        if self.parent != None:
-            self.parent.disabled = value
-        else:
-            self._disabled = value
 
     @property
     def note ( self ) -> Note:

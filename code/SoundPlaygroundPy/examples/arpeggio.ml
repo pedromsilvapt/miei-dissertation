@@ -7,7 +7,7 @@ $e1 = :accord ( c5/2 r/2| r [cde][cde]);
 
 # play( $e1 );
 
-keyboard {
+keyboard repeat hold {
     a: arpeggio( Cm; $e1 );
     s: arpeggio( Fm; $e1 );
     d: arpeggio( Gm; $e1 );

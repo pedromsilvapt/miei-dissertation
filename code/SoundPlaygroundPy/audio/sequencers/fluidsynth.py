@@ -3,8 +3,9 @@ from core.events import MusicEvent, VoiceEvent, NoteEvent, NoteOnEvent, NoteOffE
 from .sequencer import Sequencer
 from ctypes import py_object, c_void_p, c_int
 from threading import Semaphore
-from typing import Dict, Any
+from typing import Dict, List, Any
 from time import sleep
+from collections import defaultdict
 
 fluid_event_get_data = fluidsynth.cfunc('fluid_event_get_data', c_void_p,
                                     ('evt', c_void_p, 1))
@@ -28,8 +29,9 @@ class FluidSynthSequencer ( Sequencer ):
         self.client : int = None
 
         self.last_note : int = None
-        self.join_lock : threading.Semaphore = None
+        self.join_lock : Semaphore = None
         self.start_time : int = 0
+        self.keys_count : Dict[int, List[int]] = defaultdict(lambda: [ 0 for i in range( 0, 128 ) ])
 
         self.events_data : Dict[int, Any] = dict()
         self.events_data_id : int = 1
@@ -97,23 +99,39 @@ class FluidSynthSequencer ( Sequencer ):
             # TODO HACK!!!
             self._join_callback( time, event, seq, data )
 
+    def apply_event_noteoff ( self, channel, event ):
+        key = int( event )
+
+        self.keys_count[ channel ][ key ] -= 1
+
+        if self.keys_count[ channel ][ key ] == 0:
+            self.synth.noteoff( channel, key )
+
+    def apply_event_noteon( self, channel, event ):
+        key = int( event )
+
+        self.keys_count[ channel ][ key ] += 1
+
+        # if self.keys_count[ channel ][ key ] == 1:
+        self.synth.noteon( channel, key, event.velocity )
+
+
     def apply_event ( self, event : MusicEvent ):
-        if not event.disabled:
-            if isinstance( event, VoiceEvent ):
-                channel = self._get_voice_channel( event.voice )
-                
-                if isinstance( event, NoteOnEvent ):
-                     self.synth.noteon( channel, int( event ), event.velocity )
-                elif isinstance( event, NoteOffEvent ):
-                    self.synth.noteoff( channel, int( event ) )
-                elif isinstance( event, ProgramChangeEvent ):
-                    self.synth.program_change( channel, event.program )
-                elif isinstance( event, ControlChangeEvent ):
-                    self.synth.cc( channel, event.control, event.value )
-            elif isinstance( event, CallbackEvent ):
-                event.call()
-            else:
-                pass
+        if isinstance( event, VoiceEvent ):
+            channel = self._get_voice_channel( event.voice )
+            
+            if isinstance( event, NoteOnEvent ):
+                self.apply_event_noteon( channel, event )
+            elif isinstance( event, NoteOffEvent ):
+                self.apply_event_noteoff( channel, event )
+            elif isinstance( event, ProgramChangeEvent ):
+                self.synth.program_change( channel, event.program )
+            elif isinstance( event, ControlChangeEvent ):
+                self.synth.cc( channel, event.control, event.value )
+        elif isinstance( event, CallbackEvent ):
+            event.call()
+        else:
+            pass
 
     def register_event ( self, event : MusicEvent, now = None ):
         if now == None:
