@@ -19,18 +19,18 @@ class BlockContextModifierNode( MusicNode ):
         events = self.modify( block_context )
 
         if isinstance( events, Music ):
-            for event in events: yield event
+            for event in events.expand( context ): yield event
 
         try:
             if self.body != None:
                 events = self.body.eval( block_context )
 
                 if isinstance( events, Music ):
-                    for event in events: yield event
+                    for event in events.expand( block_context ): yield event
 
             events = self.restore( block_context )
 
             if isinstance( events, Music ):
-                for event in events: yield event
+                for event in events.expand( context ): yield event
         finally:
             context.join( block_context )

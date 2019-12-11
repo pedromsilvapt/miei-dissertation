@@ -38,14 +38,18 @@ class FluidSynthSequencer ( Sequencer ):
         self.voices : Dict[str, int] = dict()
     
     def _get_voice_channel ( self, voice ) -> int:
-        if voice.name in self.voices:
-            return self.voices[ voice.name ]
+        key = voice.name + '$' + str( voice.instrument.program )
 
-        self.voices[ voice.name ] = len( self.voices )
+        if key in self.voices:
+            return self.voices[ key ]
 
-        self.synth.program_change( self.voices[ voice.name ], voice.instrument.program )
+        value = len( self.voices )
 
-        return self.voices[ voice.name ]
+        self.voices[ key ] = value
+
+        self.synth.program_change( value, voice.instrument.program )
+
+        return value
 
     @property
     def is_output_file ( self ) -> bool:

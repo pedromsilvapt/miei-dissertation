@@ -12,7 +12,7 @@ class MusicSequenceNode( MusicNode ):
             value = node.eval( context )
 
             if isinstance( value, Music ):
-                for event in value:
+                for event in value.expand( context ):
                     yield event
     
     def __iter__ ( self ):

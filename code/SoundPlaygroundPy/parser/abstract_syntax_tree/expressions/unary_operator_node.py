@@ -9,7 +9,7 @@ class UnaryOperatorNode( ExpressionNode ):
         self.node : Node = node
 
     def eval ( self, context, assignment : bool = False ):
-        return self.value
+        return None
 
 class NotOperatorNode ( UnaryOperatorNode ):
     def eval ( self, context : Context, assignment : bool = False ):

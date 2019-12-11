@@ -46,13 +46,16 @@ def function_cc ( context : Context, control : int, value : int ):
     
     return Music( [ event ] )
 
+def function_setinstrument ( context : Context, instrument : int ):
+    context.voice = context.voice.clone( instrument = Instrument( "", instrument ) )
+
 def function_debug ( context : Context, expr ):
     value = expr.eval( context.fork() )
 
     if value == None:
         print( None )
     elif isinstance( value, Music ):
-        print( '<Music> ' + ' '.join( str( event ) for event in value ) )
+        print( '<Music> ' + ' '.join( str( event ) for event in value.expand( context ) ) )
     else:
         print( "<%s>%s" % ( Value.typeof( value ), value ) )
 
@@ -111,5 +114,6 @@ class StandardLibrary(Library):
         context.symbols.assign( "ord", CallableValue( function_ord ) )
         context.symbols.assign( "chr", CallableValue( function_chr ) )
         context.symbols.assign( "cc", CallablePythonValue( function_cc ) )
+        context.symbols.assign( "setinstrument", CallablePythonValue( function_setinstrument ) )
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )

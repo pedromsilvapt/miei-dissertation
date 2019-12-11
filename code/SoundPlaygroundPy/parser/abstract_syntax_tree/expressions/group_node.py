@@ -9,7 +9,7 @@ class GroupNode( Node ):
 
     def get_events ( self, context : Context, forked : Context, value : Value ):
         try:
-            for event in value:
+            for event in value.expand( context ):
                 yield event
         finally:
             context.join( forked )

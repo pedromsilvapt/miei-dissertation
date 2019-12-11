@@ -89,7 +89,7 @@ modifier
      / r"[oO]" _ integer
      ;
 
-instrument_modifier <- ":" identifier _ sequence;
+instrument_modifier <- ":" ( identifier / "?" ) _ sequence;
 
 value_expression <- e binary_logic_operator_expression;
 

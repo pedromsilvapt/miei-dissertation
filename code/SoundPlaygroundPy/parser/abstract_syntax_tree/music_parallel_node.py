@@ -1,3 +1,4 @@
+from core import Music
 from .music_node import MusicNode
 from py_linq import Enumerable
 
@@ -12,7 +13,12 @@ class MusicParallelNode( MusicNode ):
 
         forks.append( forked )
 
-        return node.eval( forked )
+        value = node.eval( forked )
+
+        if isinstance( value, Music ):
+            return value.expand( forked )
+
+        return []
 
     def get_events ( self, context ):
         forks = []

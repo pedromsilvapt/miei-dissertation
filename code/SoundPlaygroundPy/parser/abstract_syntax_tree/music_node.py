@@ -9,8 +9,4 @@ class MusicNode( ExpressionNode ):
         return iter( () )
 
     def eval ( self, context ):
-        # FIXME
-        if False:
-            return SharedMusicEvents( context.fork(), self )
-
         return Music( self.get_events( context ) )

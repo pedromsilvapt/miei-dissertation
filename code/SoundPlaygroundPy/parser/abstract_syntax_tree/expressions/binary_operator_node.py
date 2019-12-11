@@ -11,7 +11,7 @@ class BinaryOperatorNode( ExpressionNode ):
         self.right : Node = right
 
     def eval ( self, context ):
-        return self.value
+        return None
 
 class PlusBinaryOperatorNode(BinaryOperatorNode):
     def eval ( self, context ):
@@ -31,14 +31,14 @@ class MultBinaryOperatorNode(BinaryOperatorNode):
     def get_events ( self, context, events : Music, count : int ):
         if count == 0: return
 
-        for event in events:
+        for event in events.expand( context ):
             yield event
 
-        for i in range( 1, count ):
+        for _ in range( 1, count ):
             events = self.left.eval( context )
 
             if isinstance( events, Music ):
-                for event in events:
+                for event in events.expand( context ):
                     yield event
 
     def eval ( self, context ):
@@ -83,6 +83,12 @@ class OrLogicOperatorNode(BinaryOperatorNode):
 ComparableValueKinds = Union[ int, float, str, bool ]
 
 class ComparisonOperatorNode(BinaryOperatorNode):
+    def __init__ ( self ):
+        self.operator = None
+
+    def compare ( self, a, b ):
+        pass
+
     def eval ( self, context, assignment : bool = False ):
         left_value = self.left.eval( context )
         right_value = self.right.eval( context )

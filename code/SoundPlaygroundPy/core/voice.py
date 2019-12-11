@@ -44,7 +44,7 @@ class Voice:
         if event.voice == self:
             return event
 
-        event = copy( event )
+        event = event.clone()
 
         if self.octave != event.voice.octave:
             event.octave = event.octave - event.voice.octave + self.octave

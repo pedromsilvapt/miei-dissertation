@@ -27,6 +27,9 @@ class SharedMusic(Music):
         self.base_music : Music = base_music
         self.shared_music : SharedIterator = SharedIterator( iter( base_music ) )
 
+    def shared ( self ):
+        return self
+
     def retime ( self, context, offset, note ):
         if offset is None:
             offset = context.cursor - note.timestamp
@@ -50,18 +53,6 @@ class SharedMusic(Music):
                 offset, note = self.retime( context, offset, note )
 
                 yield note
-
-    def __iter__ ( self, context : Context ):
-        offset = None
-
-        for note in self.shared_music:
-            if isinstance( note, Music ):
-                yield Music
-            else:
-                offset, note = self.retime( context, offset, note )
-
-                yield note
-
 
 class SharedIterator():
     def __init__ ( self, iterator ):
@@ -101,10 +92,20 @@ class SharedIterator():
         
 
 class TemplateMusic(Music):
+    def __init__ ( self, notes = [] ):
+        super().__init__( notes )
+        self.shared_music : SharedMusic = None
+
+    def shared ( self ):
+        return self
+        
     def expand ( self, context : Context ):
-        for note in self:
-            if isinstance( note, Music ):
-                for subnote in note.expand( context ):
-                    yield context.voice.revoice( subnote )
-            else:
+        if self.shared_music == None:
+            self.shared_music = SharedMusic( self.notes.eval( context.fork() ) )
+
+        for note in self.shared_music.expand( context ):
+            # if isinstance( note, Music ):
+            #     for subnote in note.expand( context ):
+            #         yield context.voice.revoice( subnote )
+            # else:
                 yield context.voice.revoice( note )

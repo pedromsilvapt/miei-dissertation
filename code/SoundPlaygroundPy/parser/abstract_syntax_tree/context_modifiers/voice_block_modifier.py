@@ -1,13 +1,12 @@
 from .block_context_modifier_node import BlockContextModifierNode
 from core.events import ProgramChangeEvent
-from core import Value, Voice
+from core import Value, Voice, Context, TemplateMusic
 
 class VoiceBlockModifier( BlockContextModifierNode ):
     def __init__ ( self, body, voice_name : str, position : (int, int) = None ):
         super().__init__( body, position )
 
         self.voice_name : str = voice_name
-
 
     def modify ( self, context ):
         voice : Voice = context.symbols.lookup( self.voice_name )
@@ -18,3 +17,9 @@ class VoiceBlockModifier( BlockContextModifierNode ):
 
     def restore ( self, context ):
         pass
+
+    def eval ( self, context : Context ):
+        if self.voice_name == '?':
+            return TemplateMusic( self.body )
+        else:
+            super().eval( context )
