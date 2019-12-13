@@ -14,8 +14,6 @@ class StatementsListNode( StatementNode ):
         for node in self.statements[ index: ]:
             value = node.eval( context )
 
-            # print( len( self.statements ), index, value.kind if value != None else None )
-
             if isinstance( value, Music ):
                 for event in value:
                     yield event

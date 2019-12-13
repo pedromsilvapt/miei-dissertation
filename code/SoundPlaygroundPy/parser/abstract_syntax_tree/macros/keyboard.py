@@ -1,7 +1,7 @@
 from typing import List
 from core import Context, Value
 from ..node import Node
-from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteralNode, ListComprehensionNode, VariableExpressionNode
+from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteralNode, ListComprehensionNode, VariableExpressionNode, BlockNode
 from ..statements import ForLoopStatementNode, IfStatementNode, StatementsListNode, VariableDeclarationStatementNode
 
 class MacroNode(Node):
@@ -115,7 +115,7 @@ class KeyboardDeclarationMacroNode(MacroNode):
         super().__init__( position )
 
         var_name = 'keyboard'
-        
+
         # Clone the list so that our changes don't affect the original list
         shortcuts = list( shortcuts )
 
@@ -130,6 +130,7 @@ class KeyboardDeclarationMacroNode(MacroNode):
             shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_prefix", [ VariableExpressionNode( var_name ) ] + [ prefix ] ) )
             shortcuts.append( FunctionExpressionNode( "keyboard\\pop_prefix", [ VariableExpressionNode( var_name ) ] ) )
 
-        shortcuts.insert( 0, VariableDeclarationStatementNode( var_name, FunctionExpressionNode( "keyboard\\create" ) ) )
+        shortcuts.insert( 0, VariableDeclarationStatementNode( var_name, FunctionExpressionNode( "keyboard\\create" ), local = True ) )
+        shortcuts.append( VariableExpressionNode( var_name ) )
 
-        self.virtual_node = StatementsListNode( shortcuts, position )
+        self.virtual_node = BlockNode( StatementsListNode( shortcuts, position ) )

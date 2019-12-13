@@ -16,7 +16,7 @@ from .abstract_syntax_tree.expressions import GreaterComparisonOperatorNode, Gre
 from .abstract_syntax_tree.expressions import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode
 from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, LesserEqualComparisonOperatorNode
 
-from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode
+from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockNode
 
 from .abstract_syntax_tree.statements import StatementsListNode, VoiceDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
@@ -45,7 +45,7 @@ class ParserVisitor(PTNodeVisitor):
     def visit_var_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return VariableDeclarationStatementNode( children[ 0 ], children[ 1 ], position )
+        return VariableDeclarationStatementNode( children[ 0 ], children[ 1 ], position = position )
 
     def visit_instrument_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -267,6 +267,11 @@ class ParserVisitor(PTNodeVisitor):
         position = ( node.position, node.position_end )
 
         return GroupNode( children[ 0 ], position )
+
+    def visit_block ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        return BlockNode( children.body[ 0 ], position )
 
     def visit_note ( self, node, children ):
         position = ( node.position, node.position_end )

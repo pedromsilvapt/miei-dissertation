@@ -12,4 +12,5 @@ from .binary_operator_node import GreaterComparisonOperatorNode, GreaterEqualCom
 from .binary_operator_node import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode
 from .binary_operator_node import LesserComparisonOperatorNode, LesserEqualComparisonOperatorNode
 from .unary_operator_node import UnaryOperatorNode, NotOperatorNode
+from .block_node import BlockNode
 from .list_comprehension_node import ListComprehensionNode
