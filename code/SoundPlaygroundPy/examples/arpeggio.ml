@@ -10,15 +10,11 @@ $e1 = ( c5/2 r/2 | r [cde][cde] );
 $e2 = ( c5/2 r/2 );
 $pat = $e1;
 
-fun setpat ( ref $p; $e ) {
-    $p = $e;
-};
-
 keyboard repeat toggle {
     a: arpeggio( Cm; $pat );
     s: arpeggio( Fm; $pat );
     d: arpeggio( Gm; $pat );
 
-    8: setpat( $pat; $e1 );
-    9: setpat( $pat; $e2 );
+    8: setvar( $pat; $e1 );
+    9: setvar( $pat; $e2 );
 }

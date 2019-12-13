@@ -1,7 +1,7 @@
 from .enumerable import IterCursor, merge_sorted
 from .context import Context, Library
 from .shared_context import SharedContext
-from .symbols_scope import SymbolsScope
+from .symbols_scope import SymbolsScope, Ref
 from .instrument import Instrument, GeneralMidi
 from .voice import Voice
 from .value import Value, CallableValue

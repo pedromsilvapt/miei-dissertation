@@ -1,9 +1,10 @@
-from core import Context, Library, CallableValue, Voice, Instrument, Music, Value
+from core import Context, Library, CallableValue, Voice, Instrument, Music, Value, Ref
 from core.callable_python_value import CallablePythonValue
 from core.events import ControlChangeEvent
 from parser import Parser
 from parser.abstract_syntax_tree import Node, MusicSequenceNode
 from parser.abstract_syntax_tree.expressions import VariableExpressionNode
+from typing import Any
 
 def function_using ( context : Context, var ):
     if not isinstance( var, VariableExpressionNode ):
@@ -41,10 +42,31 @@ def function_ord ( val ): return ord( val )
 
 def function_chr ( val ): return chr( val )
 
+def function_setvar ( var : Ref, value ):
+    var.set( Value.assignment( value ) )
+
+def function_hasattr ( o, name : str ):
+    return hasattr( o, attr )
+
+def function_getattr ( o, name : str, default : Any = None ):
+    return getattr( o, name, default = default )
+
+def function_setattr ( o, name : str, value : Any ):
+    return setattr( o, name, value )
+
 def function_cc ( context : Context, control : int, value : int ):
     event = ControlChangeEvent( context.cursor, context.voice, control, value )
     
     return Music( [ event ] )
+
+def function_gettime ( context : Context ):
+    return context.cursor
+
+def function_settime ( context : Context, time : int ):
+    context.cursor = time
+
+def function_setvoice ( context : Context, voice : Voice ):
+    context.voice = voice
 
 def function_setinstrument ( context : Context, instrument : int ):
     context.voice = context.voice.clone( instrument = Instrument( "", instrument ) )
@@ -114,6 +136,13 @@ class StandardLibrary(Library):
         context.symbols.assign( "ord", CallableValue( function_ord ) )
         context.symbols.assign( "chr", CallableValue( function_chr ) )
         context.symbols.assign( "cc", CallablePythonValue( function_cc ) )
+        context.symbols.assign( "setvar", CallablePythonValue( function_setvar ) )
+        context.symbols.assign( "hasattr", CallablePythonValue( function_hasattr ) )
+        context.symbols.assign( "getattr", CallablePythonValue( function_getattr ) )
+        context.symbols.assign( "setattr", CallablePythonValue( function_setattr ) )
+        context.symbols.assign( "gettime", CallablePythonValue( function_gettime ) )
+        context.symbols.assign( "settime", CallablePythonValue( function_settime ) )
+        context.symbols.assign( "setvoice", CallablePythonValue( function_setvoice ) )
         context.symbols.assign( "setinstrument", CallablePythonValue( function_setinstrument ) )
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )

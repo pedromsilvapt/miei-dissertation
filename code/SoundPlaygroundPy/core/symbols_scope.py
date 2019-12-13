@@ -111,3 +111,14 @@ class SymbolsScope:
         for name, value in self.symbols:
             if callable( getattr( value, 'unref', None ) ):
                 value.unref()
+
+class Ref:
+    def __init__ ( self, pointer : Pointer, container : str = '' ):
+        self.pointer : Pointer = pointer
+        self.container : str = container
+
+    def get ( self ):
+        return self.pointer.scope.lookup( self.pointer.name, container = self.container )
+
+    def set ( self, value ):
+        self.pointer.scope.assign( self.pointer.name, value, container = self.container )

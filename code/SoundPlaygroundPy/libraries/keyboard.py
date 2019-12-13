@@ -67,7 +67,6 @@ class KeyAction:
         self.async_player : AsyncMidiPlayer = None
         
     def play ( self, context : Context, player : MidiPlayer ):
-        print( 'paly', self.key )
         forked_context : Context = None
 
         def eval ():
@@ -94,7 +93,6 @@ class KeyAction:
         create_task( self.async_player.start() )
 
     def stop ( self, context : Context, player : MidiPlayer ):
-        print( 'stop', self.key )
         if self.async_player != None:
             create_task( self.async_player.stop() )
 

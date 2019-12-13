@@ -1,6 +1,8 @@
 from .value import Value, CallableValue
 from .context import Context
+from .symbols_scope import Ref
 from parser.abstract_syntax_tree.node import Node
+from parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 
 from typing import get_type_hints, Union, Optional, _GenericAlias
 from inspect import signature, Signature, Parameter, isclass
@@ -24,9 +26,16 @@ class CallablePythonValue(CallableValue):
 
         super().__init__( self.wrapper )
 
-    def eval_argument ( self, context, parameter : Parameter, node : Node, arg_name : str ):
+    def eval_argument ( self, context : Context, parameter : Parameter, node : Node, arg_name : str ):
         if is_type_of( parameter.annotation, Node ):
             return node
+
+        if is_type_of( parameter.annotation, Ref ):
+            check_type( arg_name, node, VariableExpressionNode )
+
+            pointer = context.symbols.pointer( node.name )
+
+            return Ref( pointer )
 
         value = Value.eval( context.fork(), node )
 
@@ -36,10 +45,8 @@ class CallablePythonValue(CallableValue):
         return value
 
     def wrapper ( self, context, *args, **kargs ):
-        # Value.eval( context, node ).value for node in args
         args_values = list()
 
-        # ( name, Value.eval( context, node ).value ) for name, node in args
         kargs_values = dict()
 
         pass_context : bool = False

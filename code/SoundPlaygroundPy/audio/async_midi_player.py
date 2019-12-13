@@ -13,7 +13,7 @@ class AsyncMidiPlayer:
         self.extend : bool = extend
 
         # How many milliseconds to try and buffer, minimum
-        self.buffer_duration : int = 50
+        self.buffer_duration : int = 10
 
         self.extended_notes = []
         self.events_iterator = None
@@ -73,7 +73,6 @@ class AsyncMidiPlayer:
             self.stop_future = None
 
     async def stop ( self ):
-        print( self.is_playing and self.stop_future != None )
         if self.is_playing and self.stop_future != None:
             self.is_playing = False
 
