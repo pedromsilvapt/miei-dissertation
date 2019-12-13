@@ -21,6 +21,11 @@ class MusicEvent():
         
         return instance
 
+    def join ( self, context ):
+        context.cursor = self.end_timestamp
+
+        return self
+
     def __repr__ ( self ):
         return "<%s>(%r)" % (self.__class__.__name__, self.__dict__)
 

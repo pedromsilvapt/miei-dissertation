@@ -7,6 +7,7 @@ from parser.abstract_syntax_tree.expressions import BoolLiteralNode
 from audio import MidiPlayer, AsyncMidiPlayer
 from asyncio import Future, sleep, wait, FIRST_COMPLETED, create_task
 from asyncio import Event
+from fractions import Fraction
 
 class KeyStroke:
     def parse ( s ):
@@ -230,6 +231,37 @@ class Keyboard:
 
             keyboard.close( self )
 
+class Grid:
+    def __init__ ( self, keyboard : Keyboard, num : int = 1, den : int = 1 ):
+        self.keyboard : Keyboard = keyboard
+        self.length : Fraction = Fraction( num, den )
+        self.start : int = self.keyboard.player.get_time()
+
+    def get_delta ( self, context : Context, time : int ) -> int:
+        length = context.voice.get_duration( float( self.length ) )
+
+        rest = ( time - self.start ) % length
+
+        if rest == 0:
+            return 0
+        
+        return length - rest
+
+    def reset ( self ):
+        self.start = self.keyboard.player.get_time()
+
+    def align ( self, context : Context, music : Music ) -> Music:
+        return music.map( lambda e, i, s: e.clone( timestamp = self.get_delta( context, s ) + e.timestamp ).join( context ) )
+
+def grid_create ( keyboard : Keyboard, num : int = 1, den : int = 1 ) -> Grid:
+    return Grid( keyboard, num, den )
+
+def grid_reset ( grid : Grid ) -> Grid:
+    grid.reset()
+
+def grid_align ( context : Context, grid : Grid, music : Music ) -> Music:
+    return grid.align( context, music )
+
 def register_key ( context : Context, keyboard : Keyboard, key : Node, expression : Node, toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
     return keyboard.register_key( context, key, expression, toggle, hold, repeat, extend )
 
@@ -306,6 +338,10 @@ class KeyboardLibrary(Library):
         self.assign( "start_all", CallablePythonValue( start_all ) )
         self.assign( "stop_all", CallablePythonValue( stop_all ) )
         self.assign( "close", CallablePythonValue( keyboard_close ) )
+
+        self.assign( "grid\\create", CallablePythonValue( grid_create ) )
+        self.assign( "grid\\reset", CallablePythonValue( grid_reset ) )
+        self.assign( "grid\\align", CallablePythonValue( grid_align ) )
     
     @property
     def keyboards ( self ) -> List[Keyboard]:

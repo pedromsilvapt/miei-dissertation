@@ -17,6 +17,9 @@ class Music:
             else:
                 yield note
 
+    def map ( self, mapper ) -> 'MusicMap':
+        return MusicMap( self, mapper )
+
     def __iter__ ( self ):
         if self.notes and hasattr( self.notes, '__iter__' ):
             for note in self.notes:
@@ -104,8 +107,35 @@ class TemplateMusic(Music):
             self.shared_music = SharedMusic( self.notes.eval( context.fork() ) )
 
         for note in self.shared_music.expand( context ):
-            # if isinstance( note, Music ):
-            #     for subnote in note.expand( context ):
-            #         yield context.voice.revoice( subnote )
-            # else:
-                yield context.voice.revoice( note )
+            yield context.voice.revoice( note )
+
+class MusicMap(Music):
+    def __init__ ( self, base : Music, mapper ):
+        super().__init__( [] )
+
+        self.base : Music = base
+        self.mapper = mapper
+
+    def expand ( self, context : Context ):
+        start_time = 0
+        index = 0
+
+        for event in self.base.expand( context ):
+            if index == 0:
+                start_time = event.timestamp
+            
+            yield self.mapper( event, index, start_time )
+
+            index += 1
+
+    def __iter__ ( self ):
+        start_time = 0
+        index = 0
+
+        for event in self.base:
+            if index == 0:
+                start_time = event.timestamp
+            
+            yield self.mapper( event, index, start_time )
+
+            index += 1

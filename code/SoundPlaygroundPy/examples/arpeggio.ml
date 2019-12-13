@@ -10,11 +10,14 @@ $e1 = ( c5/2 r/2 | r [cde][cde] );
 $e2 = ( c5/2 r/2 );
 $pat = $e1;
 
-keyboard repeat toggle {
-    a: arpeggio( Cm; $pat );
-    s: arpeggio( Fm; $pat );
-    d: arpeggio( Gm; $pat );
+keyboard {
+    a: al( $g; arpeggio( Cm; $pat ) );
+    s: al( $g; arpeggio( Fm; $pat ) );
+    d: al( $g; arpeggio( Gm; $pat ) );
 
     8: setvar( $pat; $e1 );
     9: setvar( $pat; $e2 );
-}
+};
+
+$g = keyboard\grid\create( $keyboard; 3 );
+$al = $keyboard\grid\align;
