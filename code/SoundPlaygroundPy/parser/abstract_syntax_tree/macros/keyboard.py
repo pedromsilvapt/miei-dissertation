@@ -1,8 +1,8 @@
 from typing import List
 from core import Context, Value
 from ..node import Node
-from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteralNode, ListComprehensionNode
-from ..statements import ForLoopStatementNode, IfStatementNode, StatementsListNode
+from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteralNode, ListComprehensionNode, VariableExpressionNode
+from ..statements import ForLoopStatementNode, IfStatementNode, StatementsListNode, VariableDeclarationStatementNode
 
 class MacroNode(Node):
     def eval ( self, context : Context ):
@@ -37,10 +37,13 @@ class KeyboardShortcutMacroNode(MacroNode):
 
         self.virtual_node : Node = FunctionExpressionNode( 
             "keyboard\\register", 
-            [ StringLiteralNode( shortcut ), expression ], 
+            [ None, StringLiteralNode( shortcut ), expression ], 
             kargs, 
             position = self.position
         )
+    
+    def set_keyboard ( self, keyboard : Node ):
+        self.virtual_node.parameters[ 0 ] = keyboard
 
 class KeyboardShortcutDynamicMacroNode(MacroNode):
     def __init__ ( self, shortcut : Node, modifiers : List[str], expression : Node, position : (int, int) = None ):
@@ -59,10 +62,13 @@ class KeyboardShortcutDynamicMacroNode(MacroNode):
 
         self.virtual_node : Node = FunctionExpressionNode( 
             "keyboard\\register", 
-            [ shortcut, expression ], 
+            [ None, shortcut, expression ], 
             kargs, 
             position = self.position
         )
+
+    def set_keyboard ( self, keyboard : Node ):
+        self.virtual_node.parameters[ 0 ] = keyboard
 
 class KeyboardShortcutComprehensionMacroNode(MacroNode):
     def __init__ ( self, comprehension : ListComprehensionNode, modifiers : List[str], expression : Node, position : (int, int) = None ):
@@ -81,7 +87,7 @@ class KeyboardShortcutComprehensionMacroNode(MacroNode):
 
         node = FunctionExpressionNode( 
             "keyboard\\register", 
-            [ self.comprehension.expression, expression ], 
+            [ None, self.comprehension.expression, expression ], 
             kargs
         )
 
@@ -95,17 +101,35 @@ class KeyboardShortcutComprehensionMacroNode(MacroNode):
             node,
             position = position
         )
+
+    def set_keyboard ( self, keyboard : Node ):
+        node = self.virtual_node.body
+
+        if isinstance( node, IfStatementNode ):
+            node = node.body
+        
+        node.parameters[ 0 ] = keyboard
     
 class KeyboardDeclarationMacroNode(MacroNode):
     def __init__ ( self, shortcuts : List[Node], flags : List[str] = None, prefix : Node = None, position : (int, int) = None ):
         super().__init__( position )
+
+        var_name = 'keyboard'
         
+        # Clone the list so that our changes don't affect the original list
+        shortcuts = list( shortcuts )
+
+        for node in shortcuts:
+            node.set_keyboard( VariableExpressionNode( var_name ) )
+
         if flags:
-            shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_flags", [ StringLiteralNode( f ) for f in flags ] ) )
-            shortcuts.append( FunctionExpressionNode( "keyboard\\pop_flags", [ StringLiteralNode( f ) for f in flags ] ) )
+            shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_flags", [ VariableExpressionNode( var_name ) ] + [ StringLiteralNode( f ) for f in flags ] ) )
+            shortcuts.append( FunctionExpressionNode( "keyboard\\pop_flags", [ VariableExpressionNode( var_name ) ] + [ StringLiteralNode( f ) for f in flags ] ) )
 
         if prefix:
-            shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_prefix", [ prefix ] ) )
-            shortcuts.append( FunctionExpressionNode( "keyboard\\pop_prefix" ) )
+            shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_prefix", [ VariableExpressionNode( var_name ) ] + [ prefix ] ) )
+            shortcuts.append( FunctionExpressionNode( "keyboard\\pop_prefix", [ VariableExpressionNode( var_name ) ] ) )
+
+        shortcuts.insert( 0, VariableDeclarationStatementNode( var_name, FunctionExpressionNode( "keyboard\\create" ) ) )
 
         self.virtual_node = StatementsListNode( shortcuts, position )

@@ -1,4 +1,4 @@
-from core import Context, SymbolsScope, CallableValue
+from core import Context, SymbolsScope, CallableValue, Value
 from .statement_node import StatementNode
 from ..expressions import VariableExpressionNode
 

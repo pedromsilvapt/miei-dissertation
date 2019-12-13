@@ -195,7 +195,7 @@ class CliApplication:
 
             self.player.sequencers[0].join()
 
-            if keyboard != None and len( keyboard.registered ) > 0:
+            if keyboard != None and keyboard.has_keys:
                 await self.keyboard( context, keyboard )
         finally:
             self.player.close()

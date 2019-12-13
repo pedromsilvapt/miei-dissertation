@@ -240,7 +240,6 @@ class ParserVisitor(PTNodeVisitor):
         position = ( node.position, node.position_end )
 
         return NotOperatorNode( children.expression_single[ 0 ], position =  position )
-        # raise BaseException( "Unknown unary operator: %s" % op )
 
     def visit_expression_single ( self, node, children ):
         return children[ 0 ]

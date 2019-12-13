@@ -1,6 +1,7 @@
 from core import Context, Library, Value, CallableValue, Music
+from core.callable_python_value import CallablePythonValue
 from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent
-from typing import List, Dict, Iterable, ItemsView, ValuesView
+from typing import List, Dict, Iterable, ItemsView, ValuesView, Union, Optional, Iterator, Tuple
 from parser.abstract_syntax_tree import Node, MusicSequenceNode
 from parser.abstract_syntax_tree.expressions import BoolLiteralNode
 from audio import MidiPlayer, AsyncMidiPlayer
@@ -50,88 +51,6 @@ class KeyStroke:
 
         return '+'.join( mods )
 
-def get_keyboard_flag ( context : Context, node : Node, name : str, global_flags : Dict[str, int] ) -> bool:
-    if node != None:
-        value : Value = node.eval( context )
-
-        return bool( value )
-
-    return name in global_flags and global_flags[ name ] > 0
-
-def register_key ( context : Context, key : Node, expression : Node, toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
-    global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
-    global_prefixes = context.symbols.lookup_internal( "keyboard\\global_prefixes" );
-
-    toggle_value = get_keyboard_flag( context, toggle, "toggle", global_flags )
-    hold_value = get_keyboard_flag( context, hold, "hold", global_flags )
-    repeat_value = get_keyboard_flag( context, repeat, "repeat", global_flags )
-    extend_value = get_keyboard_flag( context, extend, "extend", global_flags )
-
-    key_value = key.eval( context )
-    
-    keys = context.symbols.lookup_internal( "keyboard\\keys" )
-
-    if global_prefixes:
-        expression = MusicSequenceNode( [ *global_prefixes, expression ] )
-
-    action = KeyAction( 
-        key = KeyStroke.parse( key_value ), 
-        expr = expression,
-        context = context,
-        toggle = toggle_value,
-        hold = hold_value,
-        repeat = repeat_value,
-        extend = extend_value,
-    )
-
-    keys[ action.key ] = action
-
-def push_flags ( context : Context, *flags : List[Node] ):
-    global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
-
-    for flag in flags:
-        value : str = flag.eval( context )
-
-        if Value.typeof( value ) == str:
-            if value in global_flags:
-                global_flags[ value ] += 1
-            else:
-                global_flags[ value ] = 1
-
-def pop_flags ( context : Context, *flags : List[Node] ):
-    global_flags = context.symbols.lookup_internal( "keyboard\\global_flags" );
-
-    for flag in flags:
-        value : str = flag.eval( context )
-
-        if Value.typeof( value ) == str:
-            if value in global_flags:
-                global_flags[ value ] -= 1
-
-                if global_flags[ value ] == 0:
-                    del global_flags[ value ]
-
-def push_prefix ( context : Context, expression : Node ):
-    global_prefixes : List[Node] = context.symbols.lookup_internal( "keyboard\\global_prefixes" );
-
-    global_prefixes.append( expression )
-
-def pop_prefix ( context : Context, *flags : List[Node] ):
-    global_prefixes : List[Node] = context.symbols.lookup_internal( "keyboard\\global_prefixes" );
-
-    global_prefixes.pop()
-
-def register_key_toggle ( context : Context, key : Node, expression : Node ):
-    register_key( context, key, expression, toggle = BoolLiteralNode( True ) )
-
-def register_key_hold ( context : Context, key : Node, expression : Node ):
-    register_key( context, key, expression, hold = BoolLiteralNode( True ) )
-
-def keyboard_close ( context : Context ):
-    keyboard : KeyboardLibrary = context.library( KeyboardLibrary )
-
-    keyboard.close()
-
 class KeyAction:
     def __init__ ( self, key : KeyStroke, expr : Node, context : Context, hold : bool = False, toggle : bool = False, repeat : bool = False, extend : bool = False ):
         self.key : KeyStroke = key 
@@ -146,31 +65,13 @@ class KeyAction:
         self.is_pressed : bool = False
 
         self.async_player : AsyncMidiPlayer = None
-        # self.extend_event : Event = Event()
-        # self.extended : List[NoteOffEvent] = []
-        # self.extended_player : MidiPlayer = None
-
-    # def extend_notes ( self, player : MidiPlayer, events ):
-    #     self.extended.clear()
-    #     self.extended_player = player
-
-    #     for event in events:
-    #         if isinstance( event, NoteEvent ):
-    #             self.extended.append( event.note_off )
-
-    #             yield event.note_on
-    #         elif isinstance( event, NoteOffEvent ):
-    #             self.extended.append( event.note_off )
-    #         else:
-    #             yield event
-
+        
     def play ( self, context : Context, player : MidiPlayer ):
+        print( 'paly', self.key )
         forked_context : Context = None
 
         def eval ():
             nonlocal forked_context
-
-            # self.extend_event.clear()
 
             now = player.get_time() if forked_context == None else forked_context.cursor
 
@@ -193,6 +94,7 @@ class KeyAction:
         create_task( self.async_player.start() )
 
     def stop ( self, context : Context, player : MidiPlayer ):
+        print( 'stop', self.key )
         if self.async_player != None:
             create_task( self.async_player.stop() )
 
@@ -221,6 +123,167 @@ class KeyAction:
         if self.hold:
             self.stop( context, player )
 
+class Keyboard:
+    def __init__ ( self, context : Context, player : MidiPlayer ):
+        self.context : Context = context
+        self.player : MidiPlayer = player
+
+        self.keys : Dict[KeyStroke, KeyAction] = dict()
+        self.global_flags : Dict[str, int] = dict()
+        self.global_prefixes : List[Node] = list()
+
+    def get_keyboard_flag ( self, context : Context, node : Node, name : str ) -> bool:
+        if node != None:
+            value : Value = node.eval( context )
+
+            return bool( value )
+
+        return name in self.global_flags and self.global_flags[ name ] > 0
+
+    def register_key ( self, context : Context, key : Node, expression : Node, toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
+        toggle_value = self.get_keyboard_flag( context, toggle, "toggle" )
+        hold_value = self.get_keyboard_flag( context, hold, "hold" )
+        repeat_value = self.get_keyboard_flag( context, repeat, "repeat" )
+        extend_value = self.get_keyboard_flag( context, extend, "extend" )
+
+        key_value = key.eval( context )
+
+        if self.global_prefixes:
+            expression = MusicSequenceNode( [ *self.global_prefixes, expression ] )
+
+        action = KeyAction( 
+            key = KeyStroke.parse( key_value ), 
+            expr = expression,
+            context = context,
+            toggle = toggle_value,
+            hold = hold_value,
+            repeat = repeat_value,
+            extend = extend_value,
+        )
+
+        self.keys[ action.key ] = action
+
+    def push_flags ( self, context : Context, *flags : Node ):
+        for flag in flags:
+            value : str = flag.eval( context )
+
+            if Value.typeof( value ) == str:
+                if value in self.global_flags:
+                    self.global_flags[ value ] += 1
+                else:
+                    self.global_flags[ value ] = 1
+
+    def pop_flags ( self, context : Context, *flags : Node ):
+        for flag in flags:
+            value : str = flag.eval( context )
+
+            if Value.typeof( value ) == str:
+                if value in self.global_flags:
+                    self.global_flags[ value ] -= 1
+
+                    if self.global_flags[ value ] == 0:
+                        del self.global_flags[ value ]
+
+    def push_prefix ( self, context : Context, expression : Node ):
+        self.global_prefixes.append( expression )
+
+    def pop_prefix ( self, context : Context ):
+        self.global_prefixes.pop()
+
+    def register_key_toggle ( self, context : Context, key : Node, expression : Node ):
+        return self.register_key( context, key, expression, toggle = BoolLiteralNode( True ) )
+
+    def register_key_hold ( self, context : Context, key : Node, expression : Node ):
+        return self.register_key( context, key, expression, hold = BoolLiteralNode( True ) )
+
+    def start_all ( self ):
+        for key in self.keys.values():
+            key.start( self.context, self.player )
+    
+    def stop_all ( self ):
+        for key in self.keys.values():
+            key.stop( self.context, self.player )
+
+    def start ( self, key : KeyStroke ):
+        if key in self.keys:
+            self.keys[ key ].start( self.context, self.player )
+        
+    def stop ( self, key : KeyStroke ):
+        if key in self.keys:
+            self.keys[ key ].stop( self.context, self.player )
+
+    def on_press ( self, key : KeyStroke ):
+        key_stroke : KeyStroke = KeyStroke.parse( key ) if Value.typeof( key ) == str else key
+
+        if key_stroke in self.keys:
+            self.keys[ key_stroke ].on_press( self.context, self.player )
+
+    def on_release ( self, key : Union[str, KeyStroke] ):
+        key_stroke : KeyStroke = KeyStroke.parse( key ) if Value.typeof( key ) == str else key
+
+        if key_stroke in self.keys:
+            self.keys[ key_stroke ].on_release( self.context, self.player )
+
+    def close ( self, closing : bool = False ):
+        self.stop_all()
+
+        if not closing:
+            keyboard : KeyboardLibrary = self.context.library( KeyboardLibrary )
+
+            keyboard.close( self )
+
+def register_key ( context : Context, keyboard : Keyboard, key : Node, expression : Node, toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
+    return keyboard.register_key( context, key, expression, toggle, hold, repeat, extend )
+
+def push_flags ( context : Context, keyboard : Keyboard, *flags : Node ):
+    return keyboard.push_flags( context, *flags )
+
+def pop_flags ( context : Context, keyboard : Keyboard, *flags : Node ):
+    return keyboard.pop_flags( context, *flags )
+
+def push_prefix ( context : Context, keyboard : Keyboard, expression : Node ):
+    return keyboard.push_prefix( context, expression )
+
+def pop_prefix ( context : Context, keyboard : Keyboard ):
+    return keyboard.pop_prefix( context )
+
+def register_key_toggle ( context : Context, keyboard : Keyboard, key : Node, expression : Node ):
+    return keyboard.register_key_toggle( context, key, expression )
+
+def register_key_hold ( context : Context, keyboard : Keyboard, key : Node, expression : Node ):
+    return keyboard.register_key_hold( context, key, expression )
+
+def start ( context : Context, keyboard : Keyboard, key : Union[str, KeyStroke] ):
+    return keyboard.start( key )
+
+def stop ( context : Context, keyboard : Keyboard, key : Union[str, KeyStroke] ):
+    return keyboard.stop( key )
+
+def start_all ( context : Context, keyboard : Keyboard ):
+    return keyboard.start_all()
+
+def stop_all ( context : Context, keyboard : Keyboard ):
+    return keyboard.stop_all()
+
+def on_press ( context : Context, keyboard : Keyboard, key : Union[str, KeyStroke] ):
+    return keyboard.on_press( key )
+
+def on_release ( context : Context, keyboard : Keyboard, key : Union[str, KeyStroke] ):
+    return keyboard.on_release( key )
+
+def keyboard_create ( context : Context ) -> Keyboard:
+    lib : KeyboardLibrary = context.library( KeyboardLibrary )
+
+    return lib.create()
+
+def keyboard_close ( context : Context, keyboard : Keyboard ):
+    if keyboard != None:
+        keyboard.close()
+    else:
+        lib : KeyboardLibrary = context.library( KeyboardLibrary )
+
+        lib.close()
+
 class KeyboardLibrary(Library):
     def __init__ ( self, player : MidiPlayer ):
         super().__init__( "keyboard" )
@@ -228,67 +291,104 @@ class KeyboardLibrary(Library):
         self.player : MidiPlayer = player
     
     def on_link ( self ):
-        self.assign_internal( "keys", dict() )
-        self.assign_internal( "global_flags", dict() )
-        self.assign_internal( "global_prefixes", list() )
+        self.assign_internal( "keyboards", list() )
 
-        self.assign( "push_flags", CallableValue( push_flags ) )
-        self.assign( "pop_flags", CallableValue( pop_flags ) )
-        self.assign( "push_prefix", CallableValue( push_prefix ) )
-        self.assign( "pop_prefix", CallableValue( pop_prefix ) )
-        self.assign( "register", CallableValue( register_key ) )
-        self.assign( "register_hold", CallableValue( register_key_hold ) )
-        self.assign( "register_toggle", CallableValue( register_key_toggle ) )
-        self.assign( "close", CallableValue( keyboard_close ) )
-        
+        self.assign( "create", CallablePythonValue( keyboard_create ) )
+        self.assign( "push_flags", CallablePythonValue( push_flags ) )
+        self.assign( "pop_flags", CallablePythonValue( pop_flags ) )
+        self.assign( "push_prefix", CallablePythonValue( push_prefix ) )
+        self.assign( "pop_prefix", CallablePythonValue( pop_prefix ) )
+        self.assign( "register", CallablePythonValue( register_key ) )
+        self.assign( "register_hold", CallablePythonValue( register_key_hold ) )
+        self.assign( "register_toggle", CallablePythonValue( register_key_toggle ) )
+        self.assign( "on_press", CallablePythonValue( on_press ) )
+        self.assign( "on_release", CallablePythonValue( on_release ) )
+        self.assign( "start", CallablePythonValue( start ) )
+        self.assign( "stop", CallablePythonValue( stop ) )
+        self.assign( "start_all", CallablePythonValue( start_all ) )
+        self.assign( "stop_all", CallablePythonValue( stop_all ) )
+        self.assign( "close", CallablePythonValue( keyboard_close ) )
+    
     @property
-    def registered ( self ) -> Dict[KeyStroke, KeyAction]:
-        return self.lookup_internal( "keys" )
-
-    @property
-    def actions ( self ) -> ValuesView[KeyAction]:
-        return self.registered.values()
-
-    @property
-    def keys ( self ) -> ItemsView[KeyStroke, KeyAction]:
-        return self.registered.items()
+    def keyboards ( self ) -> List[Keyboard]:
+        return self.lookup_internal( "keyboards" )
 
     @property
-    def pressed ( self ) -> Iterable[KeyAction]:
+    def keys ( self ) -> Iterator[Tuple[KeyStroke, KeyAction]]:
+        for kb in self.keyboards:
+            for key, action in kb.keys.items():
+                yield key, action
+
+    @property
+    def actions ( self ) -> Iterator[KeyAction]:
+        return ( action for key, action in self.keys() )
+
+    @property
+    def pressed ( self ) -> Iterator[KeyAction]:
         return ( action for action in self.actions if action.is_active )
 
     @property
-    def pressed_keys ( self ) -> Iterable[KeyStroke]:
+    def pressed_keys ( self ) -> Iterator[KeyStroke]:
         return ( action.key for action in self.pressed )
+    
+    @property
+    def has_keys ( self ) -> Iterator[KeyAction]:
+        iter = self.keys
 
-    def close ( self ):
-        for action in self.actions:
-            action.stop( self.context, self.player )
+        has_keys = next( self.keys, None ) != None
 
-        close_future : Future = self.lookup_internal( "close_future" )
+        if hasattr( iter, 'close' ):
+            iter.close()
+
+        return has_keys
+
+    def create ( self ) -> Keyboard:
+        keyboard = Keyboard( self.context, self.player )
+
+        self.keyboards.append( keyboard )
+
+        return keyboard
+    
+    def close ( self, keyboard : Optional[Keyboard] = None ):
+        self.lookup_internal( "keyboards" )
+
+        if keyboard != None:
+            self.keyboards.remove( keyboard )
+        else:
+            for kb in self.keyboards: 
+                kb.close( self.context, closing = True )
         
-        if close_future != None:
-            close_future.set_result( None )
+            self.keyboards.clear()
+
+        if not self.has_keys:
+            close_future : Future = self.lookup_internal( "close_future" )
+            
+            if close_future != None:
+                close_future.set_result( None )
 
     def start ( self, key : KeyStroke ):
-        if key in self.registered:
-            self.registered[ key ].start( self.context, self.player )
+        for kb in self.keyboards:
+            kb.start( key )
         
     def stop ( self, key : KeyStroke ):
-        if key in self.registered:
-            self.registered[ key ].stop( self.context, self.player )
+        for kb in self.keyboards:
+            kb.stop( key )
+
+    def start_all ( self ):
+        for kb in self.keyboards:
+            kb.start_all()
+        
+    def stop_all ( self ):
+        for kb in self.keyboards:
+            kb.stop_all()
 
     def on_press ( self, key : KeyStroke ):
-        registered = self.registered
-
-        if key in registered:
-            registered[ key ].on_press( self.context, self.player )
+        for kb in self.keyboards:
+            kb.on_press( key )
 
     def on_release ( self, key : KeyStroke ):
-        registered = self.registered
-
-        if key in registered:
-            registered[ key ].on_release( self.context, self.player )
+        for kb in self.keyboards:
+            kb.on_release( key )
 
     async def join_async ( self ):
         close_future : Future = self.lookup_internal( "close_future" )

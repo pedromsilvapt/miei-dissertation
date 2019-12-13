@@ -22,4 +22,4 @@ class VoiceBlockModifier( BlockContextModifierNode ):
         if self.voice_name == '?':
             return TemplateMusic( self.body )
         else:
-            super().eval( context )
+            return super().eval( context )

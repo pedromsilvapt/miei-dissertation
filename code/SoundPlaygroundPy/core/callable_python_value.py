@@ -3,19 +3,19 @@ from .context import Context
 from parser.abstract_syntax_tree.node import Node
 
 from typing import get_type_hints, Union, Optional, _GenericAlias
-from inspect import signature, Signature, Parameter
+from inspect import signature, Signature, Parameter, isclass
 from typeguard import check_type
 
 def is_type_of ( typehint, value ) -> bool:
-    if issubclass( typehint, _GenericAlias ):
+    if value == typehint:
+        return True
+    elif isinstance( typehint, _GenericAlias ):
         origin = typehint.__origin__
 
         if origin == Union or origin == Optional:
             return any( is_type_of( var, value ) for var in typehint.__args__ )
         else:
             return False
-    else:
-        return value == typehint
 
 class CallablePythonValue(CallableValue):
     def __init__ ( self, value ):
@@ -56,13 +56,18 @@ class CallablePythonValue(CallableValue):
                 continue
 
             # Let's treat this as positional arguments
-            if i < len( args ):
+            if parameter.kind == Parameter.VAR_POSITIONAL:
+                while i < len( args ):
+                    args_values.append( self.eval_argument( context, parameter, args[ i ], arg_name ) )
+
+                    i = i + 1
+            elif i < len( args ):
                 args_values.append( self.eval_argument( context, parameter, args[ i ], arg_name ) )
+
+                i = i + 1
             # Treat this as keywork arguments
             else:
                 if arg_name in kargs:
                     kargs_values[ arg_name ] = self.eval_argument( context, parameter, kargs[ arg_name ], arg_name )
-
-            i = i + 1
 
         return self.callable( *args_values, **kargs_values )
