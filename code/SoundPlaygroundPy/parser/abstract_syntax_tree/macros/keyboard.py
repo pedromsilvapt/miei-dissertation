@@ -3,10 +3,7 @@ from core import Context, Value
 from ..node import Node
 from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteralNode, ListComprehensionNode, VariableExpressionNode, BlockNode
 from ..statements import ForLoopStatementNode, IfStatementNode, StatementsListNode, VariableDeclarationStatementNode
-
-class MacroNode(Node):
-    def eval ( self, context : Context ):
-        return self.virtual_node.eval( context )
+from .macro import MacroNode
 
 ModifierNames = [ 'hold', 'extend', 'toggle', 'repeat' ]
 

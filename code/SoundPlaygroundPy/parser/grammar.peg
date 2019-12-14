@@ -5,11 +5,16 @@ body <- statement ( ";" statement )* _ ";"? _
       ;
 
 // Statements
-statement <- _ ( var_declaration / instrument_declaration / function_declaration / for_loop_statement / while_loop_statement / if_statement / expression ) _;
+statement <- _ ( var_declaration / voice_declaration / function_declaration / for_loop_statement / while_loop_statement / if_statement / expression ) _;
 
 var_declaration <- "$" namespaced _ "=" _ expression;
 
-instrument_declaration <- ":" identifier _ "=" _ integer;
+voice_declaration <- ":" identifier _ "=" _ voice_declaration_body;
+
+voice_declaration_body <- integer
+                        / "(" _ function_parameters _ ")"
+                        / ":" identifier _ "(" _ function_parameters _ ")"
+                        ;
 
 function_declaration <- "fun" _ namespaced _ "(" _ arguments? _ ")" _ "{" body "}";
 

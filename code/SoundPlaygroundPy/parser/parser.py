@@ -18,10 +18,11 @@ from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, Less
 
 from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockNode
 
-from .abstract_syntax_tree.statements import StatementsListNode, VoiceDeclarationStatementNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
+from .abstract_syntax_tree.statements import StatementsListNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
 
 from .abstract_syntax_tree.macros import KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode
+from .abstract_syntax_tree.macros import VoiceDeclarationMacroNode
 
 from fractions import Fraction
 
@@ -47,11 +48,38 @@ class ParserVisitor(PTNodeVisitor):
 
         return VariableDeclarationStatementNode( children[ 0 ], children[ 1 ], position = position )
 
-    def visit_instrument_declaration ( self, node, children ):
+    def visit_voice_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return VoiceDeclarationStatementNode( children[ 0 ], children[ 1 ], position )
+        name = children.identifier[ 0 ]
+        args = children.voice_declaration_body[ 0 ]
+        
+        return VoiceDeclarationMacroNode( 
+            name, args[ 0 ], args[ 1 ], args[ 2 ],
+            position = position 
+        )
     
+    def visit_voice_declaration_body ( self, node, children ):
+        instrument = None
+        modifiers = None
+        parent = None
+
+        if children.function_parameters:
+            params = children.function_parameters[ 0 ]
+
+            instrument = params[ 0 ]
+            
+            if len( params ) > 1:
+                modifiers = params[ 1 ]
+
+        if children.identifier:
+            parent = VariableExpressionNode( children.identifier[ 0 ] ) 
+
+        if children.integer:
+            instrument = NumberLiteralNode( children.integer[ 0 ] )
+
+        return ( instrument, modifiers, parent )
+
     def visit_function_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
 

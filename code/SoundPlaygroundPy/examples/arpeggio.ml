@@ -1,10 +1,7 @@
-# $accord = voices\create( "accord"; 22; S3/4 T120 L/4 );
-
-S3/4 T120 L/4;
+:accord = ( 22; S3/4 T120 L/4 );
+setvoice( $accord );
 
 cc( 64; 0 );
-
-setinstrument( 22 );
 
 $e1 = ( c5/2 r/2 | r [cde][cde] );
 $e2 = ( c5/2 r/2 );

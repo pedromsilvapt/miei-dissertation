@@ -1,1 +1,3 @@
+from .macro import MacroNode
 from .keyboard import MacroNode, KeyboardShortcutMacroNode, KeyboardDeclarationMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode
+from .voice import VoiceDeclarationMacroNode
