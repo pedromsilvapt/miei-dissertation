@@ -1,0 +1,15 @@
+graph LR
+    VM((Interpretador))
+    LIB(Bibliotecas) --> VM
+    LIBStd[Standard] --> LIB
+    LIBKeyboard[Keyboard] --> LIB
+    LIBOthers[...] --> LIB
+
+    S[Scripts] --> VM
+    SF1["/some/script.ml"] --> S
+    SD4["..."] --> SF1
+    SD1["/some/dependency2.ml"] --> SF1
+    SD2["/some/dependency1.ml"] --> SF1
+    SD3["..."] --> SD1
+
+    VM --> EV[Sequência de Eventos]

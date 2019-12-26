@@ -123,7 +123,26 @@ piano: o3 c1/e/g/>c4 < b a g | < g+1/b/>e
 	
 	Para além das exaustividade de sintaxe que permite descrever quase todo o tipo de música, a popularidade da linguagem também significa que existem já inúmeros conversores de ficheiros ABC para os mais diversos formatos, desde ficheiros MIDI, pautas músicais, ou mesmo ficheiros WAV (gerados através do fornecimento de um ficheiro SoundFont, por exemplo).
 	
-	A complexidade da notação é uma faca de dois gumes, no entanto: A sua ubiquidade significa que uma maior percentagem de utilizadores já se pode sentir à vontade com a sintaxe, o que não acontece com outras linguagens menos conhecidas. Mas por outro lado, conhecer ou implementar toda a especificação \cite{abc-notation-standard} é uma realização bastante difícil.
+	A complexidade da notação traz tanto vantagens como desvantages, no entanto: A sua ubiquidade significa que uma maior percentagem de utilizadores já se pode sentir à vontade com a sintaxe, o que não acontece com outras linguagens menos conhecidas. Mas por outro lado, conhecer ou implementar toda a especificação \cite{abc-notation-standard} é uma realização bastante difícil.
+	
+	No entanto, tal como a linguagem \textit{ALDA}, as músicas definidas são estáticas, pelo que não serve como uma linguagem de programação de músicas dinâmicas. Ainda assim, apesar de implementar toda a notação ser algo pouco prático, implementar um \textit{subset} da notação, contendo as construções mais usadas seria uma vantagem enorme que me permitiria aproveitar a familiaridade de muitos utilizadores com sintaxe, mesmo que não fosse a sintaxe completa.
+	
+		\subsubsection{Exemplos}
+	A sintaxe de um ficheiro \textit{ABC} é composta por duas partes: um cabeçalho onde são definidas as configurações da música atual, seguido pelo corpo da música. O cabeçalho é formado por uma várias linhas. Cada linha, em ABC chamada de campo, tem uma chave e um valor separados por dois pontos (\texttt{:}). A especificação da notação descreve bastantes campos possíves, mas os mais usados são: \textbf{X} (número de referência), \textbf{T} (título), \textbf{M} (compasso), \textbf{L} (unidade de duração de nota) e \textbf{K} (clave).
+	
+	\begin{lstlisting}[backgroundcolor=\color{transparent},caption={Exemplo da notação ABC},captionpos=b,xleftmargin=.1\textwidth]
+	C, D, E, F,|G, A, B, C|D E F G|A B c d|e f g a|b c' d' e'|f' g' a' b'|]
+	\end{lstlisting}
+	
+	No exemplo acima podemos ver uma escala completa das notas (sem acidentais). O chamado C médio é representado por um \textbf{c} minúsculo (a capitalização das letras muda o significado). Para subir uma oitava, podemos anotar as notas com um apóstrofo (\textbf{c'}). As oitavas subsequentes saõ anotadas por mais apóstrofos. Pelo contrário, para baixar uma oitava, devemos usar primeiro a nota em maíuscula (\textbf{C}). As oitavas anteriores são identificadas por uma vírgula a seguir à nota com letra maíuscula (\textbf{C,}).
+	
+	
+	\begin{lstlisting}[backgroundcolor=\color{transparent},caption={Exemplo da notação ABC},captionpos=b,xleftmargin=.24\textwidth]
+	A/2 A/ A A2 __A _A =A ^A ^^A [CEGc] [C2G2] [CE][DF]
+	\end{lstlisting}
+	A duração das notas pode ser ajustada relativamente à unidade global definida no cabeçalho acrescentando um número (por exemplo \textbf{2}) ou fração \textbf{1/4} à nota. Os acidentais bemol, bequadro e sustenido podem ser adicionados acrescentando um \textbf{\_}, \textbf{=} e \textbf{\^} antes da nota, respetivamente. Acordes (notas tocadas ao mesmo tempo) podem ser definidas entre parênteses retos (\textbf{[} e \textbf{]}).
+	
+	A notação disponibiliza muitos mais exemplos de todas as funcionalidades aceites no seu website\cite{abc-notation-examples}.
 	
 	\subsection{Faust}
 	A linguagem \textbf{Faust}\cite{faust} é uma linguagem de programação funcional com foco na sintetização de som e processamento de audio. Ao contrário das linguagens analisadas até agora, não trabalha com abstrações de notas e elementos músicais. Em vez disso, a linguagem trabalha diretamente com ondas sonoras (representadas como \textit{streams} de números) e através de expressões matemáticas, permite assim manipular o som produzido.
@@ -217,13 +236,15 @@ Em resumo, as três principais diferenças entre as tradicionais \acrfull{cfg} e
 \textbf{Composição} As \acrlong{peg} também têm a vantagem de oferecerem uma maior facilidade de composição. Em qualquer parte da gramática é possível trocar um terminal por um não terminal. Isto é, é extremamente fácil construir gramáticas mais modulares e compô-las entre si.
 
     \section{SoundFonts}
-    O formato \textit{SoundFont} foi originalmente desenvolvido nos anos 90 pela empresa E-mu Systems para ser usado inicialmente pelas placas de som Sound Blaster. Ao longo dos anos o formato sofreu diversas alterações, encontrando-se atualemente na versão 2.04, lançada em 2005\cite{soundfont}. Atualmente existem diversos sintetizadores de software \textit{cross platform} e {open source} capazes de converterem eventos \textit{MIDI} em som usando ficheiros SoundFont, dispensando a necessidade de uma placa de som compatível com o formato. Alguns destes projetos são TiMidity\verb|++|, WildMIDI e FluidSynth.
+    O formato \textit{SoundFont} foi originalmente desenvolvido nos anos 90 pela empresa E-mu Systems para ser usado inicialmente pelas placas de som \textit{Sound Blaster}. Ao longo dos anos o formato sofreu diversas alterações, encontrando-se atualemente na versão 2.04, lançada em 2005\cite{soundfont}. Atualmente existem diversos sintetizadores de software \textit{cross platform} e \textit{open source} capazes de converterem eventos \textit{MIDI} em som usando ficheiros \textit{SoundFont}, dispensando a necessidade de uma placa de som compatível com o formato. Alguns destes projetos são TiMidity\verb|++|, WildMIDI e FluidSynth.
+    
+    Para além do formato original, existem também alternativas mais recentes que disponibilizam mais funcionalidades na sua especificação, como os ficheiros \textbf{SFZ} ou \textbf{NKI}. Estas alternativas trazem consigo vantagens e desvantagens, mas independentemente dos seus méritos, até agora nenhuma tem a popularidade dos ficheiros \textit{SoundFont}, o que significa também menos bibliotecas e menos aplicações para trabalhar com elas.
 
 Um ficheiro de SoundFont é constítuido por um ou mais bancos (\textit{banks}) (até um máximo de 128). Cada banco pode por sua vez ter até 128 \textit{presets} (por vezes também chamados instrumentos ou programas).
 	\section{Sintetizadores}
 	A biblioteca FluidSynth é um \textit{software} sintetizador de aúdio em tempo real que transforma dados MIDI em sons, que podem ser gravados em disco ou encaminhados diretamente para um \textit{output} de aúdio. Os sons são gerados com recurso a SoundFonts\cite{soundfont} (ficheiros com a extensão \texttt{.sf2}) que mapeiam cada nota para a gravação de um instrumento a tocar essa nota.
 
-Os \textit{bindings} da biblioteca para C\verb|#| foram baseados no código \textit{open source} do projeto NFluidSynth\cite{nfluidsynth}, com algumas modificações para compilar com a versão da biblioteca em Linux.
+Os \textit{bindings} da biblioteca para Python foram baseados no código \textit{open source} do projeto \textbf{pyfluidsynth}\cite{pyfluidsynth}, jutamente com algumas defenições CPython extra para usar funções que não tivessem \textit{bindings} criados.
 
 \subsection{Inicialização}
 Para utilizar a biblioteca FluidSynth, existem três objetos principais que devem ser criados: Settings (\texttt{fluid\_settings\_t*}), Synth (\texttt{fluid\_synth\_t*}) e AudioDriver (\texttt{fluid\_audio\_driver\_t*}).
@@ -262,10 +283,24 @@ A método \texttt{Synth.NoteOff}, por sua vez, recebe apenas dois argumentos (ca
 
 	% CHAPTER - Problem and Challenges ---------------
 	\chapter{O problema e os seus desafios}
-	         The problem and its challenges.
+    Desenhar esta \acrfull{dsl} trás consigo os problemas comuns ao desenho de linguagens de programação, bem como desafios novos e únicos. O primeiro de desafios é algo já bastante estudado pela míriade de linguagens de programação, tanto indústriais como académicas, que já foram desenvolvidas. Neste projeto serão focados com mais detalhe os desafios resultantes da integração da componente músical na linguagem.
+    
+    O primeiro desses desafios é a introdução de um novo tipo de dados primitivo não existente na maioria das outras linguagens: \textbf{Música}. Este tipo de dados trás consigo a necessidade implícita de gerir o conceito de \textbf{tempo} na linguagem, tanto na geração de música \textit{realtime} como \textit{offline} (em que o tempo a que a música está a ser gerada pode ser mais rápido ou mais lento do que o tempo real). Este conceito de tempo também acaba por escapar para o campo da gramática e da sintaxe da linguagem, necessitando de uma forma de descrição do mesmo que seja flexível, mas não demasiado verbosa ou díficil de ler.
+    
+    Ainda relacionado com o tipo de dados Música, também é importante pensar em como o representar, e os casos que deve cobrir. Para este fim, acho que é importante a linguagem permitir gerar sons \textbf{potêncialmente infinitos}. Esta funcionalidade não é tão útil no campo da geração de música \textit{offline}, mas é extremamente útil quando a música está a ser gerada em tempo real, e possivelmente a ser controlada por um utilizador através do teclado, permitindo começar a tocar música gerada proceduralmente, e deixá-la tocar durante o tempo que for necessário. Como tal é necessário pensar em qual a implementação de todo o código depende deste ponto.
+       
 
 	\section{Solução Proposta}
-	In this section, it is presented various ways to display an image.
+	A linguagem irá ser desenvolvida em \textit{Python}. A linguagem irá ser extensível, permitindo ao utilizador definir objetos ou funções em \textit{Python} e expô-los para dentro da linguagem, dando assim acesso à grande quantidade de módulos já existentes para os mais variados fins.
+	
+	Como exemplo da extensibilidade da linguagem, irá também ser desenvolvido por cima dela uma biblioteca de construção de teclados virtuais que permitem associar a eventos de teclas notas ou sequências músicais, ou mesmo instruções a serem executadas na linguagem.
+	
+	Para resolver o problema da representação do tempo, toda a linguagem irá ter noção desse conceito, mesmo que apenas algumas construções o utilizem. Isto significa que durante toda a execução, haverá uma variável de \textbf{contexto} que será implicitamente passada para todas instruções e todas as chamadas de funções que, entre outras coisas, irá manter registo da passagem do tempo. Desta forma os construtores que precisarem dele, como por exemplo a emissão de notas músicais, podem aceder ao tempo atual bem como modificá-lo.
+	
+	A existência deste \textbf{contexto} implícito significa que as funções \textit{Python} não podem ser expostas diretamente para a linguagem, mas graças à expressividade do \textit{Python} é possível uma \textit{Foreign Function Interface} que seja incrivelmente simples de usar e que evite que o utilizador tenha de mapear as funções manualmente. Em vez disso, pode simplesmente marcá-las como sendo \textbf{context-free} (funções que não têm noção da existência do contexto implícito), e elas serão então tratadas de forma apropriada.
+	
+	O tipo de dados \textbf{Música} irá ser implementado sobre o conceito de iteradores (e mais especificamente geradores) fornecido pelo \textit{Python} para tornar a criação de música \textit{lazy}. No entanto, este paradigma deve ser completamente opaco para o utilizador da linguagem: a decisão de usar o modelo de execução normal, ou funções geradores deve ser tomado em segundo plano pelo motor de execução da linguagem, sempre que este for necessário. Isto é, ao contrário do que a maioria das linguagens exige para a utilização de geradores (onde o utilizador tem de declarar explicitamente que quer "emitir" um valor através de alguma \textit{keyword}, geralmente \texttt{yield}), na nossa linguagem sempre que alguma função produzir um valor do tipo de música que não seja consumido de alguma forma (atribuido a uma variável ou passado a uma função, por exemplo), esse valor músical é \textbf{implicitamente emitido} para o gerador, uma vez que esse caso será o mais comum. Para evitar que o valor seja emitido, é necessário \textbf{descartá-lo manualmente} onde for caso disso. Se por outro lado a função lidar apenas com valores não-músicais, a sua execução irá seguir o modelo tradicional (onde a função termina a sua execução antes de retornar o controlo ao local onde foi chamada).
+
 	\subsection{Gramática da Linguagem}
 	A gramática de expressões ou acompanhamentos músicais tem como base fundamental os seguintes blocos: notas, pausas e modificadores. As notas são identificadas pelas letras A até G, seguindo a notação de \textit{Helmholtz}\cite{helmholtz-pitch-notation} para denotar as respetivas oitavas. Podem também ser seguidas de um número ou de uma fração, indicando a duração da nota.
 
@@ -279,7 +314,7 @@ C,, C, C c c' c'' c''' c'/4 A1/4 B2
 \end{tabular}
 \end{center}
 
-As notas podem depois ser compostas sequencialmente (como demonstrado em cima) ou em paralelo (separados por uma barra vertical \texttt{|}). Devemos notar que o operador paralelo tem a menor precedência de todos, pelo que não é necessário agrupar as notas com parênteses quando se usa. Isto é, as duas expressões seguintes são equivalentes.
+As notas podem depois ser compostas \textbf{sequencialmente} (como demonstrado em cima, em que cada nota avança o tempo pelo valor da sua duração) ou em \textbf{paralelo} (separados por uma barra vertical \texttt{|}, criando uma bifurcação do contexto em dois, que irão correr em paralelo). Devemos notar que o operador paralelo tem a menor precedência de todos, pelo que não é necessário agrupar as notas com parênteses quando se usa. Isto é, as duas expressões seguintes são equivalentes.
 
 \begin{center}
 \begin{tabular}{c}
@@ -329,11 +364,23 @@ Para além destas funcionalidades, também existe algum açúcar sintático para
 \end{center}
 
     \subsection{Arquitetura do Sistema}
-     A block diagram of the planned system / approach
-	Here we have an example of inserting an image between the text paragraphs.
+    
+     % TODO Float H position
+	\begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=0.2\textwidth]{img/mei-logo-03.jpg}
+		\includegraphics[width=1\textwidth]{img/diagram_architecture.png}
 	\end{center}
+	\caption{Arquitectura Geral do Projeto}
+	\end{figure}
+	
+     % TODO Float H position
+	\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=1\textwidth]{img/diagram_virtualmachine.png}
+	\end{center}
+	\caption{Arquitectura do Interpretador}
+	\end{figure}
+	
 
 	\begin{wrapfigure}{r}{0.25\textwidth}	
 		\includegraphics[width=0.2\textwidth]{img/mei-logo-03.jpg}
