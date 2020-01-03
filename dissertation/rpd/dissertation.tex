@@ -52,10 +52,12 @@
 \newacronym{dsl}{DSL}{Domain Specific Language}
 \newacronym{pcm}{PCM}{Pulse-Code Modulation}
 \newacronym{midi}{MIDI}{Music Instrument Digital Interface}
+\newacronym{wav}{WAV}{Waveform Audio File Format}
 \newacronym{vm}{VM}{Virtual Machine}
 \newacronym{mml}{MML}{Music Macro Language}
 \newacronym{peg}{PEG}{Parsing Expression Grammar}
 \newacronym{cfg}{CFG}{Context Free Grammar}
+\newacronym{io}{I/O}{Input/Output}
 
 \ummetadata % add metadata to the document (author, publisher, ...)
 
@@ -107,9 +109,9 @@
 	\section{Trabalho Relacionado}
 	Existem diversos tipos de linguagens usadas atualmente para produzir ou simplesmente descrever música. Algumas fazem uso do conceito de notas músicais, com recurso a algum sintetizador externo, para gerar os sons, enquanto outras funcionam com base na manipulação direta de ondes de som digitais para criar música. Algumas suportam apenas a descrição estática da música, enquanto outras permitem formas dinâmicas tais como funções, variáveis, estruturas de controlo e repetição, ou até mesmo algorítmos aleatórios que permitem gerar músicas diferentes a cada execução.
 	
-	Iremos de seguida analisar algumas das soluções disponíveis atualmente, bem como comparar as funcionalidades que cada uma oferece ou não oferece.
+	Iremos de seguida analisar algumas das soluções disponíveis atualmente, bem como comparar as funcionalidades que cada uma oferece ou não oferece em relação aos objetivos deste projeto.
 	\subsection{Alda}
-	A projeto \textbf{alda}\cite{alda} é uma linguagem de música textual desenvolvida em \textit{JAVA} focada na simplicidade: o seu maior ponto de atração é apelar tanto a programadores com pouca experiência musical, bem como a músicos com pouca experiência com programação.
+	O projeto \textbf{alda}\cite{alda} é uma linguagem de música textual desenvolvida em \textit{JAVA} focada na simplicidade: o seu maior ponto de atração é apelar tanto a programadores com pouca experiência musical, bem como a músicos com pouca experiência com programação.
     Apesar de ser anunciada como direcionada tanto a músicos como a programadores, a linguagem não suporta nenhum tipo de construções dinâmicas, como ciclos ou funções. Este tipo de funcionalidades, se necessário, requer o uso de uma linguagem de programação por cima, que poderia por exemplo, gerar o código \textit{alda} em \textit{runtime} através da manipulação de \textit{strings}.
 	
 	\subsubsection{Exemplos}
@@ -182,7 +184,34 @@ piano: o3 c1/e/g/>c4 < b a g | < g+1/b/>e
     Por fim podemos ver um exemplo igual ao anterior, mas em vez de ter os valores das variáveis estáticos (guardados nas variáveis \texttt{ctFreq}, \texttt{q} e \texttt{gain}), estes são controlados em tempo real pela interface definida pelas chamadas à função \texttt{hslider}. Foi também adicionada uma variável \texttt{t} com um botão \textit{"gate"}. Este produz o valor 0 quando está solto, e o valor 1 quando está pressionado, valor que quando multiplicado pelo resto da expressão serve efetivamente como um \textit{on-off switch} para todo o sistema.
     
 	\subsection{Sonic Pi}
-	d
+	Possivelmente a linguagem que mais se aproxima do objetivo pretendido com este projeto, \textbf{Sonic Pi}\cite{sonic-pi} descreve-se como uma ferramenta de código para a criação e performance de música.
+	
+	A linguagem permite tocar notas (e também construções mais complexas a partir das mesmas, tais como acordes, arpégios e escalas, por exemplo). Para além disso permite tocar \textit{samples}, que são ficheiros \acrfull{wav}. A linguagem traz já consigoaproximadamente 164 \textit{samples} que podem ser livremente usadas, mas é também possível ao utilizador usar as suas.
+	
+	As músicas são compostas por \textbf{live loops}, que são grupos de sons. É possível ter vários \textit{live loops} a tocar simultâneamente. Dentro de cada \textit{live loop} o utilizador pode usar a função \texttt{play} para tocar notas, \texttt{sample} para reproduzir ficheiros \acrshort{wav}, ou \textit{sleep} para avançar o tempo. Para além disso, a linguagem suporta através da função \texttt{with\_fx} a reprodução de sons com efeitos (como \textit{reverb}, \textit{pan}, \textit{echo} entre muitos outros\cite{sonic-pi-fx}).
+	
+	Para além das capacidades músicais, a linguagem disponibiliza numa sintaxe similar a \textit{Ruby} construções de programação como ciclos, variáveis, estruturas de controlo, e até métodos para adicionar aleatoriedade à música tocada, permitindo escolher, por exemplo, qual a nota a tocar a seguir de uma lista de possibilidades.
+	
+	Apesar de tudas estas funcionalidades disponibilizadas, existem áreas onde o \textit{Sonic Pi} fica aquém dos objetivos pretendidos para este projeto. Por exemplo, apesar de permitir tanto receber como enviar eventos \acrshort{midi}, as suas capacidades de \acrfull{io} ficam por aqui. Também não é possível por omissão utilizar o teclado teclado do computador para tocar ou provocar ações. É possível fazê-lo, mas é bastante mais complicado do que seria de esperar (para além de exigir programar noutra linguagem).
+	
+	\subsubsection{Exemplos}
+	\begin{lstlisting}[caption={Reproduzir um \textit{sample} com valores aleatórios}] 
+    loop do
+        sample :perc_bell, rate: (rrand 0.125, 1.5)
+        sleep rrand(0, 2)
+    end
+    \end{lstlisting}
+    
+    \begin{lstlisting}[caption={Reproduzir um notas de uma escala aleatórias, com efeito \textit{reverb}}] 
+    with_fx :reverb, mix: 0.2 do
+        loop do
+            play scale(:Eb2, :major_pentatonic, num_octaves: 3).choose, release: 0.1, amp: rand
+            sleep 0.1
+        end
+    end
+    \end{lstlisting}
+    
+    
 	\section{Gramáticas}
 	%% PEG vs CFG:
 %%  - Em PEGs, o operador de escolha / é ordenado, i.e. é relevante a ordem por que as várias alternativas são colocadas.
@@ -277,8 +306,6 @@ $$N + O * 12$$
 A velocidade (\textbf{velocity}) é também um valor entre 0 e 127. Relacionando a velocidade com um piano físico, esta representa a força (ou velocidade) com que a tecla foi premida. Velocidades maiores geram sons mais altos, enquanto que velocidades mais baixas geram sons mais baixos, permitindo assim ao músico dar ou tirar enfase a uma nota relativamente às restantes. De notar que um valor igual a zero é o equivalente a invocar o método \texttt{Synth.NoteOff}.
 
 A método \texttt{Synth.NoteOff}, por sua vez, recebe apenas dois argumentos (canal e chave), e deve ser chamada passsado algum tempo para terminar a nota. Podemos deste modo construir a analogia óbvia que o método \texttt{NoteOn} corresponde a uma tecla de piano ser premida, e \texttt{NoteOff} corresponde a essa tecla ser libertada.
-       
-	\section{Resumo}
 
 
 	% CHAPTER - Problem and Challenges ---------------
@@ -300,8 +327,73 @@ A método \texttt{Synth.NoteOff}, por sua vez, recebe apenas dois argumentos (ca
 	A existência deste \textbf{contexto} implícito significa que as funções \textit{Python} não podem ser expostas diretamente para a linguagem, mas graças à expressividade do \textit{Python} é possível uma \textit{Foreign Function Interface} que seja incrivelmente simples de usar e que evite que o utilizador tenha de mapear as funções manualmente. Em vez disso, pode simplesmente marcá-las como sendo \textbf{context-free} (funções que não têm noção da existência do contexto implícito), e elas serão então tratadas de forma apropriada.
 	
 	O tipo de dados \textbf{Música} irá ser implementado sobre o conceito de iteradores (e mais especificamente geradores) fornecido pelo \textit{Python} para tornar a criação de música \textit{lazy}. No entanto, este paradigma deve ser completamente opaco para o utilizador da linguagem: a decisão de usar o modelo de execução normal, ou funções geradores deve ser tomado em segundo plano pelo motor de execução da linguagem, sempre que este for necessário. Isto é, ao contrário do que a maioria das linguagens exige para a utilização de geradores (onde o utilizador tem de declarar explicitamente que quer "emitir" um valor através de alguma \textit{keyword}, geralmente \texttt{yield}), na nossa linguagem sempre que alguma função produzir um valor do tipo de música que não seja consumido de alguma forma (atribuido a uma variável ou passado a uma função, por exemplo), esse valor músical é \textbf{implicitamente emitido} para o gerador, uma vez que esse caso será o mais comum. Para evitar que o valor seja emitido, é necessário \textbf{descartá-lo manualmente} onde for caso disso. Se por outro lado a função lidar apenas com valores não-músicais, a sua execução irá seguir o modelo tradicional (onde a função termina a sua execução antes de retornar o controlo ao local onde foi chamada).
-
+    \newpage
 	\subsection{Gramática da Linguagem}
+\begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
+V70 L1 T120;
+
+fun melody () {
+    V120;
+    
+    r/4 ^g/4 ^g/4 ^g/4;
+    ^f/2 e/8 ^d3/8; 
+    ^c2;
+}
+
+fun accomp () {
+    V50; sustainoff();
+
+    ^Cm;
+    BM; 
+    AM;
+}
+
+# Create the notes from a melody with a piano and accompany it with a violin in parallel
+$notes = :piano melody() | :violin accomp();
+
+# Play the notes twice
+play( $notes * 2 );
+
+# Now an example of the keyboard. We can declare variables to hold state
+$octave = 0;
+
+$keyboard = @keyboard hold extend (v120) {
+    # Keys can be declared to play notes
+    a: C; s: D; d: E; f: F; g: G; h: A; j: B;
+    # Or chords
+    1: ^Cm; 2: BM; 3: AM;
+    
+    # Or any other expression, including code blocks that change the state
+    z: { $octave = $octave - 1; };
+    x: { $octave = $octave + 1; };
+}
+
+# The set_transform function allows changing all events before they are emitted by this keyboard
+$keyboard::set_transform( $events => transpose( $events, octave = $octave ) );
+\end{lstlisting}
+
+	
+	O desenho da gramática da linguagem é composto aproximadamente por três partes, todas elas interligadas entre si.
+	\begin{description}
+	 \item[Instruções e Declarações] Similar a quase todas as linguagens de programação, esta parte cobre a declaração de funções, variáveis, operadores e expressões em geral.
+	 \item[Acompanhamentos Músicais] Um tipo de expressões especial, que em vez de produzir números ou \textit{strings} literais, reconhece expressões músicais (notas, acordes, etc).
+	 \item[Teclados Virtuais] Açúcar sintático para facilitar a declaração de teclados virtuais. Para a lém de alguns construtores próprios, faz uso das expressões gerais e de acompanhamentos músicais descritas acima.
+	\end{description}
+
+	\subsubsection{Instruções e Expressões}
+	As instruções e expressões da gramática são baseadas nas linguagens como C e JavaScript. Chavetas são usadas para delenear blocos de código. As variáveis são prefixadas com um dólar (\texttt{\$}) para prevenir ambiguidades com notas musicais. Cada instrução é separada com um ponto e vírgula (\texttt{;}) a menos que sejam blocos de código que terminem com o fechar de chavetas. Os parâmetros de funções são separados por vírgulas, mas como as vírgulas também são usadas para indicar a descida de oitava nas notas, o ponto e vírgula (\texttt{;}) pode ser usado nesses casos para prevenir ambiguidades.
+	
+	Em termos de instruções suportadas, a linguagem irá ter as usuais:
+    \begin{description}
+     \item[Declaração de Funções] \verb|fun function_name ( $arg1, $arg2, <...> ) {  }|
+     \item[Ciclos While] \verb|while <condition> {  }|
+     \item[Ciclos For] \verb|for $var in <expr> {  }|
+     \item[Condicionais If] \verb|if <condition> {  } else {  }|
+     \item[Atribuições a Variáveis] \verb|$var = <expr>;|
+     \item[Chamada de Funções] \verb|function_name( <arg1>, <arg2>, <...> );|
+    \end{description}
+    
+	\subsubsection{Acompanhamentos Musicais}
 	A gramática de expressões ou acompanhamentos músicais tem como base fundamental os seguintes blocos: notas, pausas e modificadores. As notas são identificadas pelas letras A até G, seguindo a notação de \textit{Helmholtz}\cite{helmholtz-pitch-notation} para denotar as respetivas oitavas. Podem também ser seguidas de um número ou de uma fração, indicando a duração da nota.
 
 
@@ -362,67 +454,92 @@ Para além destas funcionalidades, também existe algum açúcar sintático para
 \end{lstlisting}
 \end{tabular}
 \end{center}
-
-    \subsection{Arquitetura do Sistema}
     
+    \subsubsection{Teclados Virtuais}
+    Para além de permitir declarar acompanhamentos músicais para serem tocados automaticamente, a linguagem permite declarar teclados virtuais. Associados às teclas do teclado podem estar notas, acordes, melodias, ou qualquer outro tipo de expressão suportado pela linguagem.
+    
+    \begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
+$keyboard = @keyboard [modifier1...] (:violin v120) {
+    # Keys can be declared to play notes, cords or anything else
+    a: C; 
+    1: ^Cm;
+    ctrl+z: sustainoff();
+    ctrl+x: sustainon();
+}
+\end{lstlisting}
+
+    Cada teclado aceita opcionalmente uma lista de modificadores, tais como:
+    \begin{description}
+     \item[hold] Começa a tocar quando a tecla é premida e acaba de tocar quando é solta
+     \item[toggle] Começa a tocar quando a tecla é premida, e acaba de tocar quando ela é premida novamete
+     \item[repeat] Quando a nota/acorde/música fornecida acaba de tocar, repete-a indefenidamente
+     \item[extend] Em vez de tocar as notas de acordo com a sua duração, estende-as todas até a tecla ser levantada/premida novamente (quando usado em conjunto com \textbf{hold} ou \textbf{toggle}, respetivamente)
+    \end{description}
+    
+    Também é possível passar uma expressão opcional entre parênteses que irá ser aplicada a todas as notas do teclado (no exemplo acima especificando um instrumento e o volume das notas com \texttt{(:violin v120)}), evitando assim ter de a repetir em vários sítios.
+
+    Para além disso, será possível controlar muitos mais aspetos do teclado atribuindo-o a uma variável e chamando funções a partir daí, como por exemplo efetuar transformações nos eventos e notas emitidos, ou simular o carregar e soltar das teclas.
+
+\begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
+# The set_transform function allows changing all events before they are emitted by this keyboard
+$keyboard::set_transform( $events => transpose( $events, octave = $octave ) );
+# It is possible to synchronize the keyboard with a grid to align the timings of key presses 
+# and releases to said grid
+$keyboard::set_grid( Grid::new( 1, 4 ) );
+# We can also control the keys manually
+$keyboard::start( "ctrl+z" );
+$keyboard::stop_all();
+
+\end{lstlisting}
+    
+    \subsection{Arquitetura do Sistema}
+    O sistema irá ser composto por um interpretador de linguagem desenvolvido em Python, acompanhado por uma interface de linha de comandos que faça uso do interpretador.
      % TODO Float H position
 	\begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=1\textwidth]{img/diagram_architecture.png}
+		\includegraphics[width=0.87\textwidth]{img/diagram_architecture.png}
 	\end{center}
 	\caption{Arquitectura Geral do Projeto}
 	\end{figure}
 	
+	O interpretador receberá um \textit{script} obrigatório como input. Esse input poderá depois determinar quais os \textit{inputs} (opcionais) que irá usar, como o teclado do computador, ficheiros ou teclados \acrshort{midi}, ficheiros de performance (gravações de reproduções anteriores consistindo nos eventos em que as teclas foram premidas).
+	
+	Os eventos gerados pelo \textit{script} e os restantes \textit{inputs} serão depois redirecionados para os diversos \textit{outputs}, que podem ser as colunas do dispositivo, ficheiros \acrshort{wav} ou \acrshort{midi}, ficheiros em formato PDF com a pauta músical, entre outros.
+	
+	Toda a linguagem irá ser desenvolvida com extensibilidade em mente nos seguintes pontos:
+	\begin{description}
+	 \item[Inputs] Permitir a criação de novos \textit{inputs}, como estar à espera de mensagens por um \textit{socket} ou de outros processos do computador.
+	 \item[Eventos] A linguagem já disponibiliza uma variedade de eventos multimédia (como reproduzir notas, sons genéricos, ou mensagens para controlar dispositivos \acrshort{midi}). Mas o objetivo é que criar e emitir eventos customizados seja extremamente simples (e feito com uma só linha de código por evento, no mínimo). Obviamente, nem todos os eventos são suportados por todos os outputs (por exemplo, um ficheiro ABC não pode reproduzir um ficheiro \acrshort{wav}), mas neste caso os diversos \textit{outputs} irão simplesmente ignorar os eventos que não estejam preparados para lidar.
+	 \item[Outputs] Para além dos \textit{outputs} embutidos, permitir criar novos, tanto para outros formatos músicais, mas também para outros fins como controlar luzes, vídeo e imagens através da linguagem (em conjunto com os eventos personalizados) e permitir assim executar espectáculos multimédia completos a partir da linguagem.
+	 \item[Bibliotecas] Expôr funções, variáveis e objetos adicionais, bem como possivelmente acrescentar dinamicamente sintaxe à linguagem (através de macros).
+	\end{description}
+
+	
      % TODO Float H position
 	\begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=1\textwidth]{img/diagram_virtualmachine.png}
+		\includegraphics[width=0.95\textwidth]{img/diagram_virtualmachine.png}
 	\end{center}
 	\caption{Arquitectura do Interpretador}
 	\end{figure}
+    O facto de a linguagem ser desenvolvida em \textit{Python} significa que é extremamente prático extender a mesma devido a:
+    \begin{itemize}
+     \item Ubiquidade da linguagem Python tanto para programadores experiêntes como para iniciantes;
+     \item Não ser necessário compilar o código para o executar;
+     \item Sintaxe e expressividade da linguagem (apesar de vezes isso incorrer num custo de performance);
+     \item Existência de \textit{bindings} para bibliotecas desenvolvidas em C/C++ (como \textit{numpy}), optimizadas para inúmeras tarefas que necessitem de maior \textit{performance}/menor latência, que mesmo assim expôem uma interface agradável de usar em \textit{Python};
+    \end{itemize}
+
+	\chapter{Planeamento}
 	
-
-	\begin{wrapfigure}{r}{0.25\textwidth}	
-		\includegraphics[width=0.2\textwidth]{img/mei-logo-03.jpg}
-	\end{wrapfigure}
-	Here we have how an image can be wrapped into the text without having surronding space, and takin advantage of the space to be disposed on the side, without breaking the text readability.
-
-	This approach also benefits from the fact that the text will be related implicitly to the image on its side, although the it should be referenced on the text anyway, otherwise, it should be consulting to perceive to which paragraph the image is related to.
-
-	Here is how we place an image as floating body.
-	Take in attention that the image is displayed on the next page, because there's no more room in this page.
-	\begin{figure}
+     % TODO Float H position
+	\begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=0.5\textwidth]{img/mei-logo-03.jpg}
+		\includegraphics[width=1\textwidth]{img/diagram_calendarization.png}
 	\end{center}
-	\caption{caption}
+	\caption{Calenderização Prevista}
 	\end{figure}
-
-
-
-	You can also use an image as an icon, eg.~\href{http://mei.di.uminho.pt}{\includegraphics[width=0.05\textwidth]{img/mei-logo-03.jpg}}, in the main tex.
-	Click on it to visit the website. It is also listed in the list of terms.
-	Another example of an item to appear in the term index: %\gls{um} (needs \Makeindex)
-
 	
-	% CHAPTER - Contribution -------------------------
-	\chapter{Development}
-		
-	\section{Decisions}
-    \section{Implementation}
-    \section{Outcomes}
-    Main result(s) and their scientific evidence
-	\section{Summary}
-
-
-	% CHAPTER - Application -------------------------
-	\chapter{Case Studies / Experiments}
-		Application of main result (examples and case studies)
-	\section{Experiment setup}
-    \section{Results}
-    \section{Discussion}
-	\section{Summary}
-
 	% CHAPTER - Conclusion/Future Work --------------
 	\chapter{Conclusion}
 		Conclusions and future work.
