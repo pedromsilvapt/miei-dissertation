@@ -12,6 +12,7 @@
 ]{scrbook}
 
 \usepackage{dissertation}
+\usepackage{movie15}
 
 \newcommand{\name}{Musikla}
 \newcommand{\fullname}{Music and Keyboard Language}
@@ -354,7 +355,7 @@ A método \texttt{Synth.NoteOff}, por sua vez, recebe apenas dois argumentos (ca
 	O tipo de dados \textbf{Música} irá ser implementado sobre o conceito de iteradores (e mais especificamente geradores) fornecido pelo \textit{Python} para tornar a criação de música \textit{lazy}. No entanto, este paradigma deve ser completamente opaco para o utilizador da linguagem: a decisão de usar o modelo de execução normal, ou funções geradores deve ser tomado em segundo plano pelo motor de execução da linguagem, sempre que este for necessário. Isto é, ao contrário da maioria das linguagens que exigem para a utilização de geradores que o utilizador declare explicitamente que quer "emitir" um valor através de alguma \textit{keyword}, geralmente \texttt{yield}, na nossa linguagem sempre que alguma função produzir um valor do tipo de música que não seja consumido de alguma forma (atribuido a uma variável ou passado a uma função, por exemplo), esse valor músical é \textbf{implicitamente emitido} para o gerador, uma vez que esse caso será o mais comum. Para evitar que o valor seja emitido, é necessário \textbf{descartá-lo manualmente} onde for caso disso. Se por outro lado a função lidar apenas com valores não-músicais, a sua execução irá seguir o modelo tradicional (onde a função termina a sua execução antes de retornar o controlo ao local onde foi chamada).
     \newpage
 	\subsection{Gramática da Linguagem}
-	Antes de abordarmos em mais detalhe como irá der desenhada a gramática da linguagem, podemos aborar dois pequenos exemplos que demonstram a geração de notas músicais.
+	A gramática completa da linguagem pode ser vista em \ref{grammar}. MAs antes de abordarmos em mais detalhe como irá der desenhada a gramática da linguagem, podemos aborar dois pequenos exemplos que demonstram a geração de notas músicais.
 \begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
 V70 L1 T120;
 
@@ -486,7 +487,7 @@ $keyboard = @keyboard hold extend (v120) {
 $keyboard::set_transform( $events => transpose( $events, octave = $octave ) );
     \end{lstlisting}
 
-    Cada teclado aceita opcionalmente uma lista de modificadores, tais como:
+    Cada\label{modifiers} teclado aceita opcionalmente uma lista de modificadores, tais como:
     \begin{description}
      \item[hold] Começa a tocar quando a tecla é premida e acaba de tocar quando é solta
      \item[toggle] Começa a tocar quando a tecla é premida, e acaba de tocar quando ela é premida novamete
@@ -548,7 +549,74 @@ $keyboard::stop_all();
      \item Existência de \textit{bindings} para bibliotecas desenvolvidas em C/C++ (como \textit{numpy}), optimizadas para inúmeras tarefas que necessitem de maior \textit{performance}/menor latência, que mesmo assim expôem uma interface agradável de usar em \textit{Python};
     \end{itemize}
 
-    \section{\name: Casos de Estudo}
+    \chapter{\name: Casos de Estudo}
+    Neste capítulo iremos analisar possibilidades de uso da linguagem. Alguns desses exemplos são até já parcialmente ou totalmente funcionais quando executados no protótipo desenvolvido nesta fase inicial. Outros exemplos fazem uso de funcionalidades planeadas mas ainda não implementadas, e que serão devidamente identificados quando necessário.
+    Nestes exemplos podem também ser usados pequenos excertos de músicas para demonstrar a utilização da linguagem, e a forma como esses excertos podiam ser representados com a nossa sintaxe.
+    
+    \section{Tocar Música}
+    \begin{lstlisting}[caption=Exemplo da sintaxe para criação de música,language=PHP]
+    # Title: Westworld Main Theme
+    
+    :piano = (1; S6/8 T70 L/8 V120 );
+    :violin = :piano(41);
+    
+    $chorus = :piano (A*11 G F*12 | A,6 A,5 G, F,6*2)*3;
+
+    $melody = :piano (r24   (:violin a3 c'3 d'3 e'9) r9 e'3 d'3 c'3 a9);
+
+    play( $chorus | $melody );
+    \end{lstlisting}
+    
+    \includemovie[text=\underline{Clicar para Reproduzir Aúdio}, attach=false]{}{}{../../code/SoundPlaygroundPy/examples/westworld.wav}
+    
+    Nas duas primeiras linhas deste exemplo podemos verifica a utilização de duas vozes (\texttt{:piano} e \texttt{:violin}). O piano ocupa a posição 1 da \textit{soundfont} utilizada, enquanto que o violino utiliza a posição 41. Ao declarar o piano, podemos também definir um conjunto de configurações adicionais (como o compasso, a duração base das notas, e o volume com que são tocadas). Ao declarar o violino, podemos herdar as configurações de outro instrumento (neste caso o piano) e mudar apenas o necessário (a posição do instrumento).
+    
+    Depois podemos ver a utilização de variáveis (\texttt{\$chorus} e \texttt{melody}) para estruturar e guardar conjuntos de notas, neste caso.
+    É possível ver também o quão conciso fica descrever padrões ou conjuntos de notas repetidas através do operador de repetição (\texttt{*}). O operador de paralelo (\texttt{|}) permite depois tocar notas em paralelo ao mesmo tempo.
+    
+    \section{Definir um teclado}
+    
+    No início do capítulo \textbf{3.1.1} podemos ver um pequeno excerto de música que é tocada autonomamente pela linguagem. Aqui poderemos ver como construir um teclado virtual personalizado para tocar essa música, bem como a sequência de teclas a premir para a reproduzir.
+        
+    \begin{lstlisting}[caption=Exemplo da sintaxe para criação de teclados,language=PHP]
+    # Title: Soft to Be Strong
+    # Artist: Marina
+    V70 L1 T120;
+
+    fun toggle_sustain ( ref $enabled ) {
+        if $enabled { cc( 64; 0 ) } else { cc( 64; 127 ) };
+
+        $enabled = not $enabled;
+    };
+    
+    $sustained = true;
+    
+    @keyboard hold extend {
+        a: ^Cm;   s: BM;    d: AM;    f: EM;   g: ^Fm;
+    };
+    
+    @keyboard hold extend (V120) {
+        1: ^c;    2: ^d;    3: e;     4: ^f;   5: ^g;
+        6: b;     7: ^c';   8: ^d';   9: e';
+
+        c: toggle_sustain( $sustained );
+    };
+    \end{lstlisting}
+    \includemovie[text=\underline{Clicar para Reproduzir Aúdio}, attach=false]{}{}{../../code/SoundPlaygroundPy/examples/marina.wav}
+    
+    No início deste exemplo podemos ver a declaração de uma função \textbf{toggle\_sustain}, que recebe como parâmetro uma variável por referência. O Que isto significa é que qualquer alteração ao valor da variável dentro desta função, reflete-se também na variável que for passada à função quando esta é chamada. 
+    
+    Lá dentro fazemos uso da função \texttt{cc} que permite controlar diversos controlos \acrshort{midi}, neste caso, o controlo \textit{64} refere-se ao pedal de \textit{sustain} de um piano (que deixa as notas a tocar durante mais algum tempo mesmo depois da sua tecla ser levantada). O valor 0 (\textit{zero}) que lhe é passado significa desligar esse pedal, e o valor \textit{127} significa ligar esse pedal. No futuro, apesar de ser sempre possível recorrer a este tipo de funções de baixo nível, irão ser adicionadas à biblioteca \textit{standard} as funções mais comuns (como por exemplo, \texttt{sustainoff()} e \texttt{sustainon()}).
+    
+    Depois podemos ver a declaração de dois teclados virtuais (a linguagem permite mais do que um teclado ativo ao mesmo tempo). O primeiro mapeia a algumas teclas (\texttt{a, s, d, f e g}) o conjunto de acordes usados nesta música. Para além disso também define alguns modificares a serem usados por este teclado (cujo significado é discutido no capítulo \ref{modifiers}).
+    
+    O segundo teclado funciona de forma similar, atribuíndo às teclas de 1 a 9 notas individuais a serem tocadas. Neste teclado podemos também ver que notas músicais não são os únicos elementos que podem ser associados a teclas. Também é possível descrever expressões arbitrárias (como neste caso, a chamada da função \texttt{toggle\_sustain( \$sustained )} associada à tecla \textbf{c}).
+    
+    Outro ponto a notar sobre o segundo teclado é a declaração entre parênteses \texttt{(V120)} que permite modificar o volume das notas tocadas por este teclado (que se sobrepõe ao volume global \texttt{V70} indicado no início do código). Isto é uma forma simples de prefixar configurações a todas as notas do teclado, evitando ter de copiar essas configurações para todas as notas.
+    
+    \section{QWERTY Keyboard}
+    A função \texttt{qwertyboard} é uma função planeada a ser incluída na biblioteca \textit{standard} da linguagem. Aqui temos um exemplo simplificado do que essa função irá ser.
+    Neste exemplo podemos observar funcionalidades mais genéricas da linguagem. Muitas dessas funcionalidades (arrays, métodos de objetos, funções anónimas) ainda não se encontram implementadas na versão atual do protótipo, mas servem como exemplo para o que a linguagem irá no fim permitir.
     \begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
     fun qwertyboard () {
         # Maps the lines on a keyboard to semitone offsets to List[ List[ str ] ]
@@ -566,13 +634,13 @@ $keyboard::stop_all();
             [ $c for $c, $i in $lines::[ 1 ] ]: transpose( C; $i ); 
             [ $c for $c, $i in $lines::[ 2 ] ]: transpose( C,; $i );
             
-            up => { $offset = $offset + 1 };
-            down => { $offset = $offset - 1 };
+            up => { $octave = $octave + 1 };
+            down => { $octave = $octave - 1 };
             right => { $semitone = $semitone + 1 };
             left => { $semitone = $semitone - 1 };
         };
         
-        $keyboard::set_transform( $events => transpose( $events, 
+        $keyboard::set_transform( $events => $events + interval( 
             semitone = $semitone, 
             octave = $octave 
         ) );
@@ -580,7 +648,16 @@ $keyboard::stop_all();
         return $keyboard;
     }
     \end{lstlisting}
-
+    A primeira parte da função declara um \textit{array} com as três linhas de caracteres presentes num teclado \textit{QUERTY}. Isto permite-nos ao declarar as teclas no \textit{keyboard}, fazê-lo de forma dinâmica (ao invés de associar a cada tecla uma nota manualmente).
+    
+    Essa declaração, inspirada nas listas por compreensão do \textit{Python}, funciona através de uma construção similar a um ciclo \textit{for}. A variável \texttt{\$c} corresponde a cada item do \textit{array} (neste caso, casa tecla), a variável \texttt{\$i} (opcional) permite-nos obter o índice da letra atual no \textit{array}. A cada letra é associada a nota \texttt{C} transposta pelo índice da tecla.
+    
+    Para além disso também podemos ver a declaração de mais quatro teclas (correspondentes às quatro setas do teclado) que permitem desclocar as notas tocadas por oitavas completas ou por semitons. Para isso, estas teclas têm associadas uma expressão de bloco (identificada peloas chavetas \texttt{\{} e \texttt{\}}). Lá dentro é possível meter uma instrução (ou opcionalmente várias, separadas por pontos e vírgulas \textbf{;}). O valor da última expressão é o valor de retorno da expressão de bloco toda, pelo que é possível que uma tecla faça mais que uma coisa (altere o estado e no fim retorne ainda notas para serem tocadas, por exemplo).
+    
+    Finalmente vemos também um exemplo do método \texttt{set\_transform}, um dos vários métodos que o objeto \texttt{Keyboard} irá ter e que permitem modificar ainda mais o comportamento dos teclados, desde transformar as teclas, definir grelhas de alinhamento, gravar as teclas premidas ou reproduzir uma dessas gravações, entre muitos outros.
+    
+    Este método, que aceita uma função como argumento, permite transformar cada evento músical que o teclado emita. Neste caso, estamos a usá-lo em conjunto com as variáveis de estado que declaramos anteriormente, para a cada evento, somar-lhe um intervalo composto pelos semitons e oitavas definidos.
+    
     
 	\chapter{Planeamento}
 	% TODO Float H position
@@ -624,7 +701,173 @@ $keyboard::stop_all();
 	\umappendix{Appendix}
 	
 	% Add appendix chapters
-	%\chapter{Support material}
+	\chapter{Appendix}
+	\section{Gramática}
+	\label{grammar}
+	\begin{lstlisting}
+main <- body EOF;
+
+body <- statement ( ";" statement )* _ ";"? _
+      / ""
+      ;
+
+// Statements
+statement <- _ ( var_declaration / voice_declaration / function_declaration / for_loop_statement / while_loop_statement / if_statement / expression ) _;
+
+var_declaration <- "$" namespaced _ "=" _ expression;
+
+voice_declaration <- ":" identifier _ "=" _ voice_declaration_body;
+
+voice_declaration_body <- integer
+                        / "(" _ function_parameters _ ")"
+                        / ":" identifier _ "(" _ function_parameters _ ")"
+                        ;
+
+function_declaration <- "fun" _ namespaced _ "(" _ arguments? _ ")" _ "{" body "}";
+
+arguments <- single_argument ( _ ";" _ single_argument )*;
+
+single_argument <- single_argument_expr / single_argument_ref / single_argument_eval;
+
+single_argument_expr <- "expr" _ "$" identifier;
+
+single_argument_ref <- "ref" _ "$" identifier;
+
+single_argument_eval <- "$" identifier;
+
+for_loop_statement <- "for" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ "{" _ body? _ "}";
+
+while_loop_statement <- "while" _ expression _ "{" _ body _ "}";
+
+if_statement <- "if" _ expression _ "{" _ body _ "}" _ "else" _ "{" _ body _ "}"
+              / "if" _ expression _ "{" _ body _ "}";
+
+// BEGIN Keyboard
+keyboard_declaration <- "@keyboard" (_ alphanumeric)* ( _ group )? _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
+
+keyboard_shortcut <- alphanumeric (_"+"_ alphanumeric)* (_ alphanumeric)* _ ":" _ expression
+                   / string_value (_ alphanumeric)* _ ":" _ expression
+                   / "[" _ list_comprehension _ "]" (alphanumeric _)* _ ":" _ expression
+                   / "[" _ value_expression _ "]" (alphanumeric _)* _ ":" _ expression
+                   ;
+
+list_comprehension <- expression "for" _ "$" _ namespaced _ "in" _ value_expression _ ".." _ value_expression
+                    / expression "for" _ "$" _ namespaced _ "in" _ value_expression _ ".." _ value_expression _ "if" value_expression
+                    ;
+// END Keyboard
+
+
+expression <- e music_expression;
+
+music_expression <- sequence ( _ "|" _ sequence )*;
+
+sequence <- value_expression ( _ value_expression)*;
+
+group <- "(" _ expression _ ")";
+
+block <- "{" _ body _ "}";
+
+note <- note_accidental _ note_pitch ( _ chord_suffix )? ( _ note_value )?;
+
+chord_suffix <- 'M' / 'm';
+
+variable <- "$" namespaced;
+
+function <- namespaced "(" _ function_parameters? _ ")";
+
+function_parameters <- expression ( _ ";" _ expression )*;
+
+chord <- "[" _ note ( _ note )* _ "]";
+
+rest <- "r" ( _ note_value )?;
+
+note_value
+    <- "/" _ integer
+     / integer _ "/" _ integer
+     / integer
+     ;
+
+note_accidental <- "^" / "^^" / "__" / "_" / "";
+
+note_pitch
+    <- r"[cdefgab]" "'"*
+     / r"[CDEFGAB]" ","*
+     ;
+
+modifier
+    <- r"[tT]" _ integer
+     / r"[vV]" _ integer
+     / r"[lL]" _ note_value
+     / r"[sS]" _ integer _ "/" _ integer
+     / r"[sS]" _ integer
+     / r"[oO]" _ integer
+     ;
+
+instrument_modifier <- ":" ( identifier / "?" ) _ sequence;
+
+value_expression <- expression expr_binary_op expression
+                  / expr_unary_op expression
+                  / string_value 
+                  / number_value 
+                  / bool_value 
+                  / none_value 
+                  / variable 
+                  / function 
+                  / keyboard_declaration 
+                  / group 
+                  / block 
+                  / chord 
+                  / note 
+                  / rest 
+                  / modifier 
+                  / instrument_modifier
+                  ;
+
+exp_binary_op <- "and" / "or" / ">=" / ">" / "==" / "!=" / "<=" / "<" / r"[+\-*/]";
+
+expr_unary_op <- "not";
+
+string_value <- double_string / single_string;
+
+double_string <- "\"" double_string_char* "\"";
+
+double_string_char 
+    <- "\\\""
+     / "\\\\"
+     / r"[^\"]"
+     ;
+
+single_string <- "'" single_string_char* "'";
+
+single_string_char
+    <- "\\'"
+     / "\\\\"
+     / r"[^']"
+     ;
+
+number_value <- float / integer;
+
+bool_value <- "true" / "false";
+
+none_value <- "none";
+
+float <- r"[0-9]+\.[0-9]+";
+
+integer <- r"[0-9]+";
+
+namespaced <- ( identifier "\\" )* identifier;
+
+identifier <- r"[a-zA-Z][a-zA-Z0-9\_]*";
+
+alphanumeric <- r"[a-zA-Z0-9\_]*";
+
+_ <- r"[ \t\r\n]*";
+
+e <- "";
+
+comment <- _ r"#[^\n]*";
+	\end{lstlisting}
+
 	%Auxiliary results which are not main-stream; or
 
 	%\chapter{Details of results}
