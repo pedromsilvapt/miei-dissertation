@@ -10,6 +10,7 @@ from asyncio import Event
 from fractions import Fraction
 
 class KeyStroke:
+    @staticmethod
     def parse ( s ):
         parts = s.strip().split( "+" )
 
@@ -54,7 +55,7 @@ class KeyStroke:
 
 class KeyAction:
     def __init__ ( self, key : KeyStroke, expr : Node, context : Context, hold : bool = False, toggle : bool = False, repeat : bool = False, extend : bool = False ):
-        self.key : KeyStroke = key 
+        self.key : KeyStroke = key
         self.expr : Node = expr
         self.context : Context = context
         self.hold : bool = hold
@@ -66,7 +67,7 @@ class KeyAction:
         self.is_pressed : bool = False
 
         self.async_player : AsyncMidiPlayer = None
-        
+
     def play ( self, context : Context, player : MidiPlayer ):
         forked_context : Context = None
 
@@ -76,7 +77,7 @@ class KeyAction:
             now = player.get_time() if forked_context == None else forked_context.cursor
 
             forked_context = self.context.fork( cursor = now )
-            
+
             value = self.expr.eval( forked_context )
 
             if isinstance( value, Music ):
@@ -150,8 +151,8 @@ class Keyboard:
         if self.global_prefixes:
             expression = MusicSequenceNode( [ *self.global_prefixes, expression ] )
 
-        action = KeyAction( 
-            key = KeyStroke.parse( key_value ), 
+        action = KeyAction(
+            key = KeyStroke.parse( key_value ),
             expr = expression,
             context = context,
             toggle = toggle_value,
@@ -198,7 +199,7 @@ class Keyboard:
     def start_all ( self ):
         for key in self.keys.values():
             key.start( self.context, self.player )
-    
+
     def stop_all ( self ):
         for key in self.keys.values():
             key.stop( self.context, self.player )
@@ -206,7 +207,7 @@ class Keyboard:
     def start ( self, key : KeyStroke ):
         if key in self.keys:
             self.keys[ key ].start( self.context, self.player )
-        
+
     def stop ( self, key : KeyStroke ):
         if key in self.keys:
             self.keys[ key ].stop( self.context, self.player )
@@ -355,7 +356,7 @@ class KeyboardLibrary(Library):
 
     @property
     def actions ( self ) -> Iterator[KeyAction]:
-        return ( action for key, action in self.keys() )
+        return ( action for key, action in self.keys )
 
     @property
     def pressed ( self ) -> Iterator[KeyAction]:

@@ -18,13 +18,13 @@ def handle_modifiers ( modifiers : List[str] ) -> (dict, str):
         else:
             rest = '+'.join( modifiers[ 0:i + 1 ] )
             break
-    
+
     return (props, rest)
 
 class KeyboardShortcutMacroNode(MacroNode):
     def __init__ ( self, modifiers : List[str], expression : Node, position : (int, int) = None ):
         super().__init__( position )
-        
+
         self.modifiers : List[str] = modifiers
         self.expression : Node = expression
 
@@ -32,20 +32,20 @@ class KeyboardShortcutMacroNode(MacroNode):
 
         kargs = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs.items() )
 
-        self.virtual_node : Node = FunctionExpressionNode( 
-            "keyboard\\register", 
-            [ None, StringLiteralNode( shortcut ), expression ], 
-            kargs, 
+        self.virtual_node : Node = FunctionExpressionNode(
+            "keyboard\\register",
+            [ None, StringLiteralNode( shortcut ), expression ],
+            kargs,
             position = self.position
         )
-    
+
     def set_keyboard ( self, keyboard : Node ):
         self.virtual_node.parameters[ 0 ] = keyboard
 
 class KeyboardShortcutDynamicMacroNode(MacroNode):
     def __init__ ( self, shortcut : Node, modifiers : List[str], expression : Node, position : (int, int) = None ):
         super().__init__( position )
-        
+
         self.shortcut : Node = shortcut
         self.modifiers : List[str] = modifiers
         self.expression : Node = expression

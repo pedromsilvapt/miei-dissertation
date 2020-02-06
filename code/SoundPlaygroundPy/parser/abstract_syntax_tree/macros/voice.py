@@ -18,8 +18,8 @@ class VoiceDeclarationMacroNode( MacroNode ):
             kargs[ 'modifiers' ] = modifiers
         
         if parent != None:
-            kargs[ 'parent' ] = parent
-
+            kargs[ 'inherit' ] = parent
+ 
         self.virtual_node = VariableDeclarationStatementNode(
             self.name,
             FunctionExpressionNode( "voices\\create", [ StringLiteralNode( name ) ], kargs )

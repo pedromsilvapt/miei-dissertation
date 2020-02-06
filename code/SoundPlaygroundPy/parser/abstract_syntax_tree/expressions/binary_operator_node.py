@@ -83,7 +83,9 @@ class OrLogicOperatorNode(BinaryOperatorNode):
 ComparableValueKinds = Union[ int, float, str, bool ]
 
 class ComparisonOperatorNode(BinaryOperatorNode):
-    def __init__ ( self ):
+    def __init__ ( self, left : Node, right : Node, position : (int, int) = None ):
+        super().__init__( left, right, position )
+
         self.operator = None
 
     def compare ( self, a, b ):

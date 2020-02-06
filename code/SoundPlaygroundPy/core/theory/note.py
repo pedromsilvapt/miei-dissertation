@@ -34,6 +34,7 @@ NotePitchClassesIndexes : Dict[str, str] = keysToIndexes( NotePitchClasses )
 
 class Note:
     # Static
+    @staticmethod
     def parse_pitch_octave ( pitch ):
         if pitch[ 0 ].islower():
             pitch_class = NotePitchClasses[ pitch[ 0 ].upper() ]
@@ -46,7 +47,7 @@ class Note:
             
             return ( pitch_class, octave )
 
-    def __init__ ( self, pitch_class : int, octave : int = 0, accidental : int = 0, value : Fraction = Fraction() ):
+    def __init__ ( self, pitch_class : int = 0, octave : int = 0, accidental : int = 0, value : Fraction = Fraction() ):
         self.pitch_class : int = pitch_class
         self.octave : int = octave
         self.accidental : int = accidental
@@ -68,8 +69,6 @@ class Note:
 
     def transpose ( self, semitones : int ) -> 'Note':
         return self.with_pitch( self.to_pitch() + semitones )
-
-        return self
     
     def clone ( self ):
         return Note( self.pitch_class, self.octave, self.accidental, self.value )
@@ -112,7 +111,7 @@ class Chord:
         self.intervals : List[int] = intervals
 
     def to_notes ( self ) -> List[Note]:
-        notes : List[NoteNode] = []
+        notes : List[Note] = []
 
         for semitones in self.intervals:
             notes.append( self.root.clone().transpose( semitones ) )

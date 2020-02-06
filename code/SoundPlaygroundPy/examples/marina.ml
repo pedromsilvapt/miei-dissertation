@@ -41,7 +41,7 @@ fun melody () {
 };
 
 fun toggle_sustain ( ref $enabled ) {
-    if $enabled {
+    if ( $enabled ) {
         cc( 64; 0 );
     } else {
         cc( 64; 127 );
@@ -53,9 +53,9 @@ fun toggle_sustain ( ref $enabled ) {
 fun keyboard () {
     $sustained = true;
 
-    keyboard { q toggle: accomp() | melody(); };
+    @keyboard { q toggle: accomp() | melody(); };
     
-    keyboard hold extend {
+    @keyboard hold extend {
         a: ^Cm;
         s: BM;
         d: AM;
@@ -63,7 +63,7 @@ fun keyboard () {
         g: ^Fm;
     };
     
-    keyboard hold extend (V120) {
+    @keyboard hold extend (V120) {
         1: ^c;
         2: ^d; 
         3: e;

@@ -30,10 +30,11 @@ single_argument_eval <- "$" identifier;
 
 for_loop_statement <- "for" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ "{" _ body? _ "}";
 
-while_loop_statement <- "while" _ expression _ "{" _ body _ "}";
+while_loop_statement <- "while" _ "(" _ expression _ ")" _ "{" _ body _ "}";
 
-if_statement <- "if" _ expression _ "{" _ body _ "}" _ "else" _ "{" _ body _ "}"
-              / "if" _ expression _ "{" _ body _ "}";
+if_statement <- "if" _ "(" _ expression _ ")" _ "{" _ body _ "}" _ "else" _ "{" _ body _ "}"
+              / "if" _ "(" _ expression _ ")" _ "{" _ body _ "}"
+              ;
 
 // BEGIN Keyboard
 keyboard_declaration <- "@keyboard" (_ alphanumeric)* ( _ group )? _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";

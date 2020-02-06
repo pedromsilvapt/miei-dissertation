@@ -29,7 +29,6 @@ class NoteTracker:
 
     def close ( self, time : int ):
         for on in self.active_notes:
-            print( on )
             yield on.note_off( time )
 
 def balance_notes ( events, get_time : Callable ):

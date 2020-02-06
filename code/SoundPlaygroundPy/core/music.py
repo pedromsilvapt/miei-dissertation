@@ -20,6 +20,9 @@ class Music:
     def map ( self, mapper ) -> 'MusicMap':
         return MusicMap( self, mapper )
 
+    def filter ( self, predicate ) -> 'MusicFilter':
+        return MusicFilter( self, predicate )
+
     def __iter__ ( self ):
         if self.notes and hasattr( self.notes, '__iter__' ):
             for note in self.notes:
@@ -137,5 +140,38 @@ class MusicMap(Music):
                 start_time = event.timestamp
             
             yield self.mapper( event, index, start_time )
+
+            index += 1
+
+class MusicFilter(Music):
+    def __init__ ( self, base : Music, predicate ):
+        super().__init__( [] )
+
+        self.base : Music = base
+        self.predicate = predicate
+
+    def expand ( self, context : Context ):
+        start_time = 0
+        index = 0
+
+        for event in self.base.expand( context ):
+            if index == 0:
+                start_time = event.timestamp
+            
+            if self.predicate( event, index, start_time ):
+                yield event
+
+            index += 1
+
+    def __iter__ ( self ):
+        start_time = 0
+        index = 0
+
+        for event in self.base:
+            if index == 0:
+                start_time = event.timestamp
+            
+            if self.predicate( event, index, start_time ):
+                yield event
 
             index += 1

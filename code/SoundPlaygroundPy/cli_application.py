@@ -47,14 +47,19 @@ class CliApplication:
         
         return ()
 
-    def play ( self, context, ast ):
-        async_player = AsyncMidiPlayer( lambda: self.eval_music( context, ast ), self.player )
+    def play ( self, context, ast, sync = True ):
+        if sync:
+            self.player.play_more( self.eval_music( context, ast ) )
 
-        task = asyncio.create_task( async_player.start() )
+            self.player.join()
+        else:
+            async_player = AsyncMidiPlayer( lambda: self.eval_music( context, ast ), self.player )
 
-        self.tasks.add( task )
+            task = asyncio.create_task( async_player.start() )
 
-        task.add_done_callback( lambda a: self.tasks.remove( task ) )
+            self.tasks.add( task )
+
+            task.add_done_callback( lambda a: self.tasks.remove( task ) )
 
     def get_key_info ( self, key : keyboard.Key ) -> (bool, str):
         key_str = str( key )
@@ -181,7 +186,7 @@ class CliApplication:
                 for line in sys.stdin:
                     ast = self.parser.parse( line )
 
-                    self.eval( context, ast )
+                    self.play( context, ast )
             else:
                 ast = self.parser.parse_file( options.file )
 

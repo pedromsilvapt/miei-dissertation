@@ -140,7 +140,6 @@ class ParserVisitor(PTNodeVisitor):
         elif len( children.value_expression ) == 1 or len( children.string_value ) == 1:
             if children.string_value:
                 variable = children.string_value[ 0 ]
-                print( variable )
             else:
                 variable = children.value_expression[ 0 ]
 
