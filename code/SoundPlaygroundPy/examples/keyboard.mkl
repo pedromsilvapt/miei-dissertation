@@ -1,6 +1,6 @@
 discard( import( "examples/minecraft.ml" ) );
 
-keyboard {
+@keyboard {
     a repeat toggle: $wet\acomp;
     s toggle: $wet\melody;
     d extend hold: CM;

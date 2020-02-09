@@ -1,6 +1,5 @@
 # Title: Soft to Be Strong
 # Artist: Marina
-
 V70 L1 T120;
 
 fun accomp () {
@@ -79,3 +78,8 @@ fun keyboard () {
 };
 
 keyboard();
+
+# We can also record our performance
+# keyboard\record( "perf.csv" );
+# And then replay it
+# keyboard\replay( "perf.csv" );
