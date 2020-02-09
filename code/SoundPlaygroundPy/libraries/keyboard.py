@@ -1,7 +1,7 @@
 from core import Context, Library, Value, CallableValue, Music
 from core.callable_python_value import CallablePythonValue
 from core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent
-from typing import List, Dict, Iterable, ItemsView, ValuesView, Union, Optional, Iterator, Tuple
+from typing import List, Dict, Set, Iterable, ItemsView, ValuesView, Union, Optional, Iterator, Tuple
 from parser.abstract_syntax_tree import Node, MusicSequenceNode
 from parser.abstract_syntax_tree.expressions import BoolLiteralNode
 from audio import MidiPlayer, AsyncMidiPlayer
@@ -472,10 +472,25 @@ class KeyboardLibrary(Library):
                 self.assign_internal( 'record_fd', fd )
 
                 self.assign_internal( 'record_start', self.player.get_time() )
+
+                self.assign_internal( 'record_pressed', set() )
+            
+            pressed : Set[str] = self.lookup_internal( 'record_pressed' )
+
+            key_str = str( key )
+
+            if kind == 'press' and key_str not in pressed:
+                pressed.add( key_str )
+            elif kind == 'release' and key_str in pressed:
+                pressed.remove( key_str )
+            else:
+                return
             
             time = self.player.get_time() - self.record_start
 
             fd.write( f'{time},{kind},{str(key)}\n' )
+
+            fd.flush()
 
     def record ( self, file : str ):
         self.assign_internal( 'record_file', file )
