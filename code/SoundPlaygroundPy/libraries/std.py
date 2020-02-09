@@ -46,7 +46,7 @@ def function_setvar ( var : Ref, value ):
     var.set( Value.assignment( value ) )
 
 def function_hasattr ( o, name : str ):
-    return hasattr( o, attr )
+    return hasattr( o, name )
 
 def function_getattr ( o, name : str, default : Any = None ):
     return getattr( o, name, default = default )
@@ -64,6 +64,9 @@ def function_gettime ( context : Context ):
 
 def function_settime ( context : Context, time : int ):
     context.cursor = time
+
+def function_slice ( notes : Music, start : int, end : int ):
+    return notes.filter( lambda n: n.timestamp >= start and n.timestamp <= end )
 
 def function_setvoice ( context : Context, voice : Voice ):
     context.voice = voice
@@ -144,5 +147,8 @@ class StandardLibrary(Library):
         context.symbols.assign( "settime", CallablePythonValue( function_settime ) )
         context.symbols.assign( "setvoice", CallablePythonValue( function_setvoice ) )
         context.symbols.assign( "setinstrument", CallablePythonValue( function_setinstrument ) )
+        context.symbols.assign( "readmidi", CallablePythonValue( function_readmidi ) )
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )
+
+from .midi import function_readmidi

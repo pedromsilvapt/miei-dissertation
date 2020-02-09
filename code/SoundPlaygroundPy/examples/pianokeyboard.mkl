@@ -1,0 +1,29 @@
+fun qwertyboard () {
+    # Maps the lines on a keyboard to semitone offsets to List[ List[ str ] ]
+    $lines = @[
+        "qwertyuiop"::split(),
+        "asdfghjkl"::split(),
+        "zxcvbnm,."::split()
+    ];
+    
+    $octave = 0;
+    $semitone = 0;
+    
+    $keyboard = @keyboard hold extend {
+        [ $c for $c, $i in $lines::[ 0 ] ]: transpose( c; $i );
+        [ $c for $c, $i in $lines::[ 1 ] ]: transpose( C; $i ); 
+        [ $c for $c, $i in $lines::[ 2 ] ]: transpose( C,; $i );
+        
+        up: { $offset = $offset + 1 };
+        down: { $offset = $offset - 1 };
+        right: { $semitone = $semitone + 1 };
+        left: { $semitone = $semitone - 1 };
+    };
+    
+    $keyboard::set_transform( $events => $events + interval( 
+        semitone = $semitone, 
+        octave = $octave 
+    ) );
+    
+    return $keyboard;
+}

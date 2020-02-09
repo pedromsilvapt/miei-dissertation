@@ -1,0 +1,11 @@
+$notes = readmidi( "examples/warriors.mid" );
+
+$start = 0;
+
+@keyboard {
+    s toggle: { $start = gettime();  play( $notes ) };
+
+    t: debug( gettime() - $start );
+};
+
+# 6400, 19192, 33344, 46584, 60390, 73549, 87270, 100750, 113429, 127173, 140347, 147438, 166701, 179261
