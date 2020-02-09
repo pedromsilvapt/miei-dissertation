@@ -8,6 +8,7 @@ from audio import MidiPlayer, AsyncMidiPlayer
 from asyncio import Future, sleep, wait, FIRST_COMPLETED, create_task
 from asyncio import Event
 from fractions import Fraction
+from io import FileIO
 
 class KeyStroke:
     @staticmethod
@@ -315,6 +316,16 @@ def keyboard_close ( context : Context, keyboard : Keyboard ):
 
         lib.close()
 
+def keyboard_record ( context : Context, file : str ):
+    lib : KeyboardLibrary = context.library( KeyboardLibrary )
+
+    lib.record( file )
+
+def keyboard_replay ( context : Context, file : str ):
+    lib : KeyboardLibrary = context.library( KeyboardLibrary )
+
+    lib.replay( file )
+
 class KeyboardLibrary(Library):
     def __init__ ( self, player : MidiPlayer ):
         super().__init__( "keyboard" )
@@ -340,6 +351,9 @@ class KeyboardLibrary(Library):
         self.assign( "stop_all", CallablePythonValue( stop_all ) )
         self.assign( "close", CallablePythonValue( keyboard_close ) )
 
+        self.assign( "record", CallablePythonValue( keyboard_record ) )
+        self.assign( "replay", CallablePythonValue( keyboard_replay ) )
+
         self.assign( "grid\\create", CallablePythonValue( grid_create ) )
         self.assign( "grid\\reset", CallablePythonValue( grid_reset ) )
         self.assign( "grid\\align", CallablePythonValue( grid_align ) )
@@ -347,6 +361,18 @@ class KeyboardLibrary(Library):
     @property
     def keyboards ( self ) -> List[Keyboard]:
         return self.lookup_internal( "keyboards" )
+
+    @property
+    def record_file ( self ) -> str:
+        return self.lookup_internal( 'record_file' )
+    
+    @property
+    def record_fd ( self ) -> str:
+        return self.lookup_internal( 'record_fd' )
+
+    @property
+    def record_start ( self ) -> int:
+        return self.lookup_internal( 'record_start' )
 
     @property
     def keys ( self ) -> Iterator[Tuple[KeyStroke, KeyAction]]:
@@ -395,6 +421,11 @@ class KeyboardLibrary(Library):
         
             self.keyboards.clear()
 
+            fd = self.record_fd
+
+            if fd is not None:
+                fd.close()
+
         if not self.has_keys:
             close_future : Future = self.lookup_internal( "close_future" )
             
@@ -418,12 +449,61 @@ class KeyboardLibrary(Library):
             kb.stop_all()
 
     def on_press ( self, key : KeyStroke ):
+        self._record_key( 'press', key )
+
         for kb in self.keyboards:
             kb.on_press( key )
 
     def on_release ( self, key : KeyStroke ):
+        self._record_key( 'release', key )
+        
         for kb in self.keyboards:
             kb.on_release( key )
+
+    def _record_key ( self, kind : str, key : KeyStroke ):
+        file = self.record_file
+
+        if file is not None:
+            fd = self.record_fd
+
+            if fd is None:
+                fd = open( file, 'w' )
+
+                self.assign_internal( 'record_fd', fd )
+
+                self.assign_internal( 'record_start', self.player.get_time() )
+            
+            time = self.player.get_time() - self.record_start
+
+            fd.write( f'{time},{kind},{str(key)}\n' )
+
+    def record ( self, file : str ):
+        self.assign_internal( 'record_file', file )
+
+    def replay ( self, file : str, delay : int = 0 ):
+        async def _replay ():
+            with open( file, 'r' ) as f:
+                entries = [ line.split( ',' ) for line in list( f ) ]
+
+            start = self.player.get_time()
+
+            if delay > 0:
+                await sleep( delay / 1000.0 )
+
+            for time, type, key in entries:
+                time = int( time )
+                
+                await sleep( ( time - start ) / 1000.0 )
+
+                start = time
+
+                if type == 'press':
+                    self.on_press( key )
+                elif type == 'release':
+                    self.on_release( key )
+
+
+        create_task( _replay() )
 
     async def join_async ( self ):
         close_future : Future = self.lookup_internal( "close_future" )
