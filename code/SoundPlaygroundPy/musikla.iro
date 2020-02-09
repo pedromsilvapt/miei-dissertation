@@ -1,0 +1,413 @@
+#################################################################
+## Iro
+################################################################ 
+##
+## * Press Ctrl + '+'/'-' To Zoom in
+## * Press Ctrl + S to save and recalculate... 
+## * Documents are saved to web storage.
+## * Only one save slot supported.
+## * Matches cannot span lines.
+## * Unicode chars must be defined in \u0000 to \uffff format.
+## * All matches must be contained by a single group ( ... )
+## * Look behinds not permitted, (?<= or (?<!
+## * Look forwards are permitted (?= or (?!
+## * Constants are defined as __my_const = (......)
+## * The \= format allows unescaped regular expressions
+## * Constants referenced by match \= $${__my_const}
+## * Constants can reference other constants
+## * You are free to delete all the default scopes.
+## * Twitter : ainslec , Web: http://eeyo.io/iro
+##
+################################################################
+
+name                   = musikla
+file_extensions []     = mkl;
+
+################################################################
+## Constants
+################################################################
+
+__MY_CONSTANT \= (\b[a-z][a-z0-9]*)
+__KEYWORD \= (fun|and|or|not|if|else|for|while|in|return)
+__IDENTIFIER \= ([a-zA-Z\_][a-zA-Z0-9\_]*)
+__NAMESPACED \= ($${__IDENTIFIER}(\\$${__IDENTIFIER})*)
+
+
+__BASE00 \= #181818
+__BASE01 \= #282828
+__BASE02 \= #383838
+__BASE03 \= #585858
+__BASE04 \= #b8b8b8
+__BASE05 \= #d8d8d8
+__BASE06 \= #e8e8e8
+__BASE07 \= #f8f8f8
+__BASE08 \= #ab4642
+__BASE09 \= #dc9656
+__BASE0A \= #f7ca88
+__BASE0B \= #a1b56c
+__BASE0C \= #86c1b9
+__BASE0D \= #7cafc2
+__BASE0E \= #ba8baf
+__BASE0F \= #a16946
+
+################################################################
+## Styles
+################################################################
+
+styles [] {
+
+.base : style {
+   color                 = $${__BASE00}
+}
+
+.comment : style {
+   color                 = $${__BASE04}
+   italic                = true
+   ace_scope             = comment
+   textmate_scope        = comment
+   pygments_scope        = Comment
+}
+
+.keyword : style {
+   color                 = $${__BASE0E}
+   ace_scope             = keyword
+   textmate_scope        = keyword
+   pygments_scope        = Keyword
+}
+
+.operator : style {
+   color                 = $${__BASE0F}
+   ace_scope             = keyword.operator
+   textmate_scope        = keyword.operator
+   pygments_scope        = Keyword.Pseudo
+}
+
+.note : style {
+   color                 = $${__BASE09}
+   ace_scope             = constant.other
+   textmate_scope        = constant.other
+   pygments_scope        = Literal
+}
+
+.modifier : style {
+   color                 = $${__BASE0A}
+   ace_scope             = constant.other
+   textmate_scope        = constant.other
+   pygments_scope        = Literal
+}
+
+.function_call : style {
+   color                 = $${__BASE0A}
+   ace_scope             = meta.function-call
+   textmate_scope        = meta.function-call
+   pygments_scope        = Name.Function
+}
+
+.variable : style {
+   color                 = $${__BASE0D}
+   ace_scope             = variable
+   textmate_scope        = variable
+   pygments_scope        = Name.Variable
+}
+
+.instrument : style {
+   color     = $${__BASE0C}
+   ace_scope             = variable
+   textmate_scope        = variable
+   pygments_scope        = Name.Variable
+}
+
+.numeric : style {
+   color                 = $${__BASE09}
+   ace_scope             = constant.numeric
+   textmate_scope        = constant.numeric
+   pygments_scope        = Number
+}
+
+.boolean : style {
+   color                 = $${__BASE09}
+   ace_scope             = constant.other
+   textmate_scope        = constant.other
+   pygments_scope        = Number
+}
+
+.constant : style {
+   color                 = $${__BASE09}
+   ace_scope             = constant.other
+   textmate_scope        = constant.other
+   pygments_scope        = Number
+}
+
+.punctuation : style {
+   color                 = $${__BASE03}
+   ace_scope             = punctuation
+   textmate_scope        = punctuation
+   pygments_scope        = Punctuation
+}
+
+.text : style {
+   color                 = $${__BASE0B}
+   ace_scope             = string
+   textmate_scope        = string
+   pygments_scope        = String
+}
+
+.illegal : style {
+   color                 = white
+   background_color      = red
+   ace_scope             = invalid
+   textmate_scope        = invalid
+   pygments_scope        = Generic.Error
+}
+
+}
+
+
+__MOD_VEL         \= ([vV][0-9]+)
+__MOD_LEN         \= ([lL]([0-9]*)(/[0-9]+)?)
+__MOD_TEM         \= ([tT][0-9]+)
+__MOD_SIG         \= ([sS]([0-9]*)(/[0-9]+)?)
+#################################################
+## Parse contexts
+#################################################
+
+contexts [] {
+
+##############################################
+## Main Context - Entry point context
+##############################################
+
+main : context {
+   : include "statement";
+}
+
+#################################################
+## End of Contexts
+#################################################
+
+###########################################
+## Numeric Context
+###########################################
+
+numeric : context {
+   : pattern {
+      regex          \= (\b\d+)
+      styles []       = .numeric;
+   }
+}
+
+###########################################
+## Multi Line Comment Context
+###########################################
+
+multi_line_comment : context {
+   description        = multiline
+   : inline_push {
+      regex          \= (/\*)
+      styles []       = .comment;
+      default_style   = .comment
+      : pop {
+         regex       \= (\*/)
+         styles []    = .comment;
+      }
+   }
+}
+
+statement : context {
+   : inline_push {
+      regex          \= (fun)
+      
+      styles []       = .keyword;
+      default_style   = .base
+      
+      : pop {
+         regex       \= (\()
+         styles []   = .punctuation;
+      }
+   }
+   
+   : pattern {
+      regex          \= (#.*)
+      styles []       = .comment;
+   }
+   
+   : include "keyboard";
+   
+   : include "expression";
+   
+   : pattern {
+      regex          \= ([;,])
+      styles []       = .punctuation;
+   }
+   
+   : pattern {
+      regex          \= ([^\s])
+      styles []       = .illegal;
+   }
+   
+   
+}
+
+expression : context {
+   :include "codeblock";
+         
+   :pattern {
+      regex          \= (=>|<=|>=|==|!=|::|[=\*\|\+\-\/]|>=)
+      styles []       = .operator;
+   }
+   
+   # Function Call
+   :pattern {
+      regex          \= ($${__IDENTIFIER}(\\$${__IDENTIFIER})*(?=\())
+      styles []       = .function_call;
+   }
+   
+   # Keyword
+   : pattern {
+      regex          \= $${__KEYWORD}
+      styles []       = .keyword;
+   }
+   
+   # Boolean
+   : pattern {
+      regex          \= (true|false)
+      styles []       = .boolean;
+   }
+
+   # Named Parameter
+   : pattern {
+      regex          \= ($${__IDENTIFIER}\s+(?=\=))
+      styles []       = .constant;
+   }
+      
+   # Note
+   : pattern {
+      regex          \= ([\^\~]{0,2}[a-gA-GrR](\'|,)*[Mm]?([0-9]*)(/[0-9]+)?)
+      styles []       = .note;
+   }
+   
+   : pattern {
+      regex          \= ($${__MOD_VEL}|$${__MOD_LEN}|$${__MOD_TEM}|$${__MOD_SIG})
+      styles []       = .modifier;
+   }
+   
+   : inline_push {
+      regex          \= (\")
+      styles []       = .text;
+      default_style   = .text
+      : pop {
+         regex       \= (\")
+         styles []    = .text;
+      }
+   }
+   
+   : inline_push {
+      regex          \= (\')
+      styles []       = .text;
+      default_style   = .text
+      : pop {
+         regex       \= (\')
+         styles []    = .text;
+      }
+   }
+   
+   : pattern {
+      regex          \= ([\(\)\{\}\[\]])
+      styles []       = .punctuation;
+   }
+   
+   : pattern {
+      regex          \= (\$$${__IDENTIFIER}(\\$${__IDENTIFIER})*)
+      styles []       = .variable;
+   }
+   
+   : pattern {
+      regex          \= (\:$${__IDENTIFIER}(\\$${__IDENTIFIER})*)
+      styles []       = .instrument;
+   }
+   
+   : include "numeric";
+}
+
+keyboard : context {
+   description = keyboard
+   
+   # Keyboard
+   : inline_push {
+      regex          \= (@keyboard)
+      styles []       = .keyword;
+      
+      : pop {
+         regex       \= (\};)
+         styles []    = .punctuation;
+      }
+      
+      : pattern {
+         regex       \= ([a-zA-Z]+)
+         styles []    = .constant;
+      }
+      
+      : inline_push {
+         regex       \= (\()
+         styles []    = .punctuation;
+      
+         : pop {
+            regex    \= (\))
+            styles [] = .punctuation;
+         }
+         
+         :include "expression";
+      }
+      
+      : inline_push {
+         regex       \= (\{)
+         styles []    = .punctuation;
+      
+         : pop {
+            regex    \= (?=\})
+            styles [] = .punctuation;
+         }
+         
+         
+         : inline_push {
+            regex       \= (\[)
+            styles []    = .punctuation;
+         
+            : pop {
+               regex    \= (\])
+               styles [] = .punctuation;
+            }
+            
+            :include "expression";
+         }
+         
+         : inline_push {
+            regex       \= (\:)
+            styles []    = .punctuation;
+         
+            : pop {
+               regex    \= (\;)
+               styles [] = .punctuation;
+            }
+            
+            :include "expression";
+         }
+      }
+   }
+}
+
+codeblock : context {
+   : inline_push {
+      regex          \= (\{)
+      styles []       = .punctuation;
+      
+      : pop {
+         regex       \= (\})
+         styles []    = .punctuation;
+      }
+      
+      : include "statement";
+   }
+}
+   
+}
