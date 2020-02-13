@@ -1,7 +1,8 @@
 import sys
 import asyncio
 import argparse
-import termios
+import os
+import configparser
 from pathlib import Path
 
 from musikla.audio import MidiPlayer, AsyncMidiPlayer
@@ -14,7 +15,9 @@ from pynput import keyboard
 from typing import List
 
 class CliApplication:
-    def __init__ ( self, argv,  ):
+    default_output = [ 'pulseaudio' if os.name == 'posix' else 'dsound' ]
+
+    def __init__ ( self, argv ):
         self.argv = argv
         self.builtin_libraries = {
             'std': StandardLibrary,
@@ -115,16 +118,19 @@ class CliApplication:
             virtual_keyboard.on_release( keystroke )
 
     def enable_echo(self, fd, enabled):
-        (iflag, oflag, cflag, lflag, ispeed, ospeed, cc) \
-            = termios.tcgetattr(fd)
+        if os.name == 'posix':
+            import termios
+            
+            (iflag, oflag, cflag, lflag, ispeed, ospeed, cc) \
+                = termios.tcgetattr(fd)
 
-        if enabled:
-            lflag |= termios.ECHO
-        else:
-            lflag &= ~termios.ECHO
+            if enabled:
+                lflag |= termios.ECHO
+            else:
+                lflag &= ~termios.ECHO
 
-        new_attr = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
-        termios.tcsetattr(fd, termios.TCSANOW, new_attr)
+            new_attr = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
+            termios.tcsetattr(fd, termios.TCSANOW, new_attr)
 
     async def keyboard ( self, context : Context, virtual_keyboard : KeyboardLibrary ):
         print( "Keyboard active." )
@@ -159,16 +165,33 @@ class CliApplication:
 
         self.player.print_events = bool( options.print_events );
         
-        for output in options.outputs or [ 'pulseaudio' ]:
+        config_path = Path.home() / 'musikla.ini'
+
+        if os.path.isfile( config_path ):
+            config = configparser.ConfigParser()
+            config.read( config_path )
+
+            if 'Musikla' in config:
+                musikla_config = config['Musikla' ]
+
+
+                if 'Soundfont' in musikla_config:
+                    print( musikla_config[ 'Soundfont' ] )
+                    self.player.soundfont = musikla_config[ 'Soundfont' ]
+
+                if 'Output' in musikla_config:
+                    self.default_output = [ musikla_config[ 'Output' ] ]
+            
+        if options.soundfont != None:
+            self.player.soundfont = options.soundfont
+
+        for output in options.outputs or self.default_output:
             suffix = ( Path( output ).suffix or '' ).lower()
 
             if suffix == '.abc':
                 self.player.sequencers.append( ABCSequencer( output ) )
             else:
-                self.player.sequencers.append( FluidSynthSequencer( output, options.soundfont ) )
-
-        if options.soundfont != None:
-            self.player.soundfont = options.soundfont
+                self.player.sequencers.append( FluidSynthSequencer( output, self.player.soundfont ) )
 
         context = self.create_context()
 

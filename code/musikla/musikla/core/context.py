@@ -44,6 +44,7 @@ class Library:
         self.context.symbols.assign_internal( self.resolve( name ), value )
 
 class Context():
+    @staticmethod
     def create ():
         ctx = Context(
             voice = Voice( "default", instrument = Instrument( 'Acoustic Grand Piano', GeneralMidi.AcousticGrandPiano ) )
