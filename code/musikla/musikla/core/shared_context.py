@@ -1,4 +1,3 @@
-from py_linq import Enumerable
 from typing import Dict
 
 class SharedContext():
@@ -9,12 +8,10 @@ class SharedContext():
 
     @property
     def available_channels ( self ):
-        return Enumerable.range( 1, self.channel_count )\
-            .where( lambda i: i not in self.channels )
+        return filter( lambda i: i not in self.channels, range( 1, self.channel_count ) )
 
     def register_instrument ( self, instrument ):
-        channel = self.available_channels\
-            .first_or_default()
+        channel = next( self.available_channels, None )
 
         if channel == None:
             raise BaseException( "No channel available found" )

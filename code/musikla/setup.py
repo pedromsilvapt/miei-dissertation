@@ -26,10 +26,7 @@ setuptools.setup(
         'pynput',
         'mido',
         'imgui[glfw]',
-        'py_linq',
-        'arpeggio'
-    ],
-    dependency_links=[
-        'https://github.com/nwhitehead/pyfluidsynth@9a8ecee996e83a279e8d29d75e8a859aee4aba67',
+        'arpeggio',
+        'pyfluidsynth @ git+https://github.com/nwhitehead/pyfluidsynth@9a8ecee996e83a279e8d29d75e8a859aee4aba67'
     ]
 )

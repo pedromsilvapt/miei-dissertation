@@ -1,5 +1,3 @@
-from py_linq import Enumerable
-
 class IterCursor ():
     def __init__ ( self, iterable ):
         self.iterator = iter( iterable )
@@ -21,13 +19,12 @@ class IterCursor ():
             self.iterator.close()
 
 
-def merge_sorted ( self, order = lambda x: x ):
-    items = self.select( lambda en: IterCursor( en ) )\
-        .where( lambda en: en.move_next() )\
-        .select( lambda enumerator: ( order( enumerator.current ), enumerator ) )\
-        .order_by( lambda en: en[ 0 ] )\
-        .to_list()
-
+def merge_sorted ( items, order = lambda x: x ):
+    items = map( lambda en: IterCursor( en ), items )
+    items = filter( lambda en: en.move_next(), items )
+    items = map( lambda enumerator: ( order( enumerator.current ), enumerator ), items )
+    items = list( sorted( items, key = lambda en: en[ 0 ] ) )
+    
     try:
         while len( items ) > 0:
             next = items[ 0 ]
@@ -52,7 +49,5 @@ def merge_sorted ( self, order = lambda x: x ):
         for en in items: en[ 1 ].close()
 
         items = None
-
-Enumerable.merge_sorted = merge_sorted
 
 __all__ = []

@@ -1,6 +1,6 @@
 from musikla.core import Music
 from .music_node import MusicNode
-from py_linq import Enumerable
+from musikla.core import merge_sorted
 
 class MusicParallelNode( MusicNode ):
     def __init__ ( self, nodes, position : (int, int) = None ):
@@ -23,10 +23,8 @@ class MusicParallelNode( MusicNode ):
     def get_events ( self, context ):
         forks = []
 
-        # TODO add merge_sorted extension method to enumerables
-        notes = Enumerable( self.expressions )\
-            .select( lambda node: self.fork_and_get_events( node, forks, context ) )\
-            .merge_sorted( lambda note: note.timestamp )
+        notes = map( lambda node: self.fork_and_get_events( node, forks, context ), self.expressions )
+        notes = merge_sorted( notes, lambda note: note.timestamp )
 
         try:
             for note in notes:
