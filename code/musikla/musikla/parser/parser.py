@@ -342,13 +342,29 @@ class ParserVisitor(PTNodeVisitor):
     def visit_function ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        if len( children ) == 2:
-            return FunctionExpressionNode( children[ 0 ], children[ 1 ], position = position )
+        parameters = children.function_parameters[ 0 ]
         
-        return FunctionExpressionNode( children[ 0 ], position = position )
+        return FunctionExpressionNode( children.namespaced[ 0 ], parameters[ 0 ], parameters[ 1 ], position = position )
 
     def visit_function_parameters ( self, node, children ):
-        return list( children )
+        if children.positional_parameters:
+            if children.named_parameters:
+                return ( children.positional_parameters[ 0 ], children.named_parameters[ 0 ] )
+            else:
+                return ( children.positional_parameters[ 0 ], {} )
+        elif children.named_parameters:
+            return ( [], children.named_parameters[ 0 ] )
+        else:
+            return ( [], {} )
+
+    def visit_positional_parameters ( self, node, children ):
+        return list( children.expression )
+    
+    def visit_named_parameters ( self, node, children ):
+        return dict( children.named_parameter )
+
+    def visit_named_parameter ( self, node, children ):
+        return ( children.identifier[ 0 ], children.expression[ 0 ] )
 
     def visit_chord ( self, node, children ):
         position = ( node.position, node.position_end )

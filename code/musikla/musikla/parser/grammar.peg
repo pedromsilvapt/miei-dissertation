@@ -63,13 +63,24 @@ block <- "{" _ body _ "}";
 
 note <- note_accidental _ note_pitch ( _ chord_suffix )? ( _ note_value )?;
 
-chord_suffix <- 'M' / 'm';
+chord_suffix <- 'M' / 'm' / 'aug' / 'dim';
 
 variable <- "$" namespaced;
 
-function <- namespaced "(" _ function_parameters? _ ")";
+function <- namespaced "(" _ function_parameters _ ")";
 
-function_parameters <- expression ( _ ";" _ expression )*;
+function_parameters <- named_parameters
+                     / positional_parameters ( _ parameters_separator _ named_parameters )?
+                     / e
+                     ;
+
+positional_parameters <- !named_parameter expression ( _ parameters_separator _ !named_parameter expression )*;
+
+named_parameters <- named_parameter ( _ parameters_separator _ named_parameter )*;
+
+named_parameter <- identifier _ '=' _ expression;
+
+parameters_separator <- ',' / ';';
 
 chord <- "[" _ note ( _ note )* _ "]";
 

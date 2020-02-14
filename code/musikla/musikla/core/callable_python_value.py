@@ -4,7 +4,7 @@ from .symbols_scope import Ref
 from musikla.parser.abstract_syntax_tree.node import Node
 from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 
-from typing import get_type_hints, Union, Optional, _GenericAlias
+from typing import get_type_hints, Union, Optional, _GenericAlias, Dict
 from inspect import signature, Signature, Parameter, isclass
 from typeguard import check_type
 
@@ -44,6 +44,9 @@ class CallablePythonValue(CallableValue):
         
         return value
 
+    def eval_var_keyword ( self, context : Context, parameter : Parameter, nodes : Dict[ str, Node ] ):
+        return dict( ( key, self.eval_argument( context, parameter, value, key ) ) for key, value in nodes.items() )
+
     def wrapper ( self, context, *args, **kargs ):
         args_values = list()
 
@@ -72,7 +75,9 @@ class CallablePythonValue(CallableValue):
                 args_values.append( self.eval_argument( context, parameter, args[ i ], arg_name ) )
 
                 i = i + 1
-            # Treat this as keywork arguments
+            # Treat this as keywork arguments~
+            elif parameter.kind == Parameter.VAR_KEYWORD:
+                kargs_values.update( self.eval_var_keyword( context, parameter, kargs ) )
             else:
                 if arg_name in kargs:
                     kargs_values[ arg_name ] = self.eval_argument( context, parameter, kargs[ arg_name ], arg_name )

@@ -167,6 +167,8 @@ class CliApplication:
         
         config_path = Path.home() / 'musikla.ini'
 
+        soundfont : str = None
+
         if os.path.isfile( config_path ):
             config = configparser.ConfigParser()
             config.read( config_path )
@@ -174,16 +176,14 @@ class CliApplication:
             if 'Musikla' in config:
                 musikla_config = config['Musikla' ]
 
-
                 if 'Soundfont' in musikla_config:
-                    print( musikla_config[ 'Soundfont' ] )
-                    self.player.soundfont = musikla_config[ 'Soundfont' ]
+                    soundfont = musikla_config[ 'Soundfont' ]
 
                 if 'Output' in musikla_config:
                     self.default_output = [ musikla_config[ 'Output' ] ]
             
         if options.soundfont != None:
-            self.player.soundfont = options.soundfont
+            soundfont = options.soundfont
 
         for output in options.outputs or self.default_output:
             suffix = ( Path( output ).suffix or '' ).lower()
@@ -191,7 +191,7 @@ class CliApplication:
             if suffix == '.abc':
                 self.player.sequencers.append( ABCSequencer( output ) )
             else:
-                self.player.sequencers.append( FluidSynthSequencer( output, self.player.soundfont ) )
+                self.player.sequencers.append( FluidSynthSequencer( output, soundfont ) )
 
         context = self.create_context()
 
@@ -209,11 +209,11 @@ class CliApplication:
                 for line in sys.stdin:
                     ast = self.parser.parse( line )
 
-                    self.play( context, ast )
+                    self.play( context, ast, False )
             else:
                 ast = self.parser.parse_file( options.file )
 
-                self.play( context, ast )
+                self.play( context, ast, False )
 
             keyboard : KeyboardLibrary = context.library( KeyboardLibrary )
 
