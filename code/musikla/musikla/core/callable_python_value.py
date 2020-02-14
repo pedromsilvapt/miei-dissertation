@@ -20,6 +20,13 @@ def is_type_of ( typehint, value ) -> bool:
             return False
 
 class CallablePythonValue(CallableValue):
+    @staticmethod
+    def call ( fn, context, args = [], kargs = {} ):
+        if isinstance( fn, CallableValue ):
+            return fn( context, args, kargs )
+        else:
+            return CallablePythonValue( fn )( context, args, kargs )
+
     def __init__ ( self, value ):
         self.signature : Signature = signature( value )
         self.callable = value

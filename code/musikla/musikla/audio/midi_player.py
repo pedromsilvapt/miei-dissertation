@@ -45,7 +45,7 @@ class MidiPlayer():
 
         for seq in self.sequencers:
             seq.register_events_many( events, now )
-            
+
     def join ( self ):
         if not self.started:
             return

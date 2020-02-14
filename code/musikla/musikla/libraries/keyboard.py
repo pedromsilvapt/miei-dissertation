@@ -84,7 +84,7 @@ class KeyAction:
             if isinstance( value, Music ):
                 return value
             elif callable( value ):
-                value = value.call( forked_context )
+                value = CallablePythonValue.call( value, forked_context )
 
                 if isinstance( value, Music ):
                     return value
@@ -205,15 +205,19 @@ class Keyboard:
         for key in self.keys.values():
             key.stop( self.context, self.player )
 
-    def start ( self, key : KeyStroke ):
-        if key in self.keys:
-            self.keys[ key ].start( self.context, self.player )
+    def start ( self, key : Union[ KeyStroke, str ] ):
+        key_stroke : KeyStroke = KeyStroke.parse( key ) if Value.typeof( key ) == str else key
 
-    def stop ( self, key : KeyStroke ):
-        if key in self.keys:
-            self.keys[ key ].stop( self.context, self.player )
+        if key_stroke in self.keys:
+            self.keys[ key_stroke ].play( self.context, self.player )
 
-    def on_press ( self, key : KeyStroke ):
+    def stop ( self, key : Union[ KeyStroke, str ] ):
+        key_stroke : KeyStroke = KeyStroke.parse( key ) if Value.typeof( key ) == str else key
+
+        if key_stroke in self.keys:
+            self.keys[ key_stroke ].stop( self.context, self.player )
+
+    def on_press ( self, key : Union[ KeyStroke, str ] ):
         key_stroke : KeyStroke = KeyStroke.parse( key ) if Value.typeof( key ) == str else key
 
         if key_stroke in self.keys:

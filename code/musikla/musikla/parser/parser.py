@@ -272,7 +272,7 @@ class ParserVisitor(PTNodeVisitor):
     def visit_expression_single ( self, node, children ):
         expression = children[ 0 ]
 
-        accessors = children.property_accessor
+        accessors = children[ 1: ]
 
         if accessors:
             accessors[ 0 ].expression = expression

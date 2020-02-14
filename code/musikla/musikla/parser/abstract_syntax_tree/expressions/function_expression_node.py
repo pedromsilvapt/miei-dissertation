@@ -1,5 +1,6 @@
 from .expression_node import ExpressionNode
 from musikla.core import Value
+from musikla.core.callable_python_value import CallablePythonValue
 from typing import Callable
 
 class FunctionExpressionNode( ExpressionNode ):
@@ -16,6 +17,4 @@ class FunctionExpressionNode( ExpressionNode ):
         if value == None: 
             raise BaseException( "Calling undefined function" )
 
-        Value.expect( value, Callable )
-
-        return value( context, self.parameters, self.named_parameters )
+        return CallablePythonValue.call( value, context, self.parameters, self.named_parameters )
