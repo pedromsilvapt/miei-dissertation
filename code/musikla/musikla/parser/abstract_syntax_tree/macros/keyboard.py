@@ -33,7 +33,7 @@ class KeyboardShortcutMacroNode(MacroNode):
         kargs = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs.items() )
 
         self.virtual_node : Node = FunctionExpressionNode(
-            "keyboard\\register",
+            VariableExpressionNode( "keyboard\\register" ),
             [ None, StringLiteralNode( shortcut ), expression ],
             kargs,
             position = self.position
@@ -58,7 +58,7 @@ class KeyboardShortcutDynamicMacroNode(MacroNode):
             raise BaseException( "Keyboard shortcut with invalid modifiers: %s" % rest )
 
         self.virtual_node : Node = FunctionExpressionNode( 
-            "keyboard\\register", 
+            VariableExpressionNode( "keyboard\\register" ), 
             [ None, shortcut, expression ], 
             kargs, 
             position = self.position
@@ -83,7 +83,7 @@ class KeyboardShortcutComprehensionMacroNode(MacroNode):
             raise BaseException( "Keyboard shortcut with invalid modifiers: %s" % rest )
 
         node = FunctionExpressionNode( 
-            "keyboard\\register", 
+            VariableExpressionNode( "keyboard\\register" ), 
             [ None, self.comprehension.expression, expression ], 
             kargs
         )
@@ -120,14 +120,14 @@ class KeyboardDeclarationMacroNode(MacroNode):
             node.set_keyboard( VariableExpressionNode( var_name ) )
 
         if flags:
-            shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_flags", [ VariableExpressionNode( var_name ) ] + [ StringLiteralNode( f ) for f in flags ] ) )
-            shortcuts.append( FunctionExpressionNode( "keyboard\\pop_flags", [ VariableExpressionNode( var_name ) ] + [ StringLiteralNode( f ) for f in flags ] ) )
+            shortcuts.insert( 0, FunctionExpressionNode( VariableExpressionNode( "keyboard\\push_flags" ), [ VariableExpressionNode( var_name ) ] + [ StringLiteralNode( f ) for f in flags ] ) )
+            shortcuts.append( FunctionExpressionNode( VariableExpressionNode( "keyboard\\pop_flags" ), [ VariableExpressionNode( var_name ) ] + [ StringLiteralNode( f ) for f in flags ] ) )
 
         if prefix:
-            shortcuts.insert( 0, FunctionExpressionNode( "keyboard\\push_prefix", [ VariableExpressionNode( var_name ) ] + [ prefix ] ) )
-            shortcuts.append( FunctionExpressionNode( "keyboard\\pop_prefix", [ VariableExpressionNode( var_name ) ] ) )
+            shortcuts.insert( 0, FunctionExpressionNode( VariableExpressionNode( "keyboard\\push_prefix" ), [ VariableExpressionNode( var_name ) ] + [ prefix ] ) )
+            shortcuts.append( FunctionExpressionNode( VariableExpressionNode( "keyboard\\pop_prefix" ), [ VariableExpressionNode( var_name ) ] ) )
 
-        shortcuts.insert( 0, VariableDeclarationStatementNode( var_name, FunctionExpressionNode( "keyboard\\create" ), local = True ) )
+        shortcuts.insert( 0, VariableDeclarationStatementNode( var_name, FunctionExpressionNode( VariableExpressionNode( "keyboard\\create" ) ), local = True ) )
         shortcuts.append( VariableExpressionNode( var_name ) )
 
         self.virtual_node = BlockNode( StatementsListNode( shortcuts, position ) )

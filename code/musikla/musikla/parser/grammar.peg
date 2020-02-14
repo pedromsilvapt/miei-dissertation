@@ -9,11 +9,11 @@ statement <- _ ( var_declaration / voice_declaration / function_declaration / fo
 
 var_declaration <- "$" namespaced _ "=" _ expression;
 
-voice_declaration <- ":" identifier _ "=" _ voice_declaration_body;
+voice_declaration <- !"::" ":" identifier _ "=" _ voice_declaration_body;
 
 voice_declaration_body <- integer
                         / "(" _ function_parameters _ ")"
-                        / ":" identifier _ "(" _ function_parameters _ ")"
+                        / !"::" ":" identifier _ "(" _ function_parameters _ ")"
                         ;
 
 function_declaration <- "fun" _ namespaced _ "(" _ arguments? _ ")" _ "{" body "}";
@@ -108,7 +108,7 @@ modifier
      / r"[oO]" _ integer
      ;
 
-instrument_modifier <- ":" ( identifier / "?" ) _ sequence;
+instrument_modifier <- !"::" ":" ( identifier / "?" ) _ sequence;
 
 value_expression <- e binary_logic_operator_expression;
 
@@ -130,7 +130,13 @@ binary_mult_operator_expression <- unary_operator_expression _ r"[*/]" _ binary_
 
 unary_operator_expression <- ( "not" / ""  ) _  expression_single;
 
-expression_single <- string_value / number_value / bool_value / none_value / variable / function / keyboard_declaration / group / block / chord / note / rest / modifier / instrument_modifier;
+expression_single <- expression_single_prefix ( ( _ property_accessor ) / property_call )*;
+
+expression_single_prefix  <- string_value / number_value / bool_value / none_value / variable / function / keyboard_declaration / group / block / chord / note / rest / modifier / instrument_modifier;
+
+property_accessor <- "::" _ ( identifier / ( "[" _ expression _ "]" ) );
+
+property_call <- "(" _ function_parameters _ ")";
 
 string_value <- double_string / single_string;
 
@@ -162,7 +168,7 @@ integer <- r"[0-9]+";
 
 namespaced <- ( identifier "\\" )* identifier;
 
-identifier <- r"[a-zA-Z][a-zA-Z0-9\_]*";
+identifier <- r"[a-zA-Z\_][a-zA-Z0-9\_]*";
 
 alphanumeric <- r"[a-zA-Z0-9\_]*";
 

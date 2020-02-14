@@ -17,7 +17,7 @@ from .abstract_syntax_tree.expressions import GreaterComparisonOperatorNode, Gre
 from .abstract_syntax_tree.expressions import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode
 from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, LesserEqualComparisonOperatorNode
 
-from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockNode
+from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockNode, PropertyAccessorNode
 
 from .abstract_syntax_tree.statements import StatementsListNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
@@ -270,7 +270,43 @@ class ParserVisitor(PTNodeVisitor):
         return NotOperatorNode( children.expression_single[ 0 ], position =  position )
 
     def visit_expression_single ( self, node, children ):
+        expression = children[ 0 ]
+
+        accessors = children.property_accessor
+
+        if accessors:
+            accessors[ 0 ].expression = expression
+
+            for i in range( 1, len( accessors ) ):
+                accessors[ i ].expression = accessors[ i - 1 ]
+            
+            expression = accessors[ -1 ]
+
+        return expression
+
+    def visit_expression_single_prefix ( self, node, children ):
         return children[ 0 ]
+
+    def visit_property_accessor ( self, node, children ):
+        identifier = None
+
+        if children.identifier:
+            position = ( node.position, node.position_end )
+
+            identifier = StringLiteralNode( children.identifier[ 0 ], position = position )
+        else:
+            identifier = children.expression[ 0 ]
+
+        position = ( node.position, node.position_end )
+
+        return PropertyAccessorNode( None, identifier, position = position )
+        
+    def visit_property_call ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        parameters = children.function_parameters[ 0 ]
+        
+        return FunctionExpressionNode( None, parameters[ 0 ], parameters[ 1 ], position = position )
 
     def visit_music_expression ( self, node, children ):
         if len( children ) == 1:
@@ -344,7 +380,9 @@ class ParserVisitor(PTNodeVisitor):
 
         parameters = children.function_parameters[ 0 ]
         
-        return FunctionExpressionNode( children.namespaced[ 0 ], parameters[ 0 ], parameters[ 1 ], position = position )
+        name = children.namespaced[ 0 ]
+
+        return FunctionExpressionNode( VariableExpressionNode( name ), parameters[ 0 ], parameters[ 1 ], position = position )
 
     def visit_function_parameters ( self, node, children ):
         if children.positional_parameters:
