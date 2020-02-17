@@ -28,8 +28,8 @@ file_extensions []     = mkl;
 ################################################################
 
 __MY_CONSTANT \= (\b[a-z][a-z0-9]*)
-__KEYWORD \= (fun|and|or|not|if|else|for|while|in|return)
-__IDENTIFIER \= ([a-zA-Z\_][a-zA-Z0-9\_]*)
+__KEYWORD \= (fun|and|or|not|if|else|for|while|in|return)(?=[ \t({})])
+__IDENTIFIER \= (?:[a-zA-Z\_][a-zA-Z0-9\_]*)
 __NAMESPACED \= ($${__IDENTIFIER}(\\$${__IDENTIFIER})*)
 
 
@@ -215,7 +215,7 @@ multi_line_comment : context {
 
 statement : context {
    : inline_push {
-      regex          \= (fun)
+      regex          \= (fun)(?=[ \t({})])
       
       styles []       = .keyword;
       default_style   = .base
@@ -252,7 +252,7 @@ expression : context {
    :include "codeblock";
          
    :pattern {
-      regex          \= (=>|<=|>=|==|!=|::|[=\*\|\+\-\/]|>=)
+      regex          \= (=>|<=|>=|==|!=|[=\*\|\+\-\/]|>=)
       styles []       = .operator;
    }
    
@@ -289,6 +289,11 @@ expression : context {
    : pattern {
       regex          \= ($${__MOD_VEL}|$${__MOD_LEN}|$${__MOD_TEM}|$${__MOD_SIG})
       styles []       = .modifier;
+   }
+   
+   :pattern {
+      regex          \= (::)($${__IDENTIFIER})
+      styles []       = .operator, .function_call;
    }
    
    : inline_push {
