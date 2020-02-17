@@ -4,6 +4,10 @@ class Pointer:
     def __init__ ( self, scope, name ):
         self.scope = scope
         self.name = name
+
+    def __str__ ( self ):
+        return f"Pointer@{ id( self.scope ) }\{ self.name }"
+
 """
 A note about the terminology here:
     - Opaque symbol scopes are scopes that, when assigned to, will always default to storing the value in themselves.
@@ -29,6 +33,7 @@ class SymbolsScope:
             if value != None:
                 if isinstance( value, Pointer ):
                     scope = value.scope
+                    name = value.name
 
                 break
 

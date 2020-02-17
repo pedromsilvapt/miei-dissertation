@@ -84,10 +84,14 @@ class ParserVisitor(PTNodeVisitor):
     def visit_function_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        if len( children ) == 3:
-            return FunctionDeclarationStatementNode( children[ 0 ], children[ 1 ], children[ 2 ], position )
+        name = children.namespaced[ 0 ] if children.namespaced else None
 
-        return FunctionDeclarationStatementNode( children[ 0 ], [], children[ 1 ], position )
+        body = children.body[ 0 ] if children.body else StatementsListNode( [ children.expression[ 0 ] ] )
+
+        if children.arguments:
+            return FunctionDeclarationStatementNode( name, children.arguments[ 0 ], body, position )
+
+        return FunctionDeclarationStatementNode( name, [], body, position )
     
     def visit_arguments ( self, node, children ):
         return list( children )

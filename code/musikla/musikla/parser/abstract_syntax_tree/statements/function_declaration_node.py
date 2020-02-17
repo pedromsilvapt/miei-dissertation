@@ -13,9 +13,10 @@ class FunctionDeclarationStatementNode( StatementNode ):
     def eval ( self, context : Context ):
         fn = CallableValue( lambda *args: self.exec( context.symbols, *args ) )
 
-        context.symbols.assign( self.name, fn )
+        if self.name != None:
+            context.symbols.assign( self.name, fn )
 
-        return None
+        return fn
 
     def exec ( self, symbols_scope : SymbolsScope, context : Context, *args ):
         forked = context.fork( symbols = symbols_scope.fork() )

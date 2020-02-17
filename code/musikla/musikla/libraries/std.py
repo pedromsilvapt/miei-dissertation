@@ -84,6 +84,19 @@ def function_debug ( context : Context, expr ):
     else:
         print( "<%s>%s" % ( Value.typeof( value ), value ) )
 
+def function_inspect_context ( context : Context ):
+    symbols = context.symbols
+    
+    while symbols != None and symbols.parent != None:
+        print( f"Context#{ id( symbols ) } (Opaque = { symbols.opaque })" )
+        for container_name, container in symbols.symbols.items():
+            print( f"  - { container_name or '<default>' }:" )
+            for key, value in container.items():
+                print( f"    - { key }: { value }" )
+
+        symbols = symbols.parent
+    print()
+
 def function_import ( context : Context, file : Node ):
     file_value : Value = file.eval( context )
 
@@ -136,6 +149,7 @@ class StandardLibrary(Library):
         context.symbols.assign( "float", CallableValue( function_float ) )
         context.symbols.assign( "str", CallableValue( function_str ) )
 
+        context.symbols.assign( "inspect_context", CallableValue( function_inspect_context ) )
         context.symbols.assign( "ord", CallableValue( function_ord ) )
         context.symbols.assign( "chr", CallableValue( function_chr ) )
         context.symbols.assign( "cc", CallablePythonValue( function_cc ) )
