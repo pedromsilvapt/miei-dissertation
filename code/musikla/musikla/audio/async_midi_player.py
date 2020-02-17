@@ -1,6 +1,6 @@
 from .midi_player import MidiPlayer
 from musikla.core.events import MusicEvent, NoteOffEvent
-from musikla.core.events.middleware import decompose_notes, balance_notes_async
+from musikla.core.events.transformers import DecomposeNotesTransformer, BalanceNotesTransformer
 from typing import List, Callable
 from musikla.parser.abstract_syntax_tree import Node
 from asyncio import Future, sleep, wait, FIRST_COMPLETED
@@ -41,14 +41,14 @@ class AsyncMidiPlayer:
                 if self.is_playing:
                     events_iterator = self.events_iterator
                     # First make sure all note events are separated into NoteOn and NoteOff
-                    events_iterator = decompose_notes( events_iterator )
+                    events_iterator = DecomposeNotesTransformer.iter( events_iterator )
                     # When extending the notes, ignore any early NoteOn events
                     if self.extend: 
                         events_iterator = filter( lambda ev: not isinstance( ev, NoteOffEvent ), events_iterator )
                     # Then transform the iterator into an async iterator that emits the events only when their timestamp is near
                     events_iterator = realtime( events_iterator, self.stop_future, lambda e: e.timestamp, self.player.get_time, self.buffer_duration )
                     # Finally append any missing NoteOff's that might have been cut off because the player stopped playing
-                    events_iterator = balance_notes_async( events_iterator, self.player.get_time )
+                    events_iterator = BalanceNotesTransformer.aiter( events_iterator, self.player.get_time )
 
                     async for event in events_iterator:
                         if self.extend and isinstance( event, NoteOffEvent ):

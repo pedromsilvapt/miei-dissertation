@@ -1,5 +1,5 @@
 from ..statements import StatementNode, VariableDeclarationStatementNode
-from ..expressions import FunctionExpressionNode, StringLiteralNode
+from ..expressions import FunctionExpressionNode, StringLiteralNode, VariableExpressionNode
 from .macro import MacroNode
 from musikla.core import Instrument
 
@@ -22,5 +22,5 @@ class VoiceDeclarationMacroNode( MacroNode ):
  
         self.virtual_node = VariableDeclarationStatementNode(
             self.name,
-            FunctionExpressionNode( "voices\\create", [ StringLiteralNode( name ) ], kargs )
+            FunctionExpressionNode( VariableExpressionNode( "voices\\create" ), [ StringLiteralNode( name ) ], kargs )
         )

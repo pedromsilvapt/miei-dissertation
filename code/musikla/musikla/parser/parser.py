@@ -66,7 +66,7 @@ class ParserVisitor(PTNodeVisitor):
         parent = None
 
         if children.function_parameters:
-            params = children.function_parameters[ 0 ]
+            params = children.function_parameters[ 0 ][ 0 ]
 
             instrument = params[ 0 ]
             
