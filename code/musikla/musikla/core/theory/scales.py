@@ -32,6 +32,40 @@ minor_intervals = [ 2, 1, 2, 2, 1, 2, 2 ]
 
 minor = build_scale( minor_intervals )
 
-major_chord = build_scale( [ 4, 3 ] )
+# Triads
+major_triad = build_scale( [ 4, 3 ] )
 
-minor_chord = build_scale( [ 3, 4 ] )
+augmented_triad = build_scale( [ 4, 4 ] )
+
+minor_triad = build_scale( [ 3, 4 ] )
+
+diminished_triad = build_scale( [ 3, 3 ] )
+
+# Sevenths
+minor_seventh = build_scale( [ 3, 4, 3 ] )
+
+major_seventh = build_scale( [ 4, 3, 4 ] )
+
+dominant_seventh = build_scale( [ 4, 3, 3 ] )
+
+diminished_seventh = build_scale( [ 3, 3, 3 ] )
+
+half_diminished_seventh = build_scale( [ 3, 3, 4 ] )
+
+minor_major_seventh = build_scale( [ 3, 4, 4 ] )
+
+chords = {
+    'm': minor_triad,
+    'M': major_triad,
+    'dim': diminished_triad,
+    'aug': augmented_triad,
+    '+': augmented_triad,
+
+    'm7': minor_seventh,
+    'M7': major_seventh,
+    'dom7': dominant_seventh,
+    '7': dominant_seventh,
+    'm7b5': half_diminished_seventh,
+    'dim7': diminished_seventh,
+    'mM7': minor_major_seventh,
+}

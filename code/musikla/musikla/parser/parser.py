@@ -379,8 +379,7 @@ class ParserVisitor(PTNodeVisitor):
         position = ( node.position, node.position_end )
 
         accidental, ( pitch_class, octave ) = children.note_pitch[ 0 ]
-        # octave = children.note_pitch[ 0 ][ 1 ]
-        #  = children.note_accidental[ 0 ]
+        
         value = Fraction( 1 )
 
         if children.note_value:
@@ -393,11 +392,6 @@ class ParserVisitor(PTNodeVisitor):
             accidental = accidental
         )
 
-        # if len( children.chord_suffix ) == 1:
-        #     chord = children.chord_suffix[ 0 ]
-
-        #     return NoteNode( note, position ).as_chord( chord )
-        # else:
         return NoteNode( note, position )
 
     def visit_chord ( self, node, children ):
@@ -435,10 +429,8 @@ class ParserVisitor(PTNodeVisitor):
             return MusicParallelNode( notes, position )
 
     def visit_chord_suffix ( self, node, children ):
-        if children[ 0 ] == 'M':
-            return scales.major_chord
-        elif children[ 0 ] == 'm':
-            return scales.minor_chord
+        if children[ 0 ] in scales.chords:
+            return scales.chords[ children[ 0 ] ]
         else:
             return None
 
