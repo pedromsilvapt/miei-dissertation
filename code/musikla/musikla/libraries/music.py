@@ -39,9 +39,19 @@ def function_arpeggio_gen ( context : Context, chord : Music, pattern : Music = 
 def function_arpeggio ( context : Context, chord : Music, pattern : Music = None, bars : int = None ) -> Music:
     return Music( function_arpeggio_gen( context, chord, pattern, bars ) )
 
+def function_transpose ( note, semitones : int = 0, octaves : int = 1 ):
+    if isinstance( note, NoteEvent ):
+        note = note.clone(
+            octave = note.octave + octaves
+        )
+    
+    return note
+
 class MusicLibrary(Library):
     def on_link ( self ):
         context : Context = self.context
 
         context.symbols.assign( "arpeggio", CallablePythonValue( function_arpeggio ) )
+        context.symbols.assign( "transpose", CallablePythonValue( function_transpose ) )
+
 

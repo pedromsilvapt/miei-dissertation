@@ -2,6 +2,7 @@ from .value import Value, CallableValue
 from .context import Context
 from .symbols_scope import Ref
 from musikla.parser.abstract_syntax_tree.node import Node
+from musikla.parser.abstract_syntax_tree.expressions.string_literal_node import StringLiteralNode
 from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 
 from typing import get_type_hints, Union, Optional, _GenericAlias, Dict
@@ -27,6 +28,18 @@ class CallablePythonValue(CallableValue):
         else:
             return CallablePythonValue( fn )( context, args, kargs )
 
+    @staticmethod
+    def raw_call ( callable, context ):
+        def closure ( *args, **kargs ):
+            nonlocal context
+
+            literal_args = [ StringLiteralNode( value ) for value in args ]
+            literal_kargs = dict( ( key, StringLiteralNode( value ) ) for key, value in kargs.items() )
+
+            return callable( context, literal_args, literal_kargs )
+
+        return closure
+
     def __init__ ( self, value ):
         self.signature : Signature = signature( value )
         self.callable = value
@@ -49,6 +62,9 @@ class CallablePythonValue(CallableValue):
         if parameter.annotation != Parameter.empty:
             check_type( arg_name, value, parameter.annotation )
         
+        if isinstance( value, CallableValue ):
+            return CallablePythonValue.raw_call( value, context )
+
         return value
 
     def eval_var_keyword ( self, context : Context, parameter : Parameter, nodes : Dict[ str, Node ] ):

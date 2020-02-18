@@ -166,7 +166,7 @@ none_value <- "none";
 
 float <- r"[0-9]+\.[0-9]+";
 
-integer <- r"[0-9]+";
+integer <- r"[\-\+]?[0-9]+";
 
 namespaced <- ( identifier "\\" )* identifier;
 
