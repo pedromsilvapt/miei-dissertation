@@ -8,9 +8,9 @@ $e2 = ( c5/2 r/2 );
 $pat = $e1;
 
 $keyboard = @keyboard {
-    a: al( $g; arpeggio( Cm; $pat ) );
-    s: al( $g; arpeggio( Fm; $pat ) );
-    d: al( $g; arpeggio( Gm; $pat ) );
+    a: al( $g; arpeggio( [Cm]; $pat ) );
+    s: al( $g; arpeggio( [Fm]; $pat ) );
+    d: al( $g; arpeggio( [Gm]; $pat ) );
 
     8: { $pat = $e1 };
     9: { $pat = $e2 };

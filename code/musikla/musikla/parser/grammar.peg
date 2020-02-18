@@ -63,10 +63,6 @@ group <- "(" _ expression _ ")";
 
 block <- "{" _ body _ "}";
 
-note <- note_accidental _ note_pitch ( _ chord_suffix )? ( _ note_value )?;
-
-chord_suffix <- 'M' / 'm' / 'aug' / 'dim';
-
 variable <- "$" namespaced;
 
 function <- namespaced "(" _ function_parameters _ ")";
@@ -84,9 +80,15 @@ named_parameter <- identifier _ '=' _ expression;
 
 parameters_separator <- ',' / ';';
 
-chord <- "[" _ note ( _ note )* _ "]";
+note <- note_pitch note_value?;
 
-rest <- "r" ( _ note_value )?;
+chord <- "[" ( _ note_pitch )+ _ "]" note_value?
+       / "[" _ note_pitch chord_suffix _ "]" note_value?
+       ;
+
+chord_suffix <- 'M' / 'm' / 'aug' / 'dim';
+
+rest <- "r" note_value?;
 
 note_value
     <- "/" _ integer
@@ -94,12 +96,13 @@ note_value
      / integer
      ;
 
+note_pitch <- note_accidental _ note_pitch_raw;
+
 note_accidental <- "^" / "^^" / "__" / "_" / "";
 
-note_pitch
-    <- r"[cdefgab]" "'"*
-     / r"[CDEFGAB]" ","*
-     ;
+note_pitch_raw <- r"[cdefgab]" "'"*
+                / r"[CDEFGAB]" ","*
+                ;
 
 modifier
     <- r"[tT]" _ integer

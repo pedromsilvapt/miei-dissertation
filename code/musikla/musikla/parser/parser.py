@@ -341,39 +341,6 @@ class ParserVisitor(PTNodeVisitor):
 
         return BlockNode( children.body[ 0 ], position )
 
-    def visit_note ( self, node, children ):
-        position = ( node.position, node.position_end )
-
-        pitch_class = children.note_pitch[ 0 ][ 0 ]
-        octave = children.note_pitch[ 0 ][ 1 ]
-        accidental = children.note_accidental[ 0 ]
-        value = Fraction( 1 )
-
-        if len( children.note_value ) == 1:
-            value = children.note_value[ 0 ]
-         
-        note = Note( 
-            pitch_class = pitch_class,
-            octave = octave,
-            value = value,
-            accidental = accidental
-        )
-
-        if len( children.chord_suffix ) == 1:
-            chord = children.chord_suffix[ 0 ]
-
-            return NoteNode( note, position ).as_chord( chord )
-        else:
-            return NoteNode( note, position )
-
-    def visit_chord_suffix ( self, node, children ):
-        if children[ 0 ] == 'M':
-            return scales.major_chord
-        elif children[ 0 ] == 'm':
-            return scales.minor_chord
-        else:
-            return None
-
     def visit_variable ( self, node, children ):
         position = ( node.position, node.position_end )
 
@@ -408,10 +375,72 @@ class ParserVisitor(PTNodeVisitor):
     def visit_named_parameter ( self, node, children ):
         return ( children.identifier[ 0 ], children.expression[ 0 ] )
 
-    def visit_chord ( self, node, children ):
+    def visit_note ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return MusicParallelNode( list( children ), position )
+        accidental, ( pitch_class, octave ) = children.note_pitch[ 0 ]
+        # octave = children.note_pitch[ 0 ][ 1 ]
+        #  = children.note_accidental[ 0 ]
+        value = Fraction( 1 )
+
+        if children.note_value:
+            value = children.note_value[ 0 ]
+         
+        note = Note( 
+            pitch_class = pitch_class,
+            octave = octave,
+            value = value,
+            accidental = accidental
+        )
+
+        # if len( children.chord_suffix ) == 1:
+        #     chord = children.chord_suffix[ 0 ]
+
+        #     return NoteNode( note, position ).as_chord( chord )
+        # else:
+        return NoteNode( note, position )
+
+    def visit_chord ( self, node, children ):
+        position = ( node.position, node.position_end )
+        
+        value = Fraction( 1 )
+
+        if children.note_value:
+            value = children.note_value[ 0 ]
+
+        if children.chord_suffix:
+            accidental, ( pitch_class, octave ) = children.note_pitch[ 0 ]
+
+            chord = children.chord_suffix[ 0 ]
+
+            note = Note( 
+                pitch_class = pitch_class,
+                octave = octave,
+                value = value,
+                accidental = accidental
+            )
+
+            return NoteNode( note, position ).as_chord( chord )
+        else:
+            notes = []
+
+            for accidental, ( pitch_class, octave ) in children.note_pitch:
+                notes.append( NoteNode( Note( 
+                    pitch_class = pitch_class,
+                    octave = octave,
+                    value = value,
+                    accidental = accidental
+                ), position ) )
+
+            return MusicParallelNode( notes, position )
+
+    def visit_chord_suffix ( self, node, children ):
+        if children[ 0 ] == 'M':
+            return scales.major_chord
+        elif children[ 0 ] == 'm':
+            return scales.minor_chord
+        else:
+            return None
 
     def visit_rest ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -420,6 +449,17 @@ class ParserVisitor(PTNodeVisitor):
             return RestNode( value = children[ 0 ], position = position )
 
         return RestNode( position = position )
+
+    def visit_note_value ( self, node, children ):
+        if len( children ) == 2:
+            return children[ 0 ] / children[ 1 ]
+        elif node.value.startswith( "/" ):
+            return 1 / children[ 0 ]
+        else:
+            return children[ 0 ]
+
+    def visit_note_pitch ( self, node, children ):
+        return ( children.note_accidental[ 0 ], children.note_pitch_raw[ 0 ] )
 
     def visit_note_accidental ( self, node, children ):
         if node.value == '^^':
@@ -433,15 +473,7 @@ class ParserVisitor(PTNodeVisitor):
         else:
             return NoteAccidental.NONE
 
-    def visit_note_value ( self, node, children ):
-        if len( children ) == 2:
-            return children[ 0 ] / children[ 1 ]
-        elif node.value.startswith( "/" ):
-            return 1 / children[ 0 ]
-        else:
-            return children[ 0 ]
-
-    def visit_note_pitch ( self, node, children ):
+    def visit_note_pitch_raw ( self, node, children ):
         return Note.parse_pitch_octave( ''.join( children ) )
 
     def visit_modifier ( self, node, children ):

@@ -3,21 +3,21 @@
 V70 L1 T120;
 
 fun accomp () {
-    ^Cm;
-    BM; 
-    AM; 
-    BM
-    ^Cm;
-    AM; 
-    BM2;
+    [^Cm];
+    [BM]; 
+    [AM]; 
+    [BM];
+    [^Cm];
+    [AM];
+    [BM]2;
 
-    ^Cm;
-    BM;
-    AM;
-    BM;
-    ^Cm;
-    AM;
-    BM2;
+    [^Cm];
+    [BM];
+    [AM];
+    [BM];
+    [^Cm];
+    [AM];
+    [BM]2;
 };
 
 fun melody () {
@@ -39,7 +39,7 @@ fun melody () {
     ^c'/2 ^c'/4 ^c'/4;
 };
 
-fun toggle_sustain ( ref $enabled ) {
+$toggle_sustain = fun ( ref $enabled ) => {
     if ( $enabled ) {
         cc( 64; 0 );
     } else {
@@ -55,11 +55,11 @@ fun keyboard () {
     @keyboard { q toggle: accomp() | melody(); };
     
     @keyboard hold extend {
-        a: ^Cm;
-        s: BM;
-        d: AM;
-        f: EM;
-        g: ^Fm;
+        a: [^Cm];
+        s: [BM];
+        d: [AM];
+        f: [EM];
+        g: [^Fm];
     };
     
     @keyboard hold extend (V120) {
@@ -82,4 +82,4 @@ keyboard();
 # We can also record our performance
 # keyboard\record( "examples/marina-perf-2.csv" );
 # And then replay it
-keyboard\replay( "examples/marina-perf-2.csv" );
+# keyboard\replay( "examples/marina-perf-2.csv" );
