@@ -86,6 +86,10 @@ class Transformer():
                     item = next( it )
 
                     inst.add_input( item )
+
+                    if inst.output_ended:
+                        if hasattr( it, 'close' ) and callable( it.close ):
+                            it.close()
                 except StopIteration:
                     inst.end_input()
 
@@ -121,6 +125,10 @@ class Transformer():
 
                 try:
                     inst.add_input( await it.__anext__() )
+                    
+                    if inst.output_ended:
+                        if hasattr( it, 'aclose' ) and callable( it.aclose ):
+                            await it.aclose()
                 except StopAsyncIteration:
                     inst.end_input()
                     break

@@ -1,8 +1,11 @@
-from typing import List, Any
-from musikla.core import Context, Music, Voice
+from typing import List, Any, Union
+from musikla.core import Context, Music, Voice, Library, Clock
+from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core.events import MusicEvent, NoteOnEvent, NoteOffEvent, ControlChangeEvent, ProgramChangeEvent
 from musikla.core.theory import Note
+from musikla.core.events.transformers import ComposeNotesTransformer, TerminationMelodyTransformer
 import mido
+from mido.ports import MultiPort
 
 def midi_to_event ( time : int, msg : Any, voice : Voice ):
     if msg.type == 'control_change':
@@ -34,20 +37,61 @@ def midi_to_event ( time : int, msg : Any, voice : Voice ):
         
     return None
 
-def midi_stream_to_music ( stream : Any, voice : Voice ) -> Music:
-    pass
-
-def function_readmidi ( context : Context, file : str, voices : List[Voice] = None, ignore_types : List[str] = None ):
-    mid = mido.MidiFile( file )
-    
-    events : List[MusicEvent] = []
-
-    event = None
-
+def midi_track_to_music ( 
+        context, mid, stream : Any, voice : Voice, 
+        ignore_message_types : List[str] = None 
+    ):
     # TODO Read tempo from midi file
     tempo = 416666
 
-    for i, track in enumerate( mid.tracks ):
+    ticks = 0
+
+    for msg in stream:
+        ticks += msg.time
+
+        if ignore_message_types is not None and msg.type in ignore_message_types:
+            continue
+
+        time = context.cursor + int( mido.tick2second( ticks, mid.ticks_per_beat, tempo ) * 1000 )
+
+        event = midi_to_event( time, msg, voice )
+
+        if event:
+            yield event
+        else:
+            pass
+
+def midi_stream_to_music ( 
+        context, stream : Any, voice : Voice, 
+        ignore_message_types : List[str] = None 
+    ):
+    clock = Clock()
+
+    start = context.cursor
+
+    for msg in stream:
+        if ignore_message_types is not None and msg.type in ignore_message_types:
+            continue
+
+        time = start + clock.elapsed()
+
+        event = midi_to_event( time, msg, voice )
+
+        if event:
+            yield event
+        else:
+            pass
+
+def read_midi_file (
+        context : Context, 
+        file : mido.MidiFile = None,
+        voices : List[Voice] = None,
+        cutoff_sequence = None,
+        ignore_message_types : List[str] = None
+    ):
+    tracks = []
+
+    for i, track in enumerate( file.tracks ):
         if voices is None:
             msgVoice = context.voice
         else:
@@ -56,22 +100,41 @@ def function_readmidi ( context : Context, file : str, voices : List[Voice] = No
         if msgVoice == None:
             continue
 
-        ticks = 0
+        tracks.append( midi_track_to_music( context, file, track, msgVoice, ignore_message_types ) )
 
-        for msg in list( track ):
-            ticks += msg.time
+    return Music.parallel( tracks )
 
-            if ignore_types is not None and msg.type in ignore_types:
-                continue
+def function_readmidi (
+        context : Context, 
+        file : str = None, 
+        port : Union[str, List[str], bool] = None, 
+        voices : List[Voice] = None,
+        cutoff_sequence = None,
+        ignore_message_types : List[str] = None
+    ):
+    if file is not None:
+        mid = mido.MidiFile( file )
 
-            time = context.cursor + int( mido.tick2second( ticks, mid.ticks_per_beat, tempo ) * 1000 )
+        return read_midi_file( context, mid, voices, cutoff_sequence, ignore_message_types )
+    else:
+        if port == True:
+            port = mido.open_input()
+        elif type(port) == str:
+            port = mido.open_input( port )
+        elif type(port) == list:
+            port = MultiPort( [ mido.open_input( p ) for p in port ] )
+        
+        events = midi_stream_to_music( context, port, context.voice, ignore_message_types )
 
-            event = midi_to_event( time, msg, msgVoice )
+        events = ComposeNotesTransformer.iter( events )
 
-            if event:
-                events.append( event )
-            else:
-                pass
-                # print( msg )
+        if cutoff_sequence != None:
+            events = TerminationMelodyTransformer.iter( events, list( cutoff_sequence.expand( context.fork( cursor = 0 ) ) ) )
 
-    return Music( events )
+        return Music( list( events ) )
+
+class MidiLibrary(Library):
+    def on_link ( self ):
+        context : Context = self.context
+
+        context.symbols.assign( "readmidi", CallablePythonValue( function_readmidi ) )

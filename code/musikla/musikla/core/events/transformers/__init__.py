@@ -1,4 +1,5 @@
 from .balance_notes import BalanceNotesTransformer, NoteTracker
 from .compose_notes import ComposeNotesTransformer
 from .decompose_notes import DecomposeNotesTransformer
+from .termination_melody import TerminationMelodyTransformer
 from .transformer import Transformer

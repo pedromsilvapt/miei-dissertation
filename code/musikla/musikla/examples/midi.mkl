@@ -1,0 +1,6 @@
+# Stops recording when the notes C4 D4 are played one after the other
+$notes = readmidi( port = true, cutoff_sequence = c d );
+
+debug( $notes ); 
+
+play( $notes );

@@ -1,8 +1,13 @@
 from .context import Context
 from .voice import Voice
+from .enumerable import merge_sorted
 from typing import List
 
 class Music:
+    @classmethod
+    def parallel ( cls, tracks ):
+        return cls( merge_sorted( tracks, lambda note: note.timestamp ) )
+
     def __init__ ( self, notes = [] ):
         self.notes = notes
 

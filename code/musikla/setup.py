@@ -25,6 +25,7 @@ setuptools.setup(
         'typeguard',
         'pynput',
         'mido',
+        'python-rtmidi',
         'imgui[glfw]',
         'arpeggio',
         'pyfluidsynth @ git+https://github.com/nwhitehead/pyfluidsynth@9a8ecee996e83a279e8d29d75e8a859aee4aba67'

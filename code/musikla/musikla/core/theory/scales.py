@@ -54,6 +54,9 @@ half_diminished_seventh = build_scale( [ 3, 3, 4 ] )
 
 minor_major_seventh = build_scale( [ 3, 4, 4 ] )
 
+# Perfect Fifth
+perfect_fifth = build_scale( [ 7 ] )
+
 chords = {
     'm': minor_triad,
     'M': major_triad,
@@ -68,4 +71,6 @@ chords = {
     'm7b5': half_diminished_seventh,
     'dim7': diminished_seventh,
     'mM7': minor_major_seventh,
+
+    '5': perfect_fifth
 }

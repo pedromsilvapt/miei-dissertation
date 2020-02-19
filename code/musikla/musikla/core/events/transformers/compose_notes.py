@@ -44,6 +44,8 @@ class ComposeNotesTransformer( Transformer ):
                     # TODO Calculate propert duration
                     duration = on_event.voice.get_value( event.timestamp - on_event.timestamp )
 
+                    del on_events[ key ]
+
                     composed_event = NoteEvent(
                         timestamp = on_event.timestamp,
                         pitch_class = on_event.pitch_class,
@@ -54,7 +56,15 @@ class ComposeNotesTransformer( Transformer ):
                         accidental = on_event.accidental
                     )
 
-                    buffered_events.append( composed_event )
+                    l = len( buffered_events )
+                    
+                    for i in range( l + 1 ):
+                        if i == l:
+                            buffered_events.append( composed_event )
+                        elif buffered_events[ i ].timestamp <= composed_event.timestamp:
+                            buffered_events.insert( i, composed_event )
+
+                            break
 
                     # If the next event timestamp is the same as the one we just composed
                     # We need to update it and possibly flush the buffer
@@ -73,7 +83,7 @@ class ComposeNotesTransformer( Transformer ):
 
                             flushed, buffered_events = split( buffered_events, lambda ev: nec == 0 or ev.timestamp <= net )
 
-                            for flushed_event in flushed:
+                            for flushed_event in flushed: # sorted( flushed, key = lambda ev: ev.timestamp ):
                                 self.add_output( flushed_event )
                             
             elif isinstance( event, NoteOnEvent ):

@@ -9,7 +9,7 @@ from musikla.audio import MidiPlayer, AsyncMidiPlayer
 from musikla.audio.sequencers import FluidSynthSequencer, ABCSequencer
 from musikla.core import Context, Value, Music
 from musikla.parser import Parser
-from musikla.libraries import KeyboardLibrary, KeyStroke, StandardLibrary, MusicLibrary
+from musikla.libraries import KeyboardLibrary, KeyStroke, StandardLibrary, MusicLibrary, MidiLibrary
 
 from pynput import keyboard
 from typing import List
@@ -22,7 +22,8 @@ class CliApplication:
         self.builtin_libraries = {
             'std': StandardLibrary,
             'keyboard': KeyboardLibrary,
-            'music': MusicLibrary
+            'music': MusicLibrary,
+            'midi': MidiLibrary
         }
         self.parser = Parser()
         self.keyboard_state = dict()
@@ -199,6 +200,7 @@ class CliApplication:
         self.import_library( context, 'std' )
         self.import_library( context, 'music' )
         self.import_library( context, 'keyboard', self.player )
+        self.import_library( context, 'midi' )
 
         for lib in options.imports or []:
             self.import_library( context, lib )

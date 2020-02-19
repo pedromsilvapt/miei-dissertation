@@ -6,4 +6,5 @@ from .instrument import Instrument, GeneralMidi
 from .voice import Voice
 from .value import Value, CallableValue
 from .music import Music, TemplateMusic
+from .clock import Clock
 # from .callable_python_value import CallablePythonValue

@@ -87,6 +87,7 @@ chord <- "[" ( _ note_pitch )+ _ "]" note_value?
        ;
 
 chord_suffix <- 'm7' / 'M7' / 'dom7' / '7' / 'm7b5' / 'dim7' / 'mM7'
+              / '5'
               / 'M' / 'm' / 'aug' / 'dim' / '+'
               ;
 
