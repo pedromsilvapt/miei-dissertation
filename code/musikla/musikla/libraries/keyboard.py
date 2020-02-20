@@ -1,6 +1,7 @@
 from musikla.core import Context, Library, Value, CallableValue, Music
 from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent
+from musikla.core.theory import Note
 from typing import List, Dict, Set, Iterable, ItemsView, ValuesView, Union, Optional, Iterator, Tuple
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
 from musikla.parser.abstract_syntax_tree.expressions import BoolLiteralNode
@@ -10,7 +11,32 @@ from asyncio import Event
 from fractions import Fraction
 from io import FileIO
 
-class KeyStroke:
+class KeyboardEvent:
+    def get_parameters ( self ) -> List[str]:
+        return []
+
+class PianoKey(KeyboardEvent):
+    def __init__ ( self, event : Union[NoteEvent, Note] ):
+        super().__init__()
+
+        if isinstance( event, NoteEvent ):
+            event = event.note
+
+        self.note : Note = event.timeless()
+    
+    def __eq__ ( self, k ):
+        if k is None: return False
+
+        return self.note == k.note
+
+    def __hash__ ( self ):
+        return hash( self.note )
+
+    def __str__ ( self ):
+        return str( self.note )
+
+
+class KeyStroke(KeyboardEvent):
     @staticmethod
     def parse ( s ):
         parts = s.strip().split( "+" )
@@ -26,6 +52,8 @@ class KeyStroke:
         return KeyStroke( ctrl, alt, shift, key )
 
     def __init__ ( self, ctrl, alt, shift, key ):
+        super().__init__()
+
         self.ctrl = ctrl
         self.alt = alt
         self.shift = shift
@@ -152,8 +180,19 @@ class Keyboard:
         if self.global_prefixes:
             expression = MusicSequenceNode( [ *self.global_prefixes, expression ] )
 
+        if type(key) == str:
+            key_event = KeyStroke.parse( key_value )
+        elif isinstance( key_value, Music ):
+            key_event = key_value.first_note()
+            
+            key_event = PianoKey( key_event )
+        elif isinstance( key_value, NoteEvent ):
+            key_event = PianoKey( key_value )
+        else:
+            raise Exception( "Keyboard value is invalid" )
+
         action = KeyAction(
-            key = KeyStroke.parse( key_value ),
+            key = key_event,
             expr = expression,
             context = context,
             toggle = toggle_value,
@@ -345,8 +384,8 @@ class KeyboardLibrary(Library):
         self.assign( "push_prefix", CallablePythonValue( push_prefix ) )
         self.assign( "pop_prefix", CallablePythonValue( pop_prefix ) )
         self.assign( "register", CallablePythonValue( register_key ) )
-        self.assign( "register_hold", CallablePythonValue( register_key_hold ) )
-        self.assign( "register_toggle", CallablePythonValue( register_key_toggle ) )
+        # self.assign( "register_hold", CallablePythonValue( register_key_hold ) )
+        # self.assign( "register_toggle", CallablePythonValue( register_key_toggle ) )
         self.assign( "on_press", CallablePythonValue( on_press ) )
         self.assign( "on_release", CallablePythonValue( on_release ) )
         self.assign( "start", CallablePythonValue( start ) )

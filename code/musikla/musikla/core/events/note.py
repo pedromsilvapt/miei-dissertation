@@ -51,6 +51,21 @@ class NoteOffEvent ( VoiceEvent ):
         return str( self.note ) + "(Off)"
 
 class NoteEvent( DurationEvent ):
+    @staticmethod
+    def from_pitch ( timestamp = 0, pitch = 0, duration = 4, voice : Voice = None, velocity = 127, value = None ):
+        note = Note.from_pitch( pitch )
+        
+        return NoteEvent(
+            timestamp = timestamp,
+            duration = duration,
+            value = value,
+            velocity = velocity,
+            voice = voice,
+            pitch_class = note.pitch_class, 
+            octave = note.octave, 
+            accidental = note.accidental, 
+        )
+
     def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, voice : Voice = None, velocity = 127, accidental = NoteAccidental.NONE, value = None ):
         super().__init__( timestamp, duration, value, voice )
 
@@ -58,6 +73,11 @@ class NoteEvent( DurationEvent ):
         self.octave = octave
         self.velocity = velocity
         self.accidental = accidental
+
+    def music ( self ):
+        from ..music import SharedMusic
+
+        return SharedMusic( [ self ] )
 
     @property
     def note ( self ) -> Note:
@@ -80,6 +100,30 @@ class NoteEvent( DurationEvent ):
              velocity = pattern.velocity,
              voice = pattern.voice
         )
+
+    def __lt__ ( self, other ):
+        if other is None: return False
+
+        return int( self ) < int( other )
+
+    def __le__ ( self, other ):
+        if other is None: return False
+
+        return int( self ) <= int( other )
+
+    # def __eq__ ( self, other ):
+    #     return int( self ) == int( other )
+
+    def __add__ ( self, interval ):
+        if type( interval ) == int:
+            return NoteEvent.from_pitch(
+                timestamp = self.timestamp,
+                pitch = int( self ) + interval,
+                duration = self.duration, 
+                voice = self.voice, 
+                velocity = self.velocity, 
+                value = self.value
+            )
 
     def __int__ ( self ):
         return int( self.note )

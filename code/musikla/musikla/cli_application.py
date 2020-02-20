@@ -8,9 +8,11 @@ from pathlib import Path
 from musikla.audio import MidiPlayer, AsyncMidiPlayer
 from musikla.audio.sequencers import FluidSynthSequencer, ABCSequencer
 from musikla.core import Context, Value, Music
+from musikla.core.theory import Note
 from musikla.parser import Parser
-from musikla.libraries import KeyboardLibrary, KeyStroke, StandardLibrary, MusicLibrary, MidiLibrary
+from musikla.libraries import KeyboardLibrary, KeyStroke, PianoKey, StandardLibrary, MusicLibrary, MidiLibrary
 
+import mido
 from pynput import keyboard
 from typing import List
 
@@ -92,6 +94,16 @@ class CliApplication:
             keystrokes.append( KeyStroke( ctrl, alt, shift, key ) )
 
         return keystrokes
+
+    def midi_on_message ( self, virtual_keyboard : KeyboardLibrary, msg : mido.Message ):
+        if msg.type == 'note_on':
+            note = Note().with_pitch( msg.note )
+
+            virtual_keyboard.on_press( PianoKey( note ) )
+        elif msg.type == 'note_off':
+            note = Note().with_pitch( msg.note )
+
+            virtual_keyboard.on_release( PianoKey( note ) )
             
 
     def keyboard_on_press ( self, virtual_keyboard : KeyboardLibrary, key : keyboard.Key ):
@@ -141,13 +153,17 @@ class CliApplication:
 
             loop = asyncio.get_running_loop()
 
+
             with keyboard.Listener(
                     on_press = lambda key: loop.call_soon_threadsafe( self.keyboard_on_press, virtual_keyboard, key ),
                     on_release = lambda key: loop.call_soon_threadsafe( self.keyboard_on_release, virtual_keyboard, key ),
                     suppress = False
                 ) as listener:
-
-                await virtual_keyboard.join_async()
+                if mido.get_input_names():
+                    with mido.open_input( callback = lambda msg: loop.call_soon_threadsafe( self.midi_on_message, virtual_keyboard, msg ) ) as port:
+                        await virtual_keyboard.join_async()
+                else:
+                    await virtual_keyboard.join_async()
         finally:
             self.enable_echo( sys.stdin.fileno(), True )
 

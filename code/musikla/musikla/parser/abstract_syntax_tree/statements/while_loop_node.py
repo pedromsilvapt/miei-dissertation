@@ -15,7 +15,7 @@ class WhileLoopStatementNode( StatementNode ):
         result = None
 
         while condition_value:
-            result = self.body.eval( context )
+            result = self.body.eval( context.fork( symbols = context.symbols.fork( opaque = False ) ) )
 
             condition_value = self.condition.eval( context )
 

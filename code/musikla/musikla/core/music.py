@@ -1,5 +1,6 @@
 from .context import Context
 from .voice import Voice
+from .events import NoteEvent
 from .enumerable import merge_sorted
 from typing import List
 
@@ -21,6 +22,28 @@ class Music:
                     yield subnote
             else:
                 yield note
+
+    def first_note ( self, context : Context ):
+        it = self.expand( context )
+
+        try:
+            value = next( it )
+
+            while not isinstance( value, NoteEvent ):
+                value = next( it )
+
+            return value
+        except StopIteration:
+            return None
+    
+    def last_note ( self, context : Context ):
+        note = None
+
+        for value in self.expand( context ):
+            if isinstance( value, NoteEvent ):
+                note = value
+                
+        return note
 
     def map ( self, mapper ) -> 'MusicMap':
         return MusicMap( self, mapper )
@@ -64,6 +87,10 @@ class SharedMusic(Music):
                 offset, note = self.retime( context, offset, note )
 
                 yield note
+
+    def __iter__ ( self ):
+        for note in self.base_music:
+            yield note
 
 class SharedIterator():
     def __init__ ( self, iterator ):

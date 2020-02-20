@@ -47,6 +47,19 @@ class Note:
             
             return ( pitch_class, octave )
 
+    @staticmethod
+    def from_pitch ( pitch : int, value : Fraction = Fraction() ):
+        octave = ( pitch // 12 ) - 1
+        pitch_class = pitch % 12
+        accidental = 0
+
+        if pitch_class not in NotePitchClassesInv:
+            pitch_class -= 1
+
+            accidental = 1
+
+        return Note( pitch_class, octave, accidental, value )
+
     def __init__ ( self, pitch_class : int = 0, octave : int = 0, accidental : int = 0, value : Fraction = Fraction() ):
         self.pitch_class : int = pitch_class
         self.octave : int = octave
@@ -70,14 +83,31 @@ class Note:
     def transpose ( self, semitones : int ) -> 'Note':
         return self.with_pitch( self.to_pitch() + semitones )
     
+    def timeless ( self ):
+        if self.value != None and self.value != 1:
+            note = self.clone()
+            note.value = None
+            return note
+        else:
+            return self
+
     def clone ( self ):
         return Note( self.pitch_class, self.octave, self.accidental, self.value )
 
     def as_chord ( self, chord : List[int] ) -> 'Chord':
         return Chord( self, chord )
 
+    def __eq__ ( self, other ):
+        if other is None:
+            return False
+
+        return int( self ) == int( other )
+
     def __int__ ( self ):
         return self.to_pitch()
+
+    def __hash__ ( self ):
+        return hash( str( self ) )
 
     def __str__ ( self ):
         note : str = NotePitchClassesInv[ self.pitch_class ].lower()
@@ -85,9 +115,9 @@ class Note:
         if self.octave <= 3:
             note = note.upper()
 
-            for i in range( 2, self.octave - 1, -1 ): note += ","
+            for _ in range( 2, self.octave - 1, -1 ): note += ","
         else:
-            for i in range( 5, self.octave + 1 ): note += "'"
+            for _ in range( 5, self.octave + 1 ): note += "'"
         
         if self.value != None and self.value != 1:
             note += str( Fraction( self.value ) )

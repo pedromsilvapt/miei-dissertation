@@ -80,8 +80,6 @@ class OrLogicOperatorNode(BinaryOperatorNode):
 
         return right_value if right_value else False
 
-ComparableValueKinds = Union[ int, float, str, bool ]
-
 class ComparisonOperatorNode(BinaryOperatorNode):
     def __init__ ( self, left : Node, right : Node, position : (int, int) = None ):
         super().__init__( left, right, position )
@@ -95,10 +93,7 @@ class ComparisonOperatorNode(BinaryOperatorNode):
         left_value = self.left.eval( context )
         right_value = self.right.eval( context )
 
-        Value.expect( left_value, ComparableValueKinds, f'{self.operator} left operator' )
-        Value.expect( right_value, ComparableValueKinds, f'{self.operator} right operator' )
-        
-        return self.compare( left_value.value, right_value.value )
+        return self.compare( left_value, right_value )
 
 class GreaterEqualComparisonOperatorNode(ComparisonOperatorNode):
     operator : str = '>='
@@ -128,4 +123,5 @@ class LesserEqualComparisonOperatorNode(ComparisonOperatorNode):
 class LesserComparisonOperatorNode(ComparisonOperatorNode):
     operator : str = '<'
 
-    def compare ( self, a, b ): return a < b
+    def compare ( self, a, b ): 
+        return a < b
