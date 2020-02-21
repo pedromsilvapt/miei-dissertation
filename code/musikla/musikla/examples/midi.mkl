@@ -1,4 +1,5 @@
-fun pianoboard () {
+fun pianoboard ( $toggle = false ) {
+    debug( $toggle ); 
     $kb = keyboard\create();
 
     $bottom = C,,,,::first_note();
@@ -9,7 +10,7 @@ fun pianoboard () {
         # If we didn't bound to a variable, it would always be bound to the last note of the loop
         $music = $bottom::music();
 
-        keyboard\register( $kb, $bottom, $music, hold = true, extend = true, eager = true );
+        keyboard\register( $kb, $bottom, $music, hold = not $toggle, toggle = $toggle, extend = true );
 
         $bottom = $bottom + 1;
     };
@@ -26,4 +27,4 @@ fun readmidi_ports () {
     play( $notes );
 };
 
-pianoboard();
+pianoboard( mode = 'hold' );

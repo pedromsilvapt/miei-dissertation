@@ -20,7 +20,9 @@ function_declaration <- "fun" _ namespaced? _ "(" _ arguments? _ ")" _ "{" body 
                       / "fun" _ namespaced? _ "(" _ arguments? _ ")" _ "=>" _ expression
                       ;
 
-arguments <- single_argument ( _ ";" _ single_argument )*;
+arguments <- single_argument ( _ arguments_separator _ single_argument )*;
+
+arguments_separator <- ',' / ';';
 
 single_argument <- single_argument_expr / single_argument_ref / single_argument_eval;
 
@@ -28,7 +30,9 @@ single_argument_expr <- "expr" _ "$" identifier;
 
 single_argument_ref <- "ref" _ "$" identifier;
 
-single_argument_eval <- "$" identifier;
+single_argument_eval <- "$" identifier _ "=" _ expression
+                      / "$" identifier
+                      ;
 
 for_loop_statement <- "for" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ "{" _ body? _ "}";
 

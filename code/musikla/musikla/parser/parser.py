@@ -94,19 +94,22 @@ class ParserVisitor(PTNodeVisitor):
         return FunctionDeclarationStatementNode( name, [], body, position )
     
     def visit_arguments ( self, node, children ):
-        return list( children )
+        return list( children.single_argument )
     
     def visit_single_argument ( self, node, children ):
         return children[ 0 ]
 
     def visit_single_argument_expr ( self, node, children ):
-        return ( children[ 0 ], "expr" )
+        return ( children[ 0 ], "expr", None )
     
     def visit_single_argument_ref ( self, node, children ):
-        return ( children[ 0 ], "ref" )
+        return ( children[ 0 ], "ref", None )
 
     def visit_single_argument_eval ( self, node, children ):
-        return ( children[ 0 ], None )
+        if children.expression:
+            return ( children.identifier[ 0 ], None, children.expression[ 0 ] )
+
+        return ( children.identifier[ 0 ], None, None )
 
     def visit_for_loop_statement ( self, node, children ):
         position = ( node.position, node.position_end )
