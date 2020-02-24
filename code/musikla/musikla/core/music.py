@@ -51,6 +51,12 @@ class Music:
     def filter ( self, predicate ) -> 'MusicFilter':
         return MusicFilter( self, predicate )
 
+    def __add__ ( self, other ):
+        return self.map( lambda ev, i, s: ev + other )
+    
+    def __sub__ ( self, other ):
+        return self.map( lambda ev, i, s: ev - other )
+
     def __iter__ ( self ):
         if self.notes and hasattr( self.notes, '__iter__' ):
             for note in self.notes:

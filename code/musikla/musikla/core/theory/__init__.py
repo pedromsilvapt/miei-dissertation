@@ -6,3 +6,4 @@ from .scales import diminished_seventh, dominant_seventh, half_diminished_sevent
 from .scales import chords
 
 from .note import NoteAccidental, NotePitchClasses, NotePitchClassesInv, NotePitchClassesIndexes, Note, Chord
+from .interval import  Interval

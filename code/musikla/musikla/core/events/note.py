@@ -1,7 +1,7 @@
 
 from .event import MusicEvent, DurationEvent, VoiceEvent
 from ..voice import Voice
-from ..theory import Note, NoteAccidental
+from ..theory import Note, NoteAccidental, Interval
 from fractions import Fraction
 from typing import Dict
 
@@ -101,6 +101,16 @@ class NoteEvent( DurationEvent ):
              voice = pattern.voice
         )
 
+    def with_pitch ( self, pitch : int ) -> 'NoteEvent':
+        return NoteEvent.from_pitch(
+            timestamp = self.timestamp,
+            pitch = pitch,
+            duration = self.duration, 
+            voice = self.voice, 
+            velocity = self.velocity, 
+            value = self.value
+        )
+
     def __lt__ ( self, other ):
         if other is None: return False
 
@@ -111,19 +121,27 @@ class NoteEvent( DurationEvent ):
 
         return int( self ) <= int( other )
 
-    # def __eq__ ( self, other ):
-    #     return int( self ) == int( other )
+    def __eq__ ( self, other ):
+        if other is None or not isinstance( other, NoteEvent ):
+            return False
+
+        return int( self ) == int( other )
 
     def __add__ ( self, interval ):
         if type( interval ) == int:
-            return NoteEvent.from_pitch(
-                timestamp = self.timestamp,
-                pitch = int( self ) + interval,
-                duration = self.duration, 
-                voice = self.voice, 
-                velocity = self.velocity, 
-                value = self.value
-            )
+            return self.with_pitch( int( self ) + interval )
+        elif isinstance( interval, Interval ):
+            return self.with_pitch( int( self ) + int( interval ) )
+        else:
+            return self
+
+    def __sub__ ( self, interval ):
+        if type( interval ) == int:
+            return self.with_pitch( int( self ) - interval )
+        elif isinstance( interval, Interval ):
+            return self.with_pitch( int( self ) - int( interval ) )
+        else:
+            return self
 
     def __int__ ( self ):
         return int( self.note )

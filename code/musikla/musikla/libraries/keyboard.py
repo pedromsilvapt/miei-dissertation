@@ -2,7 +2,7 @@ from musikla.core import Context, Library, Value, CallableValue, Music
 from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core.events import MusicEvent, NoteEvent, NoteOnEvent, NoteOffEvent
 from musikla.core.theory import Note
-from typing import List, Dict, Set, Iterable, ItemsView, ValuesView, Union, Optional, Iterator, Tuple
+from typing import List, Dict, Set, Iterable, ItemsView, ValuesView, Union, Optional, Iterator, Tuple, Any
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
 from musikla.parser.abstract_syntax_tree.expressions import BoolLiteralNode
 from musikla.audio import MidiPlayer, AsyncMidiPlayer
@@ -153,6 +153,21 @@ class KeyAction:
             self.stop( context, player )
 
 class Keyboard:
+    @staticmethod
+    def as_event ( key_value : Any ):
+        if type( key_value ) == str:
+            return KeyStroke.parse( key_value )
+        elif isinstance( key_value, Music ):
+            key_event = key_value.first_note()
+            
+            return PianoKey( key_event )
+        elif isinstance( key_value, NoteEvent ):
+            return PianoKey( key_value )
+        elif isinstance( key_value, KeyboardEvent ):
+            return key_value
+        else:
+            raise Exception( "Keyboard value is invalid" )
+
     def __init__ ( self, context : Context, player : MidiPlayer ):
         self.context : Context = context
         self.player : MidiPlayer = player
@@ -180,16 +195,7 @@ class Keyboard:
         if self.global_prefixes:
             expression = MusicSequenceNode( [ *self.global_prefixes, expression ] )
 
-        if type(key) == str:
-            key_event = KeyStroke.parse( key_value )
-        elif isinstance( key_value, Music ):
-            key_event = key_value.first_note()
-            
-            key_event = PianoKey( key_event )
-        elif isinstance( key_value, NoteEvent ):
-            key_event = PianoKey( key_value )
-        else:
-            raise Exception( "Keyboard value is invalid" )
+        key_event = Keyboard.as_event( key_value )
 
         action = KeyAction(
             key = key_event,

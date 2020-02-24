@@ -26,6 +26,12 @@ class MusicEvent():
 
         return self
 
+    def __add__ ( self, other ):
+        return self
+        
+    def __sub__ ( self, other ):
+        return self
+
     def __repr__ ( self ):
         return "<%s>(%r)" % (self.__class__.__name__, self.__dict__)
 

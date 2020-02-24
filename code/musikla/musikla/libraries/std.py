@@ -1,6 +1,7 @@
 from musikla.core import Context, Library, CallableValue, Voice, Instrument, Music, Value, Ref
 from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core.events import ControlChangeEvent
+from musikla.core.theory import Interval
 from musikla.parser import Parser
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
 from musikla.parser.abstract_syntax_tree.expressions import VariableExpressionNode
@@ -161,5 +162,6 @@ class StandardLibrary(Library):
         context.symbols.assign( "settime", CallablePythonValue( function_settime ) )
         context.symbols.assign( "setvoice", CallablePythonValue( function_setvoice ) )
         context.symbols.assign( "setinstrument", CallablePythonValue( function_setinstrument ) )
+        context.symbols.assign( "interval", CallablePythonValue( Interval ) )
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )

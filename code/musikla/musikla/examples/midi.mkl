@@ -1,5 +1,4 @@
-fun pianoboard ( $toggle = false ) {
-    debug( $toggle ); 
+fun pianoboard ( $toggle = false, $transpose = 0 ) {
     $kb = keyboard\create();
 
     $bottom = C,,,,::first_note();
@@ -8,9 +7,9 @@ fun pianoboard ( $toggle = false ) {
     while ( $bottom <= $top ) {
         # Important to declare the music to a variable because since we are inside a loop
         # If we didn't bound to a variable, it would always be bound to the last note of the loop
-        $music = $bottom::music();
+        $music = $bottom::music() + $transpose;
 
-        keyboard\register( $kb, $bottom, $music, hold = not $toggle, toggle = $toggle, extend = true );
+        keyboard\register( $kb, key = $bottom, expression = $music, hold = not $toggle, toggle = $toggle, extend = true );
 
         $bottom = $bottom + 1;
     };
@@ -27,4 +26,4 @@ fun readmidi_ports () {
     play( $notes );
 };
 
-pianoboard( mode = 'hold' );
+pianoboard( mode = 'hold', transpose = interval( octaves = 2 ) );
