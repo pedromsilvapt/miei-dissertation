@@ -159,7 +159,13 @@ class CliApplication:
                     on_release = lambda key: loop.call_soon_threadsafe( self.keyboard_on_release, virtual_keyboard, key ),
                     suppress = False
                 ) as listener:
-                if mido.get_input_names():
+
+                default_port = context.library( MidiLibrary ).get_midi_default_input()
+
+                if default_port is not None:
+                    with mido.open_input( default_port, callback = lambda msg: loop.call_soon_threadsafe( self.midi_on_message, virtual_keyboard, msg ) ) as port:
+                        await virtual_keyboard.join_async()
+                elif mido.get_input_names():
                     with mido.open_input( callback = lambda msg: loop.call_soon_threadsafe( self.midi_on_message, virtual_keyboard, msg ) ) as port:
                         await virtual_keyboard.join_async()
                 else:
@@ -173,6 +179,7 @@ class CliApplication:
         parser.add_argument( 'file', type = str, nargs = '?', help = 'Files to evaluate. No file means the input will be read from the stdin' )
         parser.add_argument( '-i', '--import', dest = 'imports', action = 'append', type = str, help = 'Import an additional library. These can be builtin libraries, or path to .ml and .py files' )
         parser.add_argument( '-o', '--output', dest = 'outputs', type = str, action = 'append', help = 'Where to output to. By default outputs the sounds to the device\'s speakers.' )
+        parser.add_argument( '--midi', type = str, help = 'Use a custom MIDI port by default when no name is specified' )
         parser.add_argument( '--soundfont', type = str, help = 'Use a custom soundfont .sf2 file' )
         parser.add_argument( '--print-events', dest = 'print_events', action='store_true', help = 'Print events (notes) to the console as they are played.' )
         
@@ -186,6 +193,8 @@ class CliApplication:
 
         soundfont : str = None
 
+        midi_port_name : str = None
+
         if os.path.isfile( config_path ):
             config = configparser.ConfigParser()
             config.read( config_path )
@@ -198,9 +207,15 @@ class CliApplication:
 
                 if 'Output' in musikla_config:
                     self.default_output = [ musikla_config[ 'Output' ] ]
+                
+                if 'MidiInput' in musikla_config:
+                    midi_port_name = musikla_config[ 'MidiInput' ]
             
         if options.soundfont != None:
             soundfont = options.soundfont
+
+        if options.midi != None:
+            midi_port_name = options.midi
 
         for output in options.outputs or self.default_output:
             suffix = ( Path( output ).suffix or '' ).lower()
@@ -220,6 +235,9 @@ class CliApplication:
 
         for lib in options.imports or []:
             self.import_library( context, lib )
+
+        if midi_port_name != None:
+            context.library( MidiLibrary ).set_default_midi_input( midi_port_name )
 
         try:
             if options.file == None:

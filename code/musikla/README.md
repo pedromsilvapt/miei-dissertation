@@ -5,6 +5,7 @@ Python port of the experiments that were started in the .NET project.
  - `typeguard`
  - `pynput`
  - `mido`
+ - `python-rtmidi` (requires `libasound2-dev` (or `--install-option="--no-alsa"`) and `libjack-dev` (or `--install-option="--no-jack"`))
  - `imgui[glfw]` (requires `libglfw3` and `libglfw3-dev`
  - `arpeggio`
  - `pyFluidSynth` (required `fluidsynth >=1.1.9`)

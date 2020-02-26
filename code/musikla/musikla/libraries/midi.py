@@ -118,7 +118,12 @@ def function_readmidi (
         return read_midi_file( context, mid, voices, cutoff_sequence, ignore_message_types )
     else:
         if port == True:
-            port = mido.open_input()
+            default_port = context.library( MidiLibrary ).get_midi_default_input()
+
+            if default_port is None:
+                port = mido.open_input()
+            else:
+                port = mido.open_input( default_port )
         elif type(port) == str:
             port = mido.open_input( port )
         elif type(port) == list:
@@ -133,8 +138,22 @@ def function_readmidi (
 
         return Music( list( events ) )
 
+def function_get_midi_input_name ( context : Context ) -> str:
+    return context.library( MidiLibrary ).get_midi_default_input()
+
+def function_set_midi_input_name ( context : Context, name : str ):
+    context.library( MidiLibrary ).set_midi_default_input( name )
+
 class MidiLibrary(Library):
     def on_link ( self ):
         context : Context = self.context
 
         context.symbols.assign( "readmidi", CallablePythonValue( function_readmidi ) )
+        context.symbols.assign( "get_midi_input_name", CallablePythonValue( function_get_midi_input_name ) )
+        context.symbols.assign( "set_midi_input_name", CallablePythonValue( function_set_midi_input_name ) )
+
+    def set_midi_default_input ( self, name : str ):
+        self.context.symbols.assign( "midi_default_input", name, container = "internal" )
+
+    def get_midi_default_input ( self ) -> str:
+        return self.context.symbols.lookup( "midi_default_input", container = "internal" )

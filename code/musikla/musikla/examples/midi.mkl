@@ -26,4 +26,4 @@ fun readmidi_ports () {
     play( $notes );
 };
 
-pianoboard( mode = 'hold', transpose = interval( octaves = 2 ) );
+pianoboard( mode = 'hold', transpose = interval( octaves = 0 ) );

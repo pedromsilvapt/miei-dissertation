@@ -86,8 +86,8 @@ parameters_separator <- ',' / ';';
 
 note <- note_pitch note_value?;
 
-chord <- "[" ( _ note_pitch )+ _ "]" note_value?
-       / "[" _ note_pitch chord_suffix _ "]" note_value?
+chord <- "[" _ note_pitch chord_suffix _ "]" note_value?
+       / "[" ( _ note_pitch )+ _ "]" note_value?
        ;
 
 chord_suffix <- 'm7' / 'M7' / 'dom7' / '7' / 'm7b5' / 'dim7' / 'mM7'
