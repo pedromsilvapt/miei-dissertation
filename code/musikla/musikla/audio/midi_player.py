@@ -13,6 +13,10 @@ class MidiPlayer():
         self.start_time : int = None
         self.print_events = False
     
+    @property
+    def realtime ( self ) -> bool:
+        return any( seq.realtime for seq in self.sequencers )
+
     def setup ( self ):
         for seq in self.sequencers:
             seq.start()

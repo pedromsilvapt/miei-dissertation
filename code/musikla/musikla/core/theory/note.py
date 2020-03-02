@@ -131,8 +131,6 @@ class Note:
         elif self.accidental == NoteAccidental.DOUBLEFLAT:
             note = '~~' + note
 
-        note += "(%s)" % int( self )
-
         return note
 
 class Chord:

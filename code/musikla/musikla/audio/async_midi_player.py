@@ -6,7 +6,7 @@ from musikla.parser.abstract_syntax_tree import Node
 from asyncio import Future, sleep, wait, FIRST_COMPLETED
 
 class AsyncMidiPlayer:
-    def __init__ ( self, factory : Callable, player : MidiPlayer, start_time : int = 0, repeat : bool = False, extend : bool = False ):
+    def __init__ ( self, factory : Callable, player : MidiPlayer, start_time : int = 0, repeat : bool = False, extend : bool = False, realtime : bool = False ):
         self.factory : Callable = factory
         self.player : MidiPlayer = player
         self.repeat : bool = repeat
@@ -19,6 +19,7 @@ class AsyncMidiPlayer:
         self.events_iterator = None
         self.is_playing : bool = False
         self.stop_future : Future[bool] = None
+        self.realtime : bool = realtime
 
     async def start ( self ):
         if self.is_playing:
@@ -46,7 +47,8 @@ class AsyncMidiPlayer:
                     if self.extend: 
                         events_iterator = filter( lambda ev: not isinstance( ev, NoteOffEvent ), events_iterator )
                     # Then transform the iterator into an async iterator that emits the events only when their timestamp is near
-                    events_iterator = realtime( events_iterator, self.stop_future, lambda e: e.timestamp, self.player.get_time, self.buffer_duration )
+                    if self.realtime:
+                        events_iterator = realtime( events_iterator, self.stop_future, lambda e: e.timestamp, self.player.get_time, self.buffer_duration )
                     # Finally append any missing NoteOff's that might have been cut off because the player stopped playing
                     events_iterator = BalanceNotesTransformer.aiter( events_iterator, self.player.get_time )
 

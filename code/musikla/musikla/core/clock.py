@@ -9,6 +9,10 @@ class Clock():
         self.start_time = None
         self.auto_start : bool = auto_start
 
+    @property
+    def started ( self ):
+        return self.start_time is not None
+
     def start ( self ):
         self.start_time = self._get_global_milliseconds()
 

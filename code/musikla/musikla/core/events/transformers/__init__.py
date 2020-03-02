@@ -2,4 +2,9 @@ from .balance_notes import BalanceNotesTransformer, NoteTracker
 from .compose_notes import ComposeNotesTransformer
 from .decompose_notes import DecomposeNotesTransformer
 from .termination_melody import TerminationMelodyTransformer
+from .tee import TeeTransformer
+from .voice_identifier import VoiceIdentifierTransformer
+from .notation_builder import NotationBuilderTransformer, MusiklaNotationBuilderTransformer
+from .annotate import AnnotateTransformer
+from .ensure_order import EnsureOrderTransformer
 from .transformer import Transformer

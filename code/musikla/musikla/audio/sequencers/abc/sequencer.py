@@ -1,31 +1,53 @@
+from musikla.core.events.transformers import Transformer, ComposeNotesTransformer, VoiceIdentifierTransformer, AnnotateTransformer, EnsureOrderTransformer
 from musikla.core.events import MusicEvent, NoteEvent, ProgramChangeEvent
+from musikla.core import Clock
 from ..sequencer import Sequencer
 from .builder import ABCBuilder
 import time
-
-def get_milliseconds () -> int:
-    return int( round( time.time() * 1000 ) )
 
 class ABCSequencer ( Sequencer ):
     def __init__ ( self, filename : str ):
         super().__init__()
 
-        self.start_time : int = None
         self.file_builder : ABCBuilder = ABCBuilder()
         self.filename : str = filename
+        self.clock : Clock = Clock( auto_start = False )
+
+        self.pipeline = Transformer.pipeline(
+            # EnsureOrderTransformer( 'beforeCompose' ),
+            ComposeNotesTransformer(),
+            # EnsureOrderTransformer( 'afterCompose' ),
+            VoiceIdentifierTransformer(),
+            # EnsureOrderTransformer( 'afterIdentify', False ),
+            AnnotateTransformer(),
+            Transformer.subscriber( self._register_event, self._close )
+        )
     
     @property
     def playing ( self ) -> bool:
         return False
         
     def get_time ( self ):
-        if self.start_time == None:
+        if not self.clock.started:
             return 0
-        
-        return get_milliseconds() - self.start_time
+
+        return self.clock.elapsed()
+
+    def _register_event ( self, event : MusicEvent ):
+        self.file_builder.add_event( event )
+
+    def _close ( self ):
+        with open( self.filename, 'w' ) as f:
+            file = self.file_builder.build()
+
+            print( str( file ) )
+
+            f.write( str( file ) )
+            
+            f.flush()
 
     def register_event ( self, event : MusicEvent, now = None ):
-        self.file_builder.add_event( event )
+        self.pipeline.add_input( event )
 
     def register_events_many ( self, events, now = None ):
         if now == None:
@@ -38,14 +60,9 @@ class ABCSequencer ( Sequencer ):
         pass
 
     def start ( self ):
-        self.start_time = get_milliseconds()
+        self.clock.start()
         
     def close ( self ):
-        with open( self.filename, 'w' ) as f:
-            file = self.file_builder.build()
-
-            f.write( str( file ) )
-            
-            f.flush()
+        self.pipeline.end_input()
 
         

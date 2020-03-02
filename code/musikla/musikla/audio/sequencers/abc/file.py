@@ -1,6 +1,17 @@
-from typing import List
+from typing import List, Tuple, Dict
 from fractions import Fraction
 from musikla.core.theory import NoteAccidental
+
+class ABCVoice:
+    def __init__ ( self ):
+        self.name : str = None
+        self.label : str = None
+
+    def __str__ ( self ):
+        if self.label is None:
+            return f'V:{ self.name.replace( "/", "_" ) }'
+        else:
+            return f'V:{ self.name.replace( "/", "_" ) } name="{ self.label }"'
 
 class ABCHeader:
     def __init__ ( self ):
@@ -11,13 +22,15 @@ class ABCHeader:
         # C:Trad.
         self.composer : str = None
         # M:6/8
-        self.meter : (int, int) = None
+        self.meter : Tuple[int, int] = None
         # L:1/8
         self.length : Fraction = None
         # Q:74
         self.tempo : int = None
         # K:D
         self.key : int = 'C' # Must always be the last field of the header
+        # V:V1
+        self.voices : List[ABCVoice] = []
 
     def __str__ ( self ):
         parts : List[str] = []
@@ -40,6 +53,9 @@ class ABCHeader:
         if self.tempo != None:
             parts.append( f"Q:{ self.tempo }" )
 
+        for voice in self.voices:
+            parts.append( str( voice ) )
+
         if self.key != None:
             parts.append( f"K:{ self.key }" )
 
@@ -56,6 +72,7 @@ class ABCNote(ABCSymbol):
         self.pitch_class : str = None
         self.octave : int = None
         self.accidental : int = NoteAccidental.NONE
+        self.tied : bool = False
 
     def __str__ ( self ):
         note : str = self.pitch_class.lower()
@@ -63,12 +80,15 @@ class ABCNote(ABCSymbol):
         if self.octave <= 3:
             note = note.upper()
 
-            for i in range( 2, self.octave - 1, -1 ): note += ","
+            for _ in range( 2, self.octave - 1, -1 ): note += ","
         else:
-            for i in range( 5, self.octave + 1 ): note += "'"
+            for _ in range( 5, self.octave + 1 ): note += "'"
         
         if self.length != None and self.length != 1:
             note += str( self.length )
+
+        if self.tied:
+            note += '-'
 
         if self.accidental == NoteAccidental.DOUBLESHARP:
             note = '^^' + note
@@ -112,14 +132,14 @@ class ABCStaff:
         self.bars : List[ABCBar] = []
 
     def __str__ ( self ):
-        return '|'.join( [ str( bar ) for bar in self.bars ] )
+        return ' | '.join( [ str( bar ) for bar in self.bars ] ) + ' |'
 
 class ABCBody:
     def __init__ ( self ):
-        self.staffs : List[ABCStaff] = []
+        self.staffs : Dict[str, List[ABCStaff]] = {}
 
     def __str__ ( self ):
-        return '\n'.join( [ str( staff ) for staff in self.staffs ] )
+        return '\n'.join( [ f'[V:{voice.replace( "/", "_" )}] ' + str( staff ) for voice, staffs in self.staffs.items() for staff in staffs ] )
 
 # dff cee|def gfe|dff cee|dfe dBA|dff cee|def gfe|faf gfe|1 dfe dBA:|2 dfe dcB|]
 # ~A3 B3|gfe fdB|AFA B2c|dfe dcB|~A3 ~B3|efe efg|faf gfe|1 dfe dcB:|2 dfe dBA|]

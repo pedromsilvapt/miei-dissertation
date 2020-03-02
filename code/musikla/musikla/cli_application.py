@@ -53,13 +53,13 @@ class CliApplication:
         
         return ()
 
-    def play ( self, context, ast, sync = True ):
+    def play ( self, context, ast, sync = True, realtime : bool = True ):
         if sync:
             self.player.play_more( self.eval_music( context, ast ) )
 
             self.player.join()
         else:
-            async_player = AsyncMidiPlayer( lambda: self.eval_music( context, ast ), self.player )
+            async_player = AsyncMidiPlayer( lambda: self.eval_music( context, ast ), self.player, realtime = realtime )
 
             task = asyncio.create_task( async_player.start() )
 
@@ -245,11 +245,11 @@ class CliApplication:
                 for line in sys.stdin:
                     ast = self.parser.parse( line )
 
-                    self.play( context, ast, False )
+                    self.play( context, ast, False, realtime = self.player.realtime )
             else:
                 ast = self.parser.parse_file( options.file )
 
-                self.play( context, ast, False )
+                self.play( context, ast, False, realtime = self.player.realtime )
 
             keyboard : KeyboardLibrary = context.library( KeyboardLibrary )
 

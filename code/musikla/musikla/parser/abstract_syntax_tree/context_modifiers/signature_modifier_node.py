@@ -13,9 +13,9 @@ class SignatureModifierNode( ContextModifierNode ):
         if self.upper != None or self.lower != None:
             voice.time_signature = ( self.upper, self.lower )
         elif self.upper != None:
-            context.time_signature = ( self.upper, context.time_signature[ 1 ] )
+            voice.time_signature = ( self.upper, voice.time_signature[ 1 ] )
         elif self.lower != None:
-            context.time_signature = ( context.time_signature[ 0 ], self.lower )
+            voice.time_signature = ( voice.time_signature[ 0 ], self.lower )
 
     def modify ( self, context : Context ):
         if self.upper != None or self.lower != None:

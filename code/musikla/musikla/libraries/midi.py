@@ -3,7 +3,7 @@ from musikla.core import Context, Music, Voice, Library, Clock
 from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core.events import MusicEvent, NoteOnEvent, NoteOffEvent, ControlChangeEvent, ProgramChangeEvent
 from musikla.core.theory import Note
-from musikla.core.events.transformers import ComposeNotesTransformer, TerminationMelodyTransformer
+from musikla.core.events.transformers import ComposeNotesTransformer, TerminationMelodyTransformer, TeeTransformer, VoiceIdentifierTransformer, MusiklaNotationBuilderTransformer, Transformer
 import mido
 from mido.ports import MultiPort
 
@@ -100,7 +100,11 @@ def read_midi_file (
         if msgVoice == None:
             continue
 
-        tracks.append( midi_track_to_music( context, file, track, msgVoice, ignore_message_types ) )
+        events = midi_track_to_music( context, file, track, msgVoice, ignore_message_types )
+            
+        events = ComposeNotesTransformer.iter( events )
+
+        tracks.append( events )
 
     return Music.parallel( tracks )
 
@@ -135,6 +139,15 @@ def function_readmidi (
 
         if cutoff_sequence != None:
             events = TerminationMelodyTransformer.iter( events, list( cutoff_sequence.expand( context.fork( cursor = 0 ) ) ) )
+
+        events = TeeTransformer.iter( 
+            events, 
+            Transformer.pipeline(
+                VoiceIdentifierTransformer(),
+                MusiklaNotationBuilderTransformer(),
+                Transformer.subscriber( lambda n: print( n + '\n\n' ) )
+            )
+        )
 
         return Music( list( events ) )
 

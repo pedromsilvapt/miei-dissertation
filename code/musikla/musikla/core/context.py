@@ -3,6 +3,7 @@ from .voice import Voice
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
 from typing import List, Hashable
+from fractions import Fraction
 
 class Library:
     def __init__ ( self, namespace : str = None ):
@@ -85,7 +86,12 @@ class Context():
         return self.voice.get_duration_ratio()
 
     def get_duration ( self, value : float = None ) -> int:
+        """Transform a not value into the real world milliseconds it takes, according to the voice's tempo and time signature"""
         return self.voice.get_duration( value )
+
+    def from_duration ( self, milliseconds : int ) -> Fraction:
+        """Transform a duration in milliseconds to an approximated note value relative to the tempo and time signature"""
+        return self.voice.from_duration( milliseconds )
 
     def is_linked ( self, library : Library ) -> bool:
         return self.symbols.lookup( library.__class__, container = 'libraries' ) != None

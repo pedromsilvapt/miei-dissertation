@@ -1,41 +1,28 @@
-from musikla.core.events import MusicEvent, ContextChangeEvent, NoteEvent, RestEvent
+from musikla.core.events import MusicEvent, VoiceEvent, ContextChangeEvent, NoteEvent, RestEvent, BarNotationEvent, StaffNotationEvent
 from musikla.core.theory import NotePitchClassesInv
 from fractions import Fraction
-from .file import ABCFile, ABCStaff, ABCBar, ABCNote, ABCRest
+from .file import ABCFile, ABCStaff, ABCVoice, ABCBar, ABCNote, ABCRest
 from typing import Dict
 
 class ABCBuilder:
     def __init__ ( self ):
         self.file : ABCFile = ABCFile()
 
-    @property
-    def staff_capacity ( self ) -> int:
-        sig : int = self.file.header.meter[ 1 ]
-
-        if sig == 2: return 8
-        elif sig == 3: return 6
-        elif sig == 4: return 4
-        elif sig == 8: return 2
-
-    @property
-    def bar_capacity ( self ) -> Fraction:
-        return Fraction( self.file.header.meter[ 0 ], self.file.header.meter[ 1 ] )
-
-    def get_current_staff ( self, create_if_full : bool = True ) -> ABCStaff:
-        if len( self.file.body.staffs ) == 0:
+    def get_current_staff ( self, voice : str ) -> ABCStaff:
+        if voice not in self.file.body.staffs:
+            self.file.body.staffs[ voice ] = []
+        
+        if len( self.file.body.staffs[ voice ] ) == 0:
             staff = ABCStaff()
 
-            self.file.body.staffs.append( staff )
+            self.file.body.staffs[ voice ].append( staff )
         else:
-            if create_if_full and len( self.file.body.staffs ) == self.staff_capacity:
-                self.file.body.staffs.append( ABCStaff() )
-            
-            staff = self.file.body.staffs[ -1 ]
+            staff = self.file.body.staffs[ voice ][ -1 ]
 
         return staff
 
-    def get_current_bar ( self, create_if_full : bool = True ) -> ABCBar:
-        staff = self.get_current_staff( create_if_full = False )
+    def get_current_bar ( self, voice : str ) -> ABCBar:
+        staff = self.get_current_staff( voice )
 
         if len( staff.bars ) == 0:
             bar = ABCBar()
@@ -43,13 +30,6 @@ class ABCBuilder:
             staff.bars.append( bar )
         else:
             bar = staff.bars[ -1 ]
-
-        if create_if_full and bar.length * self.file.header.length >= self.bar_capacity:
-            staff = self.get_current_staff( create_if_full = True )
-
-            bar = ABCBar()
-
-            staff.bars.append( bar )
 
         return bar
 
@@ -61,28 +41,29 @@ class ABCBuilder:
         elif event.property == 'tempo':
             self.file.header.tempo = event.value
 
+    def add_voice ( self, event : VoiceEvent ):
+        if self.file.header.length is None:
+            self.file.header.length = Fraction( event.voice.value )
+        
+        if self.file.header.meter is None:
+            self.file.header.meter = event.voice.time_signature
 
-    # def get_duration_ratio ( self ) -> float:
-    #     ( u, l ) = self.time_signature
+        if self.file.header.tempo is None:
+            self.file.header.tempo = event.voice.tempo
 
-    #     if u >= 6 and u % 3 == 0:
-    #         return 3 / l
-    #     else:
-    #         return 1 / l
+        if event.voice.name not in self.file.body.staffs:
+            self.file.body.staffs[ event.voice.name ] = []
 
-    # def get_duration ( self, value : float = None ) -> int:
-    #     beat_duration = 60 / self.tempo
+            voice = ABCVoice()
+            voice.name = event.voice.name
+            voice.label = event.voice.name
 
-    #     whole_note_duration = beat_duration * 1000.0 / self.get_duration_ratio()
-
-    #     return int( whole_note_duration * self.get_value( value ) )
-
+            self.file.header.voices.append( voice )
 
     def add_note ( self, event : NoteEvent ):
-        # TODO Header length might be None
-        note_length = Fraction( event.value ) / self.file.header.length
+        note_length = Fraction( event.value ) / Fraction( self.file.header.length )
 
-        current_bar = self.get_current_bar( create_if_full = True )
+        current_bar = self.get_current_bar( event.voice.name )
 
         note = ABCNote()
 
@@ -90,14 +71,14 @@ class ABCBuilder:
         note.octave = event.octave
         note.length = note_length
         note.pitch_class = NotePitchClassesInv[ event.pitch_class ]
+        note.tied = event.tied
 
         current_bar.symbols.append( note )
 
-
     def add_rest ( self, event : RestEvent ):
-        rest_length = Fraction( event.value ) / self.file.header.length
+        rest_length = Fraction( event.value ) / Fraction( self.file.header.length )
 
-        current_bar = self.get_current_bar( create_if_full = True )
+        current_bar = self.get_current_bar( event.voice.name )
 
         rest = ABCRest()
 
@@ -106,13 +87,33 @@ class ABCBuilder:
 
         current_bar.symbols.append( rest )
 
+    def add_bar ( self, event : BarNotationEvent ):
+        staff = self.get_current_staff( event.voice.name )
+
+        staff.bars.append( ABCBar() )
+
+    def add_staff ( self, event : StaffNotationEvent ):
+        name = event.voice.name
+        if name not in self.file.body.staffs:
+            self.file.body.staffs[ name ] = [ ABCStaff() ]
+        else:
+            self.file.body.staffs[ name ].append( ABCStaff() )
+
     def add_event ( self, event : MusicEvent ):
         if isinstance( event, ContextChangeEvent ):
             self.add_context_change( event )
-        elif isinstance( event, NoteEvent ):
-            self.add_note( event )
-        elif isinstance( event, RestEvent ):
-            self.add_rest( event )
+        else:
+            if isinstance( event, VoiceEvent ):
+                self.add_voice( event )
+
+            if isinstance( event, NoteEvent ):
+                self.add_note( event )
+            elif isinstance( event, RestEvent ):
+                self.add_rest( event )
+            elif isinstance( event, BarNotationEvent ):
+                self.add_bar( event )
+            elif isinstance( event, StaffNotationEvent ):
+                self.add_staff( event )
 
     def build ( self ) -> ABCFile:
         return self.file

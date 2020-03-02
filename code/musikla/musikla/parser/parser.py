@@ -441,9 +441,9 @@ class ParserVisitor(PTNodeVisitor):
         position = ( node.position, node.position_end )
 
         if len( children ) == 1:
-            return RestNode( value = children[ 0 ], position = position )
+            return RestNode( value = children[ 0 ], visible = True, position = position )
 
-        return RestNode( position = position )
+        return RestNode( visible = True, position = position )
 
     def visit_note_value ( self, node, children ):
         if len( children ) == 2:

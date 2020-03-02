@@ -52,7 +52,7 @@ class NoteOffEvent ( VoiceEvent ):
 
 class NoteEvent( DurationEvent ):
     @staticmethod
-    def from_pitch ( timestamp = 0, pitch = 0, duration = 4, voice : Voice = None, velocity = 127, value = None ):
+    def from_pitch ( timestamp = 0, pitch = 0, duration = 4, voice : Voice = None, velocity = 127, value = None, tied : bool = False ):
         note = Note.from_pitch( pitch )
         
         return NoteEvent(
@@ -63,16 +63,18 @@ class NoteEvent( DurationEvent ):
             voice = voice,
             pitch_class = note.pitch_class, 
             octave = note.octave, 
-            accidental = note.accidental, 
+            accidental = note.accidental,
+            tied = tied
         )
 
-    def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, voice : Voice = None, velocity = 127, accidental = NoteAccidental.NONE, value = None ):
+    def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, voice : Voice = None, velocity = 127, accidental = NoteAccidental.NONE, value = None, tied : bool = False ):
         super().__init__( timestamp, duration, value, voice )
 
         self.pitch_class = pitch_class
         self.octave = octave
         self.velocity = velocity
         self.accidental = accidental
+        self.tied = tied
 
     def music ( self ):
         from ..music import SharedMusic
@@ -108,7 +110,8 @@ class NoteEvent( DurationEvent ):
             duration = self.duration, 
             voice = self.voice, 
             velocity = self.velocity, 
-            value = self.value
+            value = self.value,
+            tied = self.tied
         )
 
     def __lt__ ( self, other ):
@@ -146,6 +149,9 @@ class NoteEvent( DurationEvent ):
     def __int__ ( self ):
         return int( self.note )
 
-    def __str__ ( self ):
+    def __repr__ ( self ):
         return f'[{self.timestamp}]' + str( self.note )
+
+    def __str__ ( self ):
+        return str( self.note )
 

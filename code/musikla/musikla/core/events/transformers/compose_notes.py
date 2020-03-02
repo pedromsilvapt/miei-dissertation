@@ -1,20 +1,9 @@
 from .transformer import Transformer
 from ..event import MusicEvent
 from ..note import NoteEvent, NoteOnEvent, NoteOffEvent
+from ...music import MusicBuffer
 from collections import defaultdict
 from typing import Callable, Dict, List, Tuple
-
-def split ( it, predicate ):
-    a = []
-    b = []
-
-    for item in it:
-        if predicate( item ):
-            a.append( item )
-        else:
-            b.append( item )
-
-    return a, b
 
 class ComposeNotesTransformer( Transformer ):
     def transform ( self ):
@@ -28,7 +17,7 @@ class ComposeNotesTransformer( Transformer ):
         # Next Event Count
         nec = 0
 
-        buffered_events : List[MusicEvent] = []
+        buffered_events : MusicBuffer = MusicBuffer()
 
         while True:
             done, event = yield
@@ -41,14 +30,15 @@ class ComposeNotesTransformer( Transformer ):
                 if key in on_events:
                     on_event = on_events[ key ]
 
-                    # TODO Calculate propert duration
-                    duration = on_event.voice.get_value( event.timestamp - on_event.timestamp )
+                    duration = event.timestamp - on_event.timestamp
+                    value = on_event.voice.from_duration_absolute( duration )
 
                     del on_events[ key ]
 
                     composed_event = NoteEvent(
                         timestamp = on_event.timestamp,
                         pitch_class = on_event.pitch_class,
+                        value = value,
                         duration = duration,
                         octave = on_event.octave,
                         voice = on_event.voice,
@@ -56,15 +46,7 @@ class ComposeNotesTransformer( Transformer ):
                         accidental = on_event.accidental
                     )
 
-                    l = len( buffered_events )
-                    
-                    for i in range( l + 1 ):
-                        if i == l:
-                            buffered_events.append( composed_event )
-                        elif buffered_events[ i ].timestamp <= composed_event.timestamp:
-                            buffered_events.insert( i, composed_event )
-
-                            break
+                    buffered_events.append( composed_event )
 
                     # If the next event timestamp is the same as the one we just composed
                     # We need to update it and possibly flush the buffer
@@ -81,11 +63,8 @@ class ComposeNotesTransformer( Transformer ):
                                 elif net == event.timestamp:
                                     nec = nec + 1
 
-                            flushed, buffered_events = split( buffered_events, lambda ev: nec == 0 or ev.timestamp <= net )
-
-                            for flushed_event in flushed: # sorted( flushed, key = lambda ev: ev.timestamp ):
+                            for flushed_event in buffered_events.collect( None if nec == 0 else net ):
                                 self.add_output( flushed_event )
-                            
             elif isinstance( event, NoteOnEvent ):
                 on_events[ ( event.voice.name, int( event ) ) ] = event
 
@@ -98,5 +77,5 @@ class ComposeNotesTransformer( Transformer ):
             else:
                 self.add_output( event )
 
-        for event in sorted( buffered_events, key = lambda ev: ev.timestamp ):
+        for event in buffered_events.collect():
             self.add_output( event )

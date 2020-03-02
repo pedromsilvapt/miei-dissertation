@@ -1,4 +1,5 @@
 from .instrument import Instrument
+from fractions import Fraction
 from copy import copy
 
 class Voice:
@@ -56,11 +57,14 @@ class Voice:
 
         return event
 
-    def get_value ( self, value : float ) -> float:
+    def get_value ( self, value : float = None ) -> float:
         if value == None:
             return self.value
         else:
             return self.value * value
+
+    def get_relative_value ( self, value : float ) -> float:
+        return value / self.value
 
     def get_duration_ratio ( self ) -> float:
         ( u, l ) = self.time_signature
@@ -71,11 +75,27 @@ class Voice:
             return 1 / l
 
     def get_duration ( self, value : float = None ) -> int:
+        """Transform a not value into the real world milliseconds it takes, according to the voice's tempo and time signature"""
+        return self.get_duration_absolute( self.get_value( value ) )
+
+    def get_duration_absolute ( self, value : float = None ) -> int:
         beat_duration = 60 / self.tempo
 
         whole_note_duration = beat_duration * 1000.0 / self.get_duration_ratio()
 
-        return int( whole_note_duration * self.get_value( value ) )
+        return int( whole_note_duration * value )
+
+    def from_duration ( self, milliseconds : int, max_denominator : int = 32 ) -> Fraction:
+        """Transform a duration in milliseconds to an approximated note value relative to the tempo and time signature"""
+        return self.get_relative_value( self.from_duration_absolute( milliseconds, max_denominator ) )
+        
+    def from_duration_absolute ( self, milliseconds : int, max_denominator : int = 32 ) -> Fraction:
+        """Transform a duration in milliseconds to an approximated note value relative to the tempo and time signature"""
+        beat_duration = 60 / self.tempo
+
+        whole_note_duration = beat_duration * 1000.0 / self.get_duration_ratio()
+        
+        return Fraction( milliseconds / whole_note_duration ).limit_denominator( max_denominator )
 
     def __eq__ ( self, other ):
         if not isinstance( other, Voice ): return False

@@ -1,8 +1,40 @@
 from .context import Context
 from .voice import Voice
-from .events import NoteEvent
+from .events import NoteEvent, MusicEvent
 from .enumerable import merge_sorted
 from typing import List
+from itertools import islice
+
+class MusicBuffer:
+    def __init__ ( self ):
+        self.buffer : List[MusicEvent] = []
+    
+    def append ( self, event : MusicEvent ):
+        l = len( self.buffer )
+
+        for i in range( l + 1 ):
+            if i == l:
+                self.buffer.append( event )
+            elif self.buffer[ i ].timestamp > event.timestamp:
+                self.buffer.insert( i, event )
+                
+                break
+
+    def collect ( self, time : int = None ):
+        if time == None:
+            for event in self.buffer:
+                yield event
+            
+            self.buffer.clear()
+        else:
+            while self.buffer and self.buffer[ 0 ].timestamp <= time:
+                yield self.buffer.pop( 0 )
+            
+    def __len__ ( self ):
+        return len( self.buffer )
+    
+    def __bool__ ( self ):
+        return bool( self.buffer )
 
 class Music:
     @classmethod
@@ -22,6 +54,9 @@ class Music:
                     yield subnote
             else:
                 yield note
+
+    def slice ( self, start = 0, end = 0 ):
+        return MusicGen( self, lambda it: islice( it, start, end ) )
 
     def first_note ( self, context : Context ):
         it = self.expand( context )
@@ -134,7 +169,6 @@ class SharedIterator():
 
     #     context.join( forked )
         
-
 class TemplateMusic(Music):
     def __init__ ( self, notes = [] ):
         super().__init__( notes )
@@ -149,6 +183,21 @@ class TemplateMusic(Music):
 
         for note in self.shared_music.expand( context ):
             yield context.voice.revoice( note )
+
+class MusicGen(Music):
+    def __init__ ( self, base : Music, mapper ):
+        super().__init__( [] )
+
+        self.base : Music = base
+        self.mapper = mapper
+
+    def expand ( self, context : Context ):
+        for event in self.mapper( self.base.expand( context ) ):
+            yield event
+
+    def __iter__ ( self ):
+        for event in self.mapper( self.base ):
+            yield event
 
 class MusicMap(Music):
     def __init__ ( self, base : Music, mapper ):

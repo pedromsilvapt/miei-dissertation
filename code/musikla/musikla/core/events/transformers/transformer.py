@@ -1,8 +1,29 @@
 from typing import Generator, AsyncGenerator, Union
 
 class Transformer():
+    @staticmethod
+    def pipeline ( *transformers : 'Transformer' ) -> 'Transformer':
+        if not transformers:
+            raise Exception( "Pipeline cannot be empty" )
+
+        first = transformers[ 0 ]
+        latest = first
+
+        for transformer in transformers[ 1: ]:
+            latest = latest.pipe_to( transformer )
+
+        return first
+
+    @classmethod
+    def subscriber ( cls, on_value, on_end = None ):
+        transformer = cls()
+
+        transformer.subscribe( on_value, on_end )
+
+        return transformer
+
+
     def __init__ ( self ):
-        # self.buffer = []
         self.subscriptions = []
         self.generator : Generator = self.transform()
         self.input_ended : bool = False
@@ -11,7 +32,12 @@ class Transformer():
         self.generator.send( None )
 
     def transform ( self ):
-        pass
+        while True:
+            ended, event = yield
+
+            if ended: break
+
+            self.add_output( event )
 
     def add_output ( self, item ):
         self._notify_value( item )
@@ -35,13 +61,15 @@ class Transformer():
         if not self.input_ended:
             self.input_ended = True
 
-            while True:
+            while not self.output_ended:
                 try:
                     result = self.generator.send( ( True, None ) )
                     
                     if result != None:
                         self.add_output( result )
                 except StopIteration:
+                    self.end_output()
+
                     break
 
     def _notify_value ( self, value ):
@@ -55,10 +83,13 @@ class Transformer():
     def subscribe ( self, on_value, on_end = None ):
         self.subscriptions.append( ( on_value, on_end ) )
 
-    def pipe_to ( self, transformer : 'Transformer' ):
+    def pipe_to ( self, transformer : 'Transformer', return_self : bool = False ):
         self.subscribe( lambda value: transformer.add_input( value ), lambda: transformer.end_input() )
 
-        return transformer
+        if return_self:
+            return self
+        else:
+            return transformer
 
     @classmethod
     def iter ( cls, it, *args, **kargs ):
@@ -112,6 +143,9 @@ class Transformer():
         async def generator ():
             nonlocal inst, it
 
+            if not hasattr( it, '__aiter__' ) and hasattr( it, '__iter__' ):
+                it = iter_to_aiter( it )
+
             it = it.__aiter__()
 
             buffer = []
@@ -138,3 +172,7 @@ class Transformer():
             buffer.clear()
 
         return generator()
+
+async def iter_to_aiter ( it ):
+    for item in it:
+        yield item
