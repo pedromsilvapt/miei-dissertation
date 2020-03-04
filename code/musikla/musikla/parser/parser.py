@@ -9,6 +9,7 @@ from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveMo
 
 from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode, ListComprehensionNode
 from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode, BoolLiteralNode, NoneLiteralNode
+from .abstract_syntax_tree.expressions import ObjectLiteralNode, ArrayLiteralNode
 
 from .abstract_syntax_tree.expressions import PlusBinaryOperatorNode, MinusBinaryOperatorNode, MultBinaryOperatorNode, DivBinaryOperatorNode
 from .abstract_syntax_tree.expressions import AndLogicOperatorNode, OrLogicOperatorNode
@@ -314,6 +315,25 @@ class ParserVisitor(PTNodeVisitor):
         parameters = children.function_parameters[ 0 ]
         
         return FunctionExpressionNode( None, parameters[ 0 ], parameters[ 1 ], position = position )
+
+    def visit_array_value ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        if children.expression:
+            return ArrayLiteralNode( list( children.expression ), position )
+        
+        return ArrayLiteralNode( [], position )
+    
+    def visit_object_value ( self, node, children ):
+        position = ( node.position, node.position_end )
+        
+        if children.object_value_key:
+            return ObjectLiteralNode( list( children.object_value_key ), position )
+        
+        return ObjectLiteralNode( [], position )
+
+    def visit_object_value_key ( self, node, children ):
+        return ( children.identifier[ 0 ], children.expression[ 0 ] )
 
     def visit_music_expression ( self, node, children ):
         if len( children ) == 1:

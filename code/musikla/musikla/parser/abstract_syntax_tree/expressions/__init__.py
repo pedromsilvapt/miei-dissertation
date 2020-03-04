@@ -7,6 +7,8 @@ from .number_literal_node import NumberLiteralNode
 from .property_accessor_node import PropertyAccessorNode
 from .bool_literal_node import BoolLiteralNode
 from .none_literal_node import NoneLiteralNode
+from .array_literal_node import ArrayLiteralNode
+from .object_literal_node import ObjectLiteralNode, Object
 from .binary_operator_node import BinaryOperatorNode, PlusBinaryOperatorNode, MinusBinaryOperatorNode, MultBinaryOperatorNode, DivBinaryOperatorNode
 from .binary_operator_node import AndLogicOperatorNode, OrLogicOperatorNode
 from .binary_operator_node import GreaterComparisonOperatorNode, GreaterEqualComparisonOperatorNode

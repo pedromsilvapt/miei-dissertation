@@ -6,7 +6,7 @@ from musikla.parser.abstract_syntax_tree.expressions.string_literal_node import 
 from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 
 from typing import get_type_hints, Union, Optional, _GenericAlias, Dict
-from inspect import signature, Signature, Parameter, isclass
+from inspect import signature, Signature, Parameter, isclass, isbuiltin
 from typeguard import check_type
 
 def is_type_of ( typehint, value ) -> bool:
@@ -41,7 +41,7 @@ class CallablePythonValue(CallableValue):
         return closure
 
     def __init__ ( self, value ):
-        self.signature : Signature = signature( value )
+        self.signature : Signature = signature( value ) if not isbuiltin( value ) else None
         self.callable = value
 
         super().__init__( self.wrapper )
@@ -75,34 +75,40 @@ class CallablePythonValue(CallableValue):
 
         kargs_values = dict()
 
-        pass_context : bool = False
-        i = 0
+        if self.signature != None:
+            pass_context : bool = False
 
-        for arg_name in self.signature.parameters:
-            parameter = self.signature.parameters[ arg_name ]
+            i = 0
 
-            if i == 0 and not pass_context and is_type_of( parameter.annotation, Context ):
-                pass_context = True
+            for arg_name in self.signature.parameters:
+                parameter = self.signature.parameters[ arg_name ]
 
-                args_values.append( context )
+                if i == 0 and not pass_context and is_type_of( parameter.annotation, Context ):
+                    pass_context = True
 
-                continue
+                    args_values.append( context )
 
-            # Let's treat this as positional arguments
-            if parameter.kind == Parameter.VAR_POSITIONAL:
-                while i < len( args ):
+                    continue
+
+                # Let's treat this as positional arguments
+                if parameter.kind == Parameter.VAR_POSITIONAL:
+                    while i < len( args ):
+                        args_values.append( self.eval_argument( context, parameter, args[ i ], arg_name ) )
+
+                        i = i + 1
+                elif i < len( args ):
                     args_values.append( self.eval_argument( context, parameter, args[ i ], arg_name ) )
 
                     i = i + 1
-            elif i < len( args ):
-                args_values.append( self.eval_argument( context, parameter, args[ i ], arg_name ) )
+                # Treat this as keywork arguments~
+                elif parameter.kind == Parameter.VAR_KEYWORD:
+                    kargs_values.update( self.eval_var_keyword( context, parameter, kargs ) )
+                else:
+                    if arg_name in kargs:
+                        kargs_values[ arg_name ] = self.eval_argument( context, parameter, kargs[ arg_name ], arg_name )
+        else:
+            args_values = [ Value.eval( context.fork(), node ) for node in args ]
 
-                i = i + 1
-            # Treat this as keywork arguments~
-            elif parameter.kind == Parameter.VAR_KEYWORD:
-                kargs_values.update( self.eval_var_keyword( context, parameter, kargs ) )
-            else:
-                if arg_name in kargs:
-                    kargs_values[ arg_name ] = self.eval_argument( context, parameter, kargs[ arg_name ], arg_name )
+            kargs_values = dict( [ ( key, Value.eval( context.fork(), node ) ) for key, node in kargs ] )
 
         return self.callable( *args_values, **kargs_values )

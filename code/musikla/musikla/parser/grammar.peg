@@ -144,11 +144,25 @@ unary_operator_expression <- ( "not" / ""  ) _  expression_single;
 
 expression_single <- expression_single_prefix ( ( _ property_accessor ) / property_call )*;
 
-expression_single_prefix  <- function_declaration / string_value / number_value / bool_value / none_value / variable / function / keyboard_declaration / group / block / chord / note / rest / modifier / instrument_modifier;
+expression_single_prefix  <- function_declaration / string_value / number_value / bool_value / none_value / variable / function / keyboard_declaration / array_value / object_value / group / block / chord / note / rest / modifier / instrument_modifier;
 
 property_accessor <- "::" _ ( identifier / ( "[" _ expression _ "]" ) );
 
 property_call <- "(" _ function_parameters _ ")";
+
+array_value <- "@[" _ "]"
+             / "@[" _ expression ( _ array_separator _ expression )* _ "]"
+             ;
+
+array_separator <- ',' / ';';
+
+object_value <- "@{" _ "}"
+              / "@{" _ object_value_key ( _ object_separator _ object_value_key )* _ "}"
+              ;
+
+object_value_key <- identifier _ '=' _ expression;
+
+object_separator <- ',' / ';';
 
 string_value <- double_string / single_string;
 
