@@ -56,14 +56,14 @@ class AsyncMidiPlayer:
                         if self.extend and isinstance( event, NoteOffEvent ):
                             self.extended_notes.append( event )
                         else:
-                            self.player.play_more( [ event ], now = 0 )
+                            self.player.play_more( [ event ] )
                     
                     if self.extend:
                         await self.stop_future
 
                         now = self.player.get_time()
 
-                        self.player.play_more( [ ev.clone( timestamp = now ) for ev in self.extended_notes ], now = 0 )
+                        self.player.play_more( [ ev.clone( timestamp = now ) for ev in self.extended_notes ] )
 
                     if not self.is_playing or not self.repeat:
                         break

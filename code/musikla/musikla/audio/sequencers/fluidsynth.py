@@ -1,5 +1,7 @@
 import fluidsynth
-from musikla.core.events import MusicEvent, VoiceEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
+from musikla.core import Clock
+from musikla.core.events import MusicEvent, VoiceEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ChordEvent, ChordOnEvent, ChordOffEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
+from musikla.core.events.transformers import DecomposeChordsTransformer
 from .sequencer import Sequencer
 from ctypes import py_object, c_void_p, c_int
 from threading import Semaphore
@@ -36,6 +38,11 @@ class FluidSynthSequencer ( Sequencer ):
         self.events_data : Dict[int, Any] = dict()
         self.events_data_id : int = 1
         self.voices : Dict[str, int] = dict()
+        self.clock : Clock = Clock()
+
+        self.set_transformers(
+            DecomposeChordsTransformer()
+        )
     
     def _get_voice_channel ( self, voice ) -> int:
         key = voice.name + '$' + str( voice.instrument.program )
@@ -116,9 +123,16 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.keys_count[ channel ][ key ] += 1
 
-        # if self.keys_count[ channel ][ key ] == 1:
         self.synth.noteon( channel, key, event.velocity )
+    
+    
+    def apply_event_chordoff ( self, channel : int, event : ChordOffEvent ):
+        for event in event.notes:
+            self.apply_event_noteoff( channel, event )
 
+    def apply_event_chordon( self, channel, event : ChordOnEvent ):
+        for event in event.notes:
+            self.apply_event_noteon( channel, event )
 
     def apply_event ( self, event : MusicEvent ):
         if isinstance( event, VoiceEvent ):
@@ -128,6 +142,10 @@ class FluidSynthSequencer ( Sequencer ):
                 self.apply_event_noteon( channel, event )
             elif isinstance( event, NoteOffEvent ):
                 self.apply_event_noteoff( channel, event )
+            # if isinstance( event, ChordOnEvent ):
+            #     self.apply_event_chordon( channel, event )
+            # elif isinstance( event, ChordOffEvent ):
+            #     self.apply_event_chordoff( channel, event )
             elif isinstance( event, ProgramChangeEvent ):
                 self.synth.program_change( channel, event.program )
             elif isinstance( event, ControlChangeEvent ):
@@ -137,10 +155,7 @@ class FluidSynthSequencer ( Sequencer ):
         else:
             pass
 
-    def register_event ( self, event : MusicEvent, now = None ):
-        if now == None:
-            now = self.get_time()
-        
+    def on_event ( self, event : MusicEvent ):
         if isinstance( event, VoiceEvent ):
             self._get_voice_channel( event.voice )
 
@@ -148,17 +163,20 @@ class FluidSynthSequencer ( Sequencer ):
             noteon = event.note_on
             noteoff = event.note_off
             
-            self.timer( now - self.start_time + noteon.timestamp, data = noteon, dest = self.client )
-            self.timer( now - self.start_time + noteoff.timestamp, data = noteoff, dest = self.client )
+            self.timer( self.start_time + noteon.timestamp, data = noteon, dest = self.client )
+            self.timer( self.start_time + noteoff.timestamp, data = noteoff, dest = self.client )
+        # elif isinstance( event, ChordEvent ):
+        #     chordon = event.chord_on
+        #     chordoff = event.chord_off
+            
+        #     self.timer( self.start_time + chordon.timestamp, data = chordon, dest = self.client )
+        #     self.timer( self.start_time + chordoff.timestamp, data = chordoff, dest = self.client )
         else:
-            self.timer( now + event.timestamp, data = event, dest = self.client )
-
-    def register_events_many ( self, events, now = None ):
-        if now == None:
-            now = self.get_time()
-        
-        for event in events:
-            self.register_event( event, now = now )
+            self.timer( event.timestamp, data = event, dest = self.client )
+    
+    def on_close ( self ):
+        # TODO Release fluidsynth resources
+        pass
 
     def _join_callback ( self, time, event, seq, data ):
         self.join_lock.release()
@@ -212,7 +230,3 @@ class FluidSynthSequencer ( Sequencer ):
         self.client = self.sequencer.register_client( "eventClient", self.apply_event_callback )
 
         self.start_time = self.sequencer.get_tick()
-        
-    def close ( self ):
-        # TODO Release fluidsynth resources
-        pass

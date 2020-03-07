@@ -6,11 +6,26 @@ from fractions import Fraction
 from typing import Dict
 
 class NoteOnEvent ( VoiceEvent ):
-    def __init__ ( self, timestamp = 0, pitch_class = 0, octave = 4, accidental = NoteAccidental.NONE, velocity = 0, voice : Voice = None, parent : 'NoteEvent' = None ):
+    @staticmethod
+    def from_pitch ( timestamp = 0, pitch = 0, voice : Voice = None, velocity = 127, tied : bool = False ):
+        note = Note.from_pitch( pitch )
+        
+        return NoteOnEvent(
+            timestamp = timestamp,
+            velocity = velocity,
+            voice = voice,
+            pitch_class = note.pitch_class, 
+            octave = note.octave, 
+            accidental = note.accidental,
+            tied = tied
+        )
+
+    def __init__ ( self, timestamp = 0, pitch_class = 0, octave = 4, accidental = NoteAccidental.NONE, velocity = 0, voice : Voice = None, tied : bool = False, parent : 'NoteEvent' = None ):
         self.pitch_class : int = pitch_class
         self.octave : int = octave
         self.accidental : int = accidental
         self.velocity : int = velocity
+        self.tied : bool = tied
         self.parent : 'NoteEvent' = parent
 
         self._disabled : bool = False
@@ -32,10 +47,24 @@ class NoteOnEvent ( VoiceEvent ):
 
 
 class NoteOffEvent ( VoiceEvent ):
-    def __init__ ( self, timestamp = 0, pitch_class = 0, octave = 4, accidental = NoteAccidental.NONE, voice : Voice = None, parent : 'NoteEvent' = None ):
+    @staticmethod
+    def from_pitch ( timestamp = 0, pitch = 0, voice : Voice = None, tied : bool = False ):
+        note = Note.from_pitch( pitch )
+        
+        return NoteOffEvent(
+            timestamp = timestamp,
+            voice = voice,
+            pitch_class = note.pitch_class, 
+            octave = note.octave, 
+            accidental = note.accidental,
+            tied = tied
+        )
+
+    def __init__ ( self, timestamp = 0, pitch_class = 0, octave = 4, accidental = NoteAccidental.NONE, voice : Voice = None, tied : bool = False, parent : 'NoteEvent' = None ):
         self.pitch_class : int = pitch_class
         self.octave : int = octave
         self.accidental : int = accidental
+        self.tied : bool = tied
         self.parent : 'NoteEvent' = parent
 
         super().__init__( timestamp, voice )
@@ -87,11 +116,11 @@ class NoteEvent( DurationEvent ):
 
     @property
     def note_on ( self ) -> NoteOnEvent:
-        return NoteOnEvent( self.timestamp, self.pitch_class, self.octave, self.accidental, self.velocity, self.voice, parent = self )
+        return NoteOnEvent( self.timestamp, self.pitch_class, self.octave, self.accidental, self.velocity, self.voice, self.tied, parent = self )
 
     @property
     def note_off ( self ) -> NoteOnEvent:
-        return NoteOffEvent( self.timestamp + self.duration, self.pitch_class, self.octave, self.accidental, self.voice, parent = self )
+        return NoteOffEvent( self.timestamp + self.duration, self.pitch_class, self.octave, self.accidental, self.voice, self.tied, parent = self )
 
     def from_pattern ( self, pattern : 'NoteEvent' ) -> 'NoteEvent':
         return self.clone( 

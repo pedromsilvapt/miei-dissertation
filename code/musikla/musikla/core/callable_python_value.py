@@ -41,7 +41,11 @@ class CallablePythonValue(CallableValue):
         return closure
 
     def __init__ ( self, value ):
-        self.signature : Signature = signature( value ) if not isbuiltin( value ) else None
+        try:
+            self.signature : Signature = signature( value )
+        except ValueError:
+            self.signature : Signature = None
+
         self.callable = value
 
         super().__init__( self.wrapper )

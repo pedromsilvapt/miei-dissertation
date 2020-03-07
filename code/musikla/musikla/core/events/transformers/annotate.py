@@ -31,7 +31,7 @@ class VoiceNotationInfo:
             ( u, l ) = self.time_signature
 
             if u >= 6 and u % 3 == 0:
-                self._beat_value = Fraction( 3, l )
+                self._beat_value = Fraction( 3, 2 * l )
             else:
                 self._beat_value = Fraction( 1, l )
 

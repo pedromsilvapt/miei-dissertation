@@ -1,6 +1,10 @@
 class Interval:
+    @staticmethod
+    def octaves_to_semitones ( octaves : int ) -> int:
+        return ( octaves * 12 )
+
     def __init__ ( self, semitones : int = 0, octaves : int = 0 ):
-        self.full_semitones : int = semitones + ( octaves * 12 )
+        self.full_semitones : int = semitones + Interval.octaves_to_semitones( octaves )
     
     @property
     def semitones ( self ) -> int:

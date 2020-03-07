@@ -38,17 +38,17 @@ class MidiPlayer():
         for seq in self.sequencers:
             seq.register_events_many( self.events )
 
-    def play_more ( self, events, now : int = None ):
+    def play_more ( self, events ):
         if not self.started:
             self.setup()
 
         events = list( events )
 
         if self.print_events and events:
-            print( 'playing', ( now or 0 ) + events[ 0 ].timestamp, ' '.join( str( e ) for e in events ) )
+            print( 'playing', events[ 0 ].timestamp, ' '.join( str( e ) for e in events ) )
 
         for seq in self.sequencers:
-            seq.register_events_many( events, now )
+            seq.register_events_many( events )
 
     def join ( self ):
         if not self.started:

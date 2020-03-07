@@ -13,14 +13,13 @@ class ABCSequencer ( Sequencer ):
         self.filename : str = filename
         self.clock : Clock = Clock( auto_start = False )
 
-        self.pipeline = Transformer.pipeline(
+        self.set_transformers(
             # EnsureOrderTransformer( 'beforeCompose' ),
             ComposeNotesTransformer(),
             # EnsureOrderTransformer( 'afterCompose' ),
             VoiceIdentifierTransformer(),
             # EnsureOrderTransformer( 'afterIdentify', False ),
-            AnnotateTransformer(),
-            Transformer.subscriber( self._register_event, self._close )
+            AnnotateTransformer()
         )
     
     @property
@@ -33,10 +32,10 @@ class ABCSequencer ( Sequencer ):
 
         return self.clock.elapsed()
 
-    def _register_event ( self, event : MusicEvent ):
+    def on_event ( self, event : MusicEvent ):
         self.file_builder.add_event( event )
 
-    def _close ( self ):
+    def on_close ( self ):
         with open( self.filename, 'w' ) as f:
             file = self.file_builder.build()
 
@@ -46,23 +45,8 @@ class ABCSequencer ( Sequencer ):
             
             f.flush()
 
-    def register_event ( self, event : MusicEvent, now = None ):
-        self.pipeline.add_input( event )
-
-    def register_events_many ( self, events, now = None ):
-        if now == None:
-            now = self.get_time()
-        
-        for event in events:
-            self.register_event( event, now = now )
-
     def join ( self ):
         pass
 
     def start ( self ):
         self.clock.start()
-        
-    def close ( self ):
-        self.pipeline.end_input()
-
-        

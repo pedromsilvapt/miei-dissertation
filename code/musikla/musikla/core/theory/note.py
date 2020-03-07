@@ -133,15 +133,16 @@ class Note:
 
         return note
 
-class Chord:
-    def __init__ ( self, root : Note, intervals : List[int] ):
-        self.root : Note = root
-        self.intervals : List[int] = intervals
+# TODO Remove
+# class Chord:
+#     def __init__ ( self, root : Note, intervals : List[int] ):
+#         self.root : Note = root
+#         self.intervals : List[int] = intervals
 
-    def to_notes ( self ) -> List[Note]:
-        notes : List[Note] = []
+#     def to_notes ( self ) -> List[Note]:
+#         notes : List[Note] = []
 
-        for semitones in self.intervals:
-            notes.append( self.root.clone().transpose( semitones ) )
+#         for semitones in self.intervals:
+#             notes.append( self.root.clone().transpose( semitones ) )
 
-        return notes
+#         return notes

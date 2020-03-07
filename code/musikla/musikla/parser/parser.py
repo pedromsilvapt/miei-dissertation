@@ -1,10 +1,11 @@
 from pathlib import Path
 from arpeggio.peg import ParserPEG
 from arpeggio import PTNodeVisitor, visit_parse_tree
+from typing import List
 from musikla.core.events import NoteEvent
-from musikla.core.theory import scales, NoteAccidental, Note
+from musikla.core.theory import NoteAccidental, Note, Chord
 from .abstract_syntax_tree import Node
-from .abstract_syntax_tree import NoteNode, MusicSequenceNode, MusicParallelNode, RestNode
+from .abstract_syntax_tree import NoteNode, ChordNode, MusicSequenceNode, MusicParallelNode, RestNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, VoiceBlockModifier
 
 from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode, ListComprehensionNode
@@ -115,7 +116,12 @@ class ParserVisitor(PTNodeVisitor):
     def visit_for_loop_statement ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return ForLoopStatementNode( children.namespaced[ 0 ], children.value_expression[ 0 ], children.value_expression[ 1 ], children.body[ 0 ], position )
+        if len( children.value_expression ) == 1:
+            return ForLoopStatementNode( children.namespaced[ 0 ], children.value_expression[ 0 ], children.body[ 0 ], position )
+
+        r = FunctionExpressionNode( VariableExpressionNode( "range" ), [ children.value_expression[ 0 ], children.value_expression[ 1 ] ] )
+
+        return ForLoopStatementNode( children.namespaced[ 0 ], r, children.body[ 0 ], position )
 
     def visit_while_loop_statement ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -327,13 +333,16 @@ class ParserVisitor(PTNodeVisitor):
     def visit_object_value ( self, node, children ):
         position = ( node.position, node.position_end )
         
-        if children.object_value_key:
-            return ObjectLiteralNode( list( children.object_value_key ), position )
+        if children.object_value_item:
+            return ObjectLiteralNode( list( children.object_value_item ), position )
         
         return ObjectLiteralNode( [], position )
 
+    def visit_object_value_item ( self, node, children ):
+        return ( children.object_value_key[ 0 ], children.expression[ 0 ] )
+
     def visit_object_value_key ( self, node, children ):
-        return ( children.identifier[ 0 ], children.expression[ 0 ] )
+        return children[ 0 ]
 
     def visit_music_expression ( self, node, children ):
         if len( children ) == 1:
@@ -437,25 +446,22 @@ class ParserVisitor(PTNodeVisitor):
                 accidental = accidental
             )
 
-            return NoteNode( note, position ).as_chord( chord )
+            return ChordNode( Chord.from_abbreviature( note, chord, value ), position = position )
         else:
-            notes = []
+            notes : List[Note] = []
 
             for accidental, ( pitch_class, octave ) in children.note_pitch:
-                notes.append( NoteNode( Note( 
+                notes.append( Note( 
                     pitch_class = pitch_class,
                     octave = octave,
                     value = value,
                     accidental = accidental
-                ), position ) )
+                ) )
 
-            return MusicParallelNode( notes, position )
+            return ChordNode( Chord( notes, None, value ), position = position )
 
     def visit_chord_suffix ( self, node, children ):
-        if children[ 0 ] in scales.chords:
-            return scales.chords[ children[ 0 ] ]
-        else:
-            return None
+        return children[ 0 ]
 
     def visit_rest ( self, node, children ):
         position = ( node.position, node.position_end )

@@ -34,7 +34,9 @@ single_argument_eval <- "$" identifier _ "=" _ expression
                       / "$" identifier
                       ;
 
-for_loop_statement <- "for" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ "{" _ body? _ "}";
+for_loop_statement <- "for" _ "(" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ ")" _ "{" _ body? _ "}"
+                    / "for" _ "(" _ "$" namespaced _ "in" _ value_expression _ ")" _ "{" _ body? _ "}"
+                    ;
 
 while_loop_statement <- "while" _ "(" _ expression _ ")" _ "{" _ body _ "}";
 
@@ -157,10 +159,12 @@ array_value <- "@[" _ "]"
 array_separator <- ',' / ';';
 
 object_value <- "@{" _ "}"
-              / "@{" _ object_value_key ( _ object_separator _ object_value_key )* _ "}"
+              / "@{" _ object_value_item ( _ object_separator _ object_value_item )* _ "}"
               ;
 
-object_value_key <- identifier _ '=' _ expression;
+object_value_item <- object_value_key _ '=' _ expression;
+
+object_value_key <- identifier / float / integer / double_string / single_string;
 
 object_separator <- ',' / ';';
 

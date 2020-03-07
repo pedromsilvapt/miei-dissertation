@@ -1,9 +1,18 @@
 from musikla.core.events import MusicEvent
+from musikla.core.events.transformers import Transformer
 from typing import Iterable
 
 class Sequencer:
     def __init__ ( self ):
         self.realtime = False
+
+        self.transformer : Transformer = None
+
+    def set_transformers ( self, *transformers : Transformer ):
+        self.transformer = Transformer.pipeline( 
+            *transformers,
+            Transformer.subscriber( self.on_event, self.on_close )
+        )
 
     @property
     def playing ( self ) -> bool:
@@ -12,11 +21,21 @@ class Sequencer:
     def get_time ( self ) -> int:
         raise BaseException( "Abstract method Sequencer.get_time called." )
 
+    def on_event ( self, event : MusicEvent ):
+        raise BaseException( "Abstract method Sequencer.on_event called." )
+    
+    def on_close ( self ):
+        raise BaseException( "Abstract method Sequencer.on_close called." )
+
     def register_event ( self, event : MusicEvent ):
-        raise BaseException( "Abstract method Sequencer.register_event called." )
+        if self.transformer is None:
+            self.on_event( event )
+        else:
+            self.transformer.add_input( event )
 
     def register_events_many ( self, events : Iterable[MusicEvent] ):
-        raise BaseException( "Abstract method Sequencer.register_events_many called." )
+        for event in events:
+            self.register_event( event )
 
     def join ( self ):
         raise BaseException( "Abstract method Sequencer.join called." )
@@ -25,4 +44,7 @@ class Sequencer:
         raise BaseException( "Abstract method Sequencer.start called." )
 
     def close ( self ):
-        raise BaseException( "Abstract method Sequencer.close called." )
+        if self.transformer is None:
+            self.on_close()
+        else:
+            self.transformer.end_input()

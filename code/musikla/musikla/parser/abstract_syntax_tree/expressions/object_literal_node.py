@@ -6,6 +6,26 @@ class Object(dict):
     def __init__ ( self, pairs = [] ):
         super().__init__( pairs )
     
+    def has ( self, key ):
+        return key in self
+    
+    def get ( self, key, default = None ):
+        if key in self:
+            return self[ key ]
+
+        return default
+        
+    def set ( self, key, value ):
+        self[ key ] = value
+
+        return self
+        
+    def delete ( self, key ):
+        del self[ key ]
+
+    def __delattr__ ( self, key ):
+        del self[ key ]
+
     def __getattr__ ( self, key ):
         return self[ key ]
 

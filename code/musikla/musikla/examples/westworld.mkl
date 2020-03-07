@@ -1,5 +1,5 @@
 fun mainTheme () {
-    :piano = (1; S6/8 T70 L/8 V120 );
+    :piano = (1; S6/8 T140 L/8 V120 );
     :violin = :piano(41);
     
     $chorus = :piano (A*11 G F*12 | A,6 A,5 G, F,6*2)*3;

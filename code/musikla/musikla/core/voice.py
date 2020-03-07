@@ -70,7 +70,7 @@ class Voice:
         ( u, l ) = self.time_signature
 
         if u >= 6 and u % 3 == 0:
-            return 3 / l
+            return 1.5 / l
         else:
             return 1 / l
 

@@ -1,4 +1,17 @@
 from typing import List
+from .interval import Interval
+
+class Scale:
+    def __init__ ( self, intervals : List[int] ):
+        self.intervals : List[int] = intervals
+
+    def interval_at ( self, index : int ) -> Interval:
+        l = len( self.intervals )
+        return Interval( octaves = index // l, semitones = self.intervals[ index % l ] )
+
+Scale.black_keys = Scale( [ 1, 3, 6, 8, 10 ] )
+
+Scale.white_keys = Scale( [ 0, 2, 4, 5, 7, 9, 11, 12 ] )
 
 # major: W W H W W W H
 # minor: W H W W H W W
