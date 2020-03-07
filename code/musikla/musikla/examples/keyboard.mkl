@@ -1,9 +1,35 @@
-discard( import( "examples/minecraft.ml" ) );
+fun keyboard ( $layout, $hshift = @{}, $transpose = 0; $toggle = false ) {
+    $kb = keyboard\create();
 
-@keyboard {
-    a repeat toggle: $wet\acomp;
-    s toggle: $wet\melody;
-    d extend hold: [CM];
-    f extend hold: [Bm];
-    ctrl+x: $keyboard\close;
+    $rows = $layout::splitlines();
+
+    $row_index = $rows::__len__() - 1;
+
+    while ( $row_index >= 0 ) {
+        $row_scale = $scale::white_keys;
+
+        $row_transpose = $hshift::get( $row_index, default = 0 );
+
+        $i = $row_transpose;
+
+        for ( $letter in $rows::[ $row_index ] ) {
+            $music = C,, + interval( octaves = $row_index ) + $row_scale::interval_at( $i ) + $transpose;
+            
+            keyboard\register( $kb, key = $letter, expression = $music, hold = not $toggle, toggle = $toggle, extend = true );
+
+            $i = $i + 1;
+        };
+
+        $row_index = $row_index - 1;
+    };
+
+    $kb;
 };
+
+$layout = 
+"\1234567890'«
+qwertyuiop+´
+asdfghjklçº~
+<zxcvbnm,.-";
+
+keyboard( $layout, hshift = @{ 3 = 4 } );
