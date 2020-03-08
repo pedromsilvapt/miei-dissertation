@@ -111,7 +111,7 @@ class ComposeNotesTransformer( Transformer ):
             self._off_event( composed_event.timestamp )
     
     def _on_chord_on ( self, event : ChordOnEvent ):
-        self.on_events[ self._get_note_key( event ) ] = event
+        self.on_events[ self._get_chord_key( event ) ] = event
 
         self._on_event( event.timestamp )
 

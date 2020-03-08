@@ -8,6 +8,8 @@ from typing import Callable, Dict, List, Tuple
 
 class ComposeChordsTransformer( Transformer ):
     def __init__ ( self ):
+        super().__init__()
+        
         self.buffer : List[NoteEvent] = []
         self.last_timestamp : int = 0
 
@@ -25,7 +27,7 @@ class ComposeChordsTransformer( Transformer ):
             
             # A variable that is true if all the note events in the buffer belong
             # to the same voice
-            single_voice = all( ( ev.voice.name == first_name for ev in self.buffer is isinstance( ev, NoteEvent ) ) )
+            single_voice = all( ( ev.voice.name == first_name for ev in self.buffer if isinstance( ev, NoteEvent ) ) )
 
             per_voice : Dict[str, List[NoteEvent]] = {}
 

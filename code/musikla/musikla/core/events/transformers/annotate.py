@@ -1,4 +1,4 @@
-from musikla.core.events import MusicEvent, VoiceEvent, ContextChangeEvent, NoteEvent, RestEvent, BarNotationEvent, StaffNotationEvent
+from musikla.core.events import MusicEvent, VoiceEvent, ContextChangeEvent, NoteEvent, ChordEvent, RestEvent, BarNotationEvent, StaffNotationEvent
 from musikla.core import MusicBuffer, Voice
 from .transformer import Transformer
 from typing import Tuple, Dict
@@ -86,7 +86,7 @@ class VoiceNotationInfo:
         self.beats_count = 0
 
     def transform ( self, event : MusicEvent ):
-        if isinstance( event, RestEvent ) or isinstance( event, NoteEvent ):
+        if isinstance( event, RestEvent ) or isinstance( event, ChordEvent ) or isinstance( event, NoteEvent ):
             # Analyze how much duration this measure has left, and if necessary, split up the rest event into two
             # And then pass them along through the `self.add_output` method
             timestamp = event.timestamp

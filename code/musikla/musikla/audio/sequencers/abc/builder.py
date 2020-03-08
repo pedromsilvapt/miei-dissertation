@@ -1,7 +1,7 @@
-from musikla.core.events import MusicEvent, VoiceEvent, ContextChangeEvent, NoteEvent, RestEvent, BarNotationEvent, StaffNotationEvent
+from musikla.core.events import MusicEvent, VoiceEvent, ContextChangeEvent, NoteEvent, ChordEvent, RestEvent, BarNotationEvent, StaffNotationEvent
 from musikla.core.theory import NotePitchClassesInv
 from fractions import Fraction
-from .file import ABCFile, ABCStaff, ABCVoice, ABCBar, ABCNote, ABCRest
+from .file import ABCFile, ABCStaff, ABCVoice, ABCBar, ABCNote, ABCChord, ABCRest
 from typing import Dict
 
 class ABCBuilder:
@@ -60,20 +60,42 @@ class ABCBuilder:
 
             self.file.header.voices.append( voice )
 
-    def add_note ( self, event : NoteEvent ):
-        note_length = Fraction( event.value ) / Fraction( self.file.header.length )
-
-        current_bar = self.get_current_bar( event.voice.name )
-
+    def build_note ( self, event : NoteEvent, inside_chord : bool = False ) -> ABCNote:
         note = ABCNote()
 
         note.accidental = event.accidental
         note.octave = event.octave
-        note.length = note_length
+        
+        if not inside_chord:
+            note_length = Fraction( event.value ) / Fraction( self.file.header.length )
+
+            note.length = note_length
+
         note.pitch_class = NotePitchClassesInv[ event.pitch_class ]
-        note.tied = event.tied
+        note.tied = not inside_chord and event.tied
+
+        return note
+
+    def add_note ( self, event : NoteEvent ):
+        current_bar = self.get_current_bar( event.voice.name )
+
+        note = self.build_note( event )
 
         current_bar.symbols.append( note )
+
+    def add_chord ( self, event : ChordEvent ):
+        chord_length = Fraction( event.value ) / Fraction( self.file.header.length )
+
+        current_bar = self.get_current_bar( event.voice.name )
+
+        chord = ABCChord()
+
+        chord.notes = [ self.build_note( n, True ) for n in event.notes ]
+        chord.length = chord_length
+        chord.name = event.name
+        chord.tied = event.tied
+
+        current_bar.symbols.append( chord )
 
     def add_rest ( self, event : RestEvent ):
         rest_length = Fraction( event.value ) / Fraction( self.file.header.length )
@@ -108,6 +130,8 @@ class ABCBuilder:
 
             if isinstance( event, NoteEvent ):
                 self.add_note( event )
+            elif isinstance( event, ChordEvent ):
+                self.add_chord( event )
             elif isinstance( event, RestEvent ):
                 self.add_rest( event )
             elif isinstance( event, BarNotationEvent ):

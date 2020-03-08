@@ -1,4 +1,4 @@
-from musikla.core.events.transformers import Transformer, ComposeNotesTransformer, VoiceIdentifierTransformer, AnnotateTransformer, EnsureOrderTransformer
+from musikla.core.events.transformers import Transformer, ComposeNotesTransformer, ComposeChordsTransformer, VoiceIdentifierTransformer, AnnotateTransformer, EnsureOrderTransformer
 from musikla.core.events import MusicEvent, NoteEvent, ProgramChangeEvent
 from musikla.core import Clock
 from ..sequencer import Sequencer
@@ -16,6 +16,7 @@ class ABCSequencer ( Sequencer ):
         self.set_transformers(
             # EnsureOrderTransformer( 'beforeCompose' ),
             ComposeNotesTransformer(),
+            ComposeChordsTransformer(),
             # EnsureOrderTransformer( 'afterCompose' ),
             VoiceIdentifierTransformer(),
             # EnsureOrderTransformer( 'afterIdentify', False ),

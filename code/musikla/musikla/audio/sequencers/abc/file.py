@@ -100,7 +100,32 @@ class ABCNote(ABCSymbol):
             note = '~~' + note
 
         return note
+
+class ABCChord(ABCSymbol):
+    def __init__ ( self ):
+        super().__init__()
+
+        self.notes : List[ABCChord] = []
+        self.name : str = None
+        self.tied : bool = False
+
+    def __str__ ( self ):
+        notes = ''.join( str( n ) for n in self.notes )
+
+        chord = f"[{ notes }]"
+
+        if self.name is not None:
+            chord = f'"{ self.name }"{ chord }'
         
+        if self.length != None and self.length != 1:
+            chord += str( self.length )
+
+        if self.tied:
+            chord += '-'
+
+        return chord
+        
+
 class ABCRest(ABCSymbol):
     def __init__ ( self ):
         self.visible : bool = True
