@@ -1,6 +1,6 @@
 from .transformer import Transformer
 from musikla.core import Voice
-from musikla.core.events import MusicEvent, NoteEvent, RestEvent
+from musikla.core.events import MusicEvent, NoteEvent, RestEvent, ChordEvent
 from typing import List
 
 class SlidingAverage():
@@ -100,9 +100,7 @@ class VoiceIdentifierTransformer(Transformer):
         super().__init__()
 
         self.voices : List[VoiceIdentifierVoice] = []
-        # List of events that all start at the same time
-        self.buffer : List[NoteEvent] = []
-        
+
         self.auto_create_rests : bool = auto_create_rests
         
         self.auto_create_end_rests : bool = auto_create_end_rests
@@ -157,30 +155,16 @@ class VoiceIdentifierTransformer(Transformer):
 
         voice.append( event )       
 
-    def flush_buffer ( self ):
-        # If the buffer is empty, there is nothing to flush
-        if not self.buffer:
-            return
+    def register_note ( self, event : NoteEvent ):
+        voice = self.find_voice_for( event )
 
-        root_event = self.buffer[ 0 ]
+        voice.append( event )
+    
+    def register_chord ( self, event : ChordEvent ):
+        voice = self.find_voice_for( event )
 
-        if all( ev.duration == root_event.duration and ev.voice == root_event.voice for ev in self.buffer ):
-            # All notes belong to the same voice and have the same duration
-            # This means there is a high chance they are a chord, so let's check them
-            voice = self.find_voice_for( root_event )
+        voice.append( event )
 
-            # TODO Emit these notes as a ChordEvent
-            voice.append( *self.buffer )
-
-            self.buffer.clear()
-        else:
-            for event in self.buffer:
-                voice = self.find_voice_for( event )
-
-                voice.append( event )
-
-            self.buffer.clear()
-        
     def transform ( self ):
         """
         For now, NoteOn/NoteOff events will be ignored. 
@@ -192,17 +176,12 @@ class VoiceIdentifierTransformer(Transformer):
 
             if done: break
 
-            if self.buffer and self.buffer[ -1 ].timestamp != event.timestamp:
-                self.flush_buffer()
-
             if isinstance( event, NoteEvent ):
-                self.buffer.append( event )
+                self.register_note( event )
             elif isinstance( event, RestEvent ):
                 self.register_rest( event )
             else:
                 self.add_output( event )
-
-        self.flush_buffer()
 
         if self.auto_create_end_rests and self.voices:
             last_voice_timestamp : int = max( [ voice.last_end_timestamp for voice in self.voices ] )

@@ -43,7 +43,7 @@ class ComposeChordsTransformer( Transformer ):
                         per_voice[ voice_name ].append( ev )
                 else:
                     voiceless.append( ev )
-            
+
             # TODO Handle notes played at the same time for the same voice
             # but with different durations
             for notes in per_voice.values():
