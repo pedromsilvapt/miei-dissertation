@@ -4,7 +4,7 @@ from musikla.parser.abstract_syntax_tree.context_modifiers import ContextModifie
 from musikla.graphics import BaseApplication
 from musikla.libraries import KeyboardLibrary, KeyStroke, MusicLibrary, StandardLibrary
 from musikla.parser import Parser
-from musikla.audio import MidiPlayer
+from musikla.audio import Player
 from musikla.audio.sequencers import FluidSynthSequencer
 from fractions import Fraction
 import imgui
@@ -28,7 +28,7 @@ class GuiApplication( BaseApplication ):
 
         self.expressionTab = EXPRESSION_TAB_AST
 
-    def create_context ( self, player : MidiPlayer ):
+    def create_context ( self, player : Player ):
         ctx = Context.create()
 
         ctx.link( StandardLibrary() )
@@ -132,7 +132,7 @@ class GuiApplication( BaseApplication ):
 
             try:
                 if to_parse or to_play:
-                    self.player = MidiPlayer()
+                    self.player = Player()
 
                     self.player.sequencers.append( FluidSynthSequencer() )
 

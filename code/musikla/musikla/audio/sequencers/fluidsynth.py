@@ -2,11 +2,12 @@ import fluidsynth
 from musikla.core import Clock
 from musikla.core.events import MusicEvent, VoiceEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ChordEvent, ChordOnEvent, ChordOffEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
 from musikla.core.events.transformers import DecomposeChordsTransformer
-from .sequencer import Sequencer
+from .sequencer import Sequencer, SequencerFactory
 from ctypes import py_object, c_void_p, c_int
 from threading import Semaphore
 from typing import Dict, List, Any
 from time import sleep
+from configparser import ConfigParser
 from collections import defaultdict
 
 fluid_event_get_data = fluidsynth.cfunc('fluid_event_get_data', c_void_p,
@@ -230,3 +231,11 @@ class FluidSynthSequencer ( Sequencer ):
         self.client = self.sequencer.register_client( "eventClient", self.apply_event_callback )
 
         self.start_time = self.sequencer.get_tick()
+
+class FluidSynthSequencerFactory( SequencerFactory ):
+    default : bool = True
+
+    def from_str ( self, uri : str ) -> FluidSynthSequencer:
+        soundfont = self.config.get( 'Musikla', 'soundfont', fallback = None )
+
+        return FluidSynthSequencer( uri, soundfont )

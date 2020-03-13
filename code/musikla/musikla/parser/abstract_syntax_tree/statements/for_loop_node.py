@@ -1,9 +1,10 @@
+from typing import Tuple
 from musikla.core import Context, SymbolsScope, Value
 from ..node import Node
 from .statement_node import StatementNode
 
 class ForLoopStatementNode( StatementNode ):
-    def __init__ ( self, variable : str, it : Node, body : Node, position : (int, int) = None ):
+    def __init__ ( self, variable : str, it : Node, body : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.variable : str = variable

@@ -145,12 +145,25 @@ class ParserVisitor(PTNodeVisitor):
     def visit_keyboard_shortcut ( self, node, children ):
         position = ( node.position, node.position_end )
 
+        kind, key, flags = children.keyboard_shortcut_key[ 0 ]
+
+        expr = children.expression[ 0 ]
+
+        args = children.keyboard_arguments[ 0 ] if children.keyboard_arguments else []
+
+        if kind == KeyboardShortcutComprehensionMacroNode:
+            return KeyboardShortcutComprehensionMacroNode( key, flags, args, expr, position )
+        elif kind == KeyboardShortcutDynamicMacroNode:
+            return KeyboardShortcutDynamicMacroNode( key, flags, args, expr, position )
+        else:
+            return KeyboardShortcutMacroNode( key, args, expr, position )
+
+    def visit_keyboard_shortcut_key ( self, node, children ):
         if len( children.list_comprehension ) == 1:
-            return KeyboardShortcutComprehensionMacroNode(
+            return ( 
+                KeyboardShortcutComprehensionMacroNode, 
                 children.list_comprehension[ 0 ],
-                list( children.alphanumeric ),
-                children.expression[ 0 ],
-                position
+                list( children.alphanumeric )
             )
         elif len( children.value_expression ) == 1 or len( children.string_value ) == 1:
             if children.string_value:
@@ -158,17 +171,16 @@ class ParserVisitor(PTNodeVisitor):
             else:
                 variable = children.value_expression[ 0 ]
 
-            return KeyboardShortcutDynamicMacroNode(
+            return (
+                KeyboardShortcutDynamicMacroNode,
                 variable,
-                list( children.alphanumeric ),
-                children.expression[ 0 ],
-                position
+                list( children.alphanumeric )
             )
         else:
-            return KeyboardShortcutMacroNode(
+            return (
+                KeyboardShortcutMacroNode,
                 list( children.alphanumeric ),
-                children.expression[ 0 ],
-                position
+                None
             )
 
     def visit_list_comprehension ( self, node, children ):
@@ -188,6 +200,14 @@ class ParserVisitor(PTNodeVisitor):
         # With if
         return ListComprehensionNode( expression, name, min, max, condition, position = position )
 
+    def visit_keyboard_arguments ( self, node, children ):
+        if children.keyboard_single_argument:
+            return list( children.keyboard_single_argument )
+        
+        return []
+
+    def visit_keyboard_single_argument ( self, node, children ):
+        return children.identifier[ 0 ]
 
     def visit_expression ( self, node, children ):
         return children[ 0 ]

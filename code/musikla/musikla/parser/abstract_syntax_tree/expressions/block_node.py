@@ -1,9 +1,10 @@
+from typing import Tuple
 from .expression_node import ExpressionNode
 from ..node import Node
-from musikla.core import Value, Music, Context
+from musikla.core import Context
 
 class BlockNode( ExpressionNode ):
-    def __init__ ( self, body : Node, position : (int, int) = None ):
+    def __init__ ( self, body : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.body = body

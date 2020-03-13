@@ -1,14 +1,14 @@
-from .midi_player import MidiPlayer
+from .player import Player
 from musikla.core.events import MusicEvent, NoteOffEvent
 from musikla.core.events.transformers import DecomposeNotesTransformer, BalanceNotesTransformer
-from typing import List, Callable
+from typing import List, Callable, Optional
 from musikla.parser.abstract_syntax_tree import Node
 from asyncio import Future, sleep, wait, FIRST_COMPLETED
 
 class AsyncMidiPlayer:
-    def __init__ ( self, factory : Callable, player : MidiPlayer, start_time : int = 0, repeat : bool = False, extend : bool = False, realtime : bool = False ):
+    def __init__ ( self, factory : Callable, player : Player, start_time : int = 0, repeat : bool = False, extend : bool = False, realtime : bool = False ):
         self.factory : Callable = factory
-        self.player : MidiPlayer = player
+        self.player : Player = player
         self.repeat : bool = repeat
         self.extend : bool = extend
 
@@ -18,7 +18,7 @@ class AsyncMidiPlayer:
         self.extended_notes = []
         self.events_iterator = None
         self.is_playing : bool = False
-        self.stop_future : Future[bool] = None
+        self.stop_future : Optional[Future[bool]] = None
         self.realtime : bool = realtime
 
     async def start ( self ):

@@ -1,13 +1,13 @@
-from typing import List
+from typing import Any, Dict, List, Optional, Tuple, cast
 from musikla.core import Context, Value
-from ..node import Node
-from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteralNode, ListComprehensionNode, VariableExpressionNode, BlockNode
+from ..node import Node, ValueNode
+from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteralNode, ListComprehensionNode, VariableExpressionNode, ArrayLiteralNode, BlockNode
 from ..statements import ForLoopStatementNode, IfStatementNode, StatementsListNode, VariableDeclarationStatementNode
 from .macro import MacroNode
 
 ModifierNames = [ 'hold', 'extend', 'toggle', 'repeat' ]
 
-def handle_modifiers ( modifiers : List[str] ) -> (dict, str):
+def handle_modifiers ( modifiers : List[str] ) -> Tuple[Dict[str, bool], Optional[str]]:
     props = dict()
 
     rest = None
@@ -22,15 +22,19 @@ def handle_modifiers ( modifiers : List[str] ) -> (dict, str):
     return (props, rest)
 
 class KeyboardShortcutMacroNode(MacroNode):
-    def __init__ ( self, modifiers : List[str], expression : Node, position : (int, int) = None ):
+    def __init__ ( self, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.modifiers : List[str] = modifiers
+        self.args : List[str] = args
         self.expression : Node = expression
 
-        (kargs, shortcut) = handle_modifiers( modifiers )
+        (kargs_raw, shortcut) = handle_modifiers( modifiers )
 
-        kargs = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs.items() )
+        kargs : Dict[str, Node] = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs_raw.items() )
+
+        if self.args:
+            kargs[ 'args' ] = ValueNode( self.args )
 
         self.virtual_node : Node = FunctionExpressionNode(
             VariableExpressionNode( "keyboard\\register" ),
@@ -40,19 +44,23 @@ class KeyboardShortcutMacroNode(MacroNode):
         )
 
     def set_keyboard ( self, keyboard : Node ):
-        self.virtual_node.parameters[ 0 ] = keyboard
+        cast( FunctionExpressionNode, self.virtual_node ).parameters[ 0 ] = keyboard
 
 class KeyboardShortcutDynamicMacroNode(MacroNode):
-    def __init__ ( self, shortcut : Node, modifiers : List[str], expression : Node, position : (int, int) = None ):
+    def __init__ ( self, shortcut : Node, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.shortcut : Node = shortcut
         self.modifiers : List[str] = modifiers
+        self.args : List[str] = args
         self.expression : Node = expression
 
-        (kargs, rest) = handle_modifiers( modifiers )
+        (kargs_raw, rest) = handle_modifiers( modifiers )
 
-        kargs = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs.items() )
+        kargs : Dict[str, Node] = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs_raw.items() )
+        
+        if self.args:
+            kargs[ 'args' ] = ValueNode( self.args )
 
         if rest != None:
             raise BaseException( "Keyboard shortcut with invalid modifiers: %s" % rest )
@@ -65,22 +73,26 @@ class KeyboardShortcutDynamicMacroNode(MacroNode):
         )
 
     def set_keyboard ( self, keyboard : Node ):
-        self.virtual_node.parameters[ 0 ] = keyboard
+        cast( FunctionExpressionNode, self.virtual_node ).parameters[ 0 ] = keyboard
 
 class KeyboardShortcutComprehensionMacroNode(MacroNode):
-    def __init__ ( self, comprehension : ListComprehensionNode, modifiers : List[str], expression : Node, position : (int, int) = None ):
+    def __init__ ( self, comprehension : ListComprehensionNode, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
         
         self.comprehension : ListComprehensionNode = comprehension
         self.modifiers : List[str] = modifiers
+        self.args : List[str] = args
         self.expression : Node = expression
 
-        (kargs, rest) = handle_modifiers( modifiers )
+        (kargs_raw, rest) = handle_modifiers( modifiers )
 
-        kargs = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs.items() )
+        kargs : Dict[str, Node] = dict( ( m, BoolLiteralNode( v ) ) for m, v in kargs_raw.items() )
 
         if rest != None:
             raise BaseException( "Keyboard shortcut with invalid modifiers: %s" % rest )
+
+        if self.args:
+            kargs[ 'args' ] = ValueNode( self.args )
 
         node = FunctionExpressionNode( 
             VariableExpressionNode( "keyboard\\register" ), 
@@ -91,24 +103,25 @@ class KeyboardShortcutComprehensionMacroNode(MacroNode):
         if self.comprehension.condition != None:
             node = IfStatementNode( self.comprehension.condition, node )
 
+        r = FunctionExpressionNode( VariableExpressionNode( "range" ), [ self.comprehension.min, self.comprehension.max ] )
+
         self.virtual_node : Node = ForLoopStatementNode( 
             self.comprehension.variable, 
-            self.comprehension.min, 
-            self.comprehension.max,
-            node,
-            position = position
+            r,
+            node, 
+            position = position 
         )
 
     def set_keyboard ( self, keyboard : Node ):
-        node = self.virtual_node.body
+        node = cast( ForLoopStatementNode, self.virtual_node ).body
 
         if isinstance( node, IfStatementNode ):
             node = node.body
         
-        node.parameters[ 0 ] = keyboard
-    
+        cast( FunctionExpressionNode, node ).parameters[ 0 ] = keyboard
+
 class KeyboardDeclarationMacroNode(MacroNode):
-    def __init__ ( self, shortcuts : List[Node], flags : List[str] = None, prefix : Node = None, position : (int, int) = None ):
+    def __init__ ( self, shortcuts : List[Node], flags : List[str] = None, prefix : Node = None, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         var_name = 'keyboard'
@@ -117,7 +130,7 @@ class KeyboardDeclarationMacroNode(MacroNode):
         shortcuts = list( shortcuts )
 
         for node in shortcuts:
-            node.set_keyboard( VariableExpressionNode( var_name ) )
+            cast( Any, node ).set_keyboard( VariableExpressionNode( var_name ) )
 
         if flags:
             shortcuts.insert( 0, FunctionExpressionNode( VariableExpressionNode( "keyboard\\push_flags" ), [ VariableExpressionNode( var_name ) ] + [ StringLiteralNode( f ) for f in flags ] ) )

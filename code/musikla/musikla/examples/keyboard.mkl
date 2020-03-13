@@ -14,7 +14,7 @@ fun keyboard ( $layout, $hshift = @{}, $transpose = 0; $toggle = false ) {
 
         for ( $letter in $rows::[ $row_index ] ) {
             $music = C,, + interval( octaves = $row_index ) + $row_scale::interval_at( $i ) + $transpose;
-            
+
             keyboard\register( $kb, key = $letter, expression = $music, hold = not $toggle, toggle = $toggle, extend = true );
 
             $i = $i + 1;

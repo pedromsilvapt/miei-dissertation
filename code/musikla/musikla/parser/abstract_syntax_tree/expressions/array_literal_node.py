@@ -1,9 +1,9 @@
 from .expression_node import ExpressionNode
-from typing import List
+from typing import List, Tuple
 from musikla.core import Value
 
 class ArrayLiteralNode( ExpressionNode ):
-    def __init__ ( self, values : List[ExpressionNode], position : (int, int) = None ):
+    def __init__ ( self, values : List[ExpressionNode], position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.values : List[ExpressionNode] = values

@@ -1,3 +1,4 @@
+from typing import Any
 from typeguard import check_type
 from .music import Music
 
@@ -29,7 +30,7 @@ class Value:
         return type( value )
 
     @staticmethod
-    def eval ( context, node ):
+    def eval ( context, node ) -> Any:
         if node == None: 
             return None
 

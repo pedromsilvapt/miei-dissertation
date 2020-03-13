@@ -1,18 +1,53 @@
 import time
-from .sequencers import Sequencer
-from typing import List
+from .sequencers import Sequencer, SequencerFactory
+from musikla.core import Context
+from configparser import ConfigParser
+from typing import List, Any, Optional, Union
 
 def get_milliseconds () -> int:
     return int( round( time.time() * 1000 ) )
 
-class MidiPlayer():
+class Player():
     def __init__ ( self, sequencers : List[Sequencer] = [], events = [] ):
         self.events = events
         self.sequencers : List[Sequencer] = sequencers
         self.started : bool = False
-        self.start_time : int = None
+        self.start_time : Optional[int] = None
         self.print_events = False
-    
+        
+        self.sequencer_factories : List[SequencerFactory] = []
+
+    def add_sequencer_factory ( self, factory : Any, context : Context, config : ConfigParser ):
+        self.sequencer_factories.append( factory( context, config ) )
+
+    def make_sequencer ( self, uri : str ) -> Sequencer:
+        default : Optional[SequencerFactory] = None
+        
+        sequencer : Optional[Sequencer] = None
+
+        for factory in self.sequencer_factories:
+            if factory.default:
+                default = factory
+            else:
+                sequencer = factory.from_str( uri )
+
+            if sequencer != None: break
+
+        if sequencer is None and default is not None:
+            sequencer = default.from_str( uri )
+        
+        if sequencer is None:
+            raise Exception( f"Could not create a sequencer for { uri }" )
+
+        return sequencer
+
+    def add_sequencer ( self, sequencer : Union[Sequencer, str] ):
+        if type( sequencer ) is str:
+            sequencer = self.make_sequencer( sequencer )
+
+        self.sequencers.append( sequencer )
+
+
     @property
     def realtime ( self ) -> bool:
         return any( seq.realtime for seq in self.sequencers )

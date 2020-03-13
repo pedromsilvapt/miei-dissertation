@@ -1,2 +1,2 @@
-from .midi_player import MidiPlayer
+from .player import Player
 from .async_midi_player import AsyncMidiPlayer

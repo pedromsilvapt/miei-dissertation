@@ -1,12 +1,14 @@
+from musikla.core import Context
 from musikla.core.events import MusicEvent
 from musikla.core.events.transformers import Transformer
-from typing import Iterable
+from typing import Iterable, Optional
+from configparser import ConfigParser
 
 class Sequencer:
     def __init__ ( self ):
         self.realtime = False
 
-        self.transformer : Transformer = None
+        self.transformer : Optional[Transformer] = None
 
     def set_transformers ( self, *transformers : Transformer ):
         self.transformer = Transformer.pipeline( 
@@ -48,3 +50,13 @@ class Sequencer:
             self.on_close()
         else:
             self.transformer.end_input()
+
+class SequencerFactory:
+    default : bool = False
+
+    def __init__ ( self, context : Context, config : ConfigParser ):
+        self.context : Context = context
+        self.config : ConfigParser = config
+        
+    def from_str ( self, uri : str ) -> Optional[Sequencer]:
+        return None

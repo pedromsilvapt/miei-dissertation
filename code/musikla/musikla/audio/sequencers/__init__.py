@@ -1,3 +1,3 @@
-from .sequencer import Sequencer
-from .fluidsynth import FluidSynthSequencer
-from .abc import ABCSequencer
+from .sequencer import Sequencer, SequencerFactory
+from .fluidsynth import FluidSynthSequencer, FluidSynthSequencerFactory
+from .abc import ABCSequencer, ABCSequencerFactory

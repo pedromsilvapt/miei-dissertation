@@ -5,8 +5,8 @@ from musikla.parser.abstract_syntax_tree.node import Node
 from musikla.parser.abstract_syntax_tree.expressions.string_literal_node import StringLiteralNode
 from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 
-from typing import get_type_hints, Union, Optional, _GenericAlias, Dict
-from inspect import signature, Signature, Parameter, isclass, isbuiltin
+from typing import Union, Optional, _GenericAlias, Dict
+from inspect import signature, Signature, Parameter
 from typeguard import check_type
 
 def is_type_of ( typehint, value ) -> bool:
@@ -19,6 +19,8 @@ def is_type_of ( typehint, value ) -> bool:
             return any( is_type_of( var, value ) for var in typehint.__args__ )
         else:
             return False
+    else:
+        return False
 
 class CallablePythonValue(CallableValue):
     @staticmethod

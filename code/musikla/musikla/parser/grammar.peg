@@ -47,15 +47,24 @@ if_statement <- "if" _ "(" _ expression _ ")" _ "{" _ body _ "}" _ "else" _ "{" 
 // BEGIN Keyboard
 keyboard_declaration <- "@keyboard" (_ alphanumeric)* ( _ group )? _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
 
-keyboard_shortcut <- alphanumeric (_"+"_ alphanumeric)* (_ alphanumeric)* _ ":" _ expression
-                   / string_value (_ alphanumeric)* _ ":" _ expression
-                   / "[" _ list_comprehension _ "]" (alphanumeric _)* _ ":" _ expression
-                   / "[" _ value_expression _ "]" (alphanumeric _)* _ ":" _ expression
+keyboard_shortcut <- keyboard_shortcut_key _ keyboard_arguments? _ ":" _ expression
                    ;
 
 list_comprehension <- expression "for" _ "$" _ namespaced _ "in" _ value_expression _ ".." _ value_expression
                     / expression "for" _ "$" _ namespaced _ "in" _ value_expression _ ".." _ value_expression _ "if" value_expression
                     ;
+
+keyboard_shortcut_key <- alphanumeric (_"+"_ alphanumeric)* (_ alphanumeric)*
+                       / string_value (_ alphanumeric)*
+                       / "[" _ list_comprehension _ "]" (alphanumeric _)*
+                       / "[" _ value_expression _ "]" (alphanumeric _)*
+                       ;
+
+keyboard_arguments <- "(" _ ( keyboard_single_argument ( _ arguments_separator _ keyboard_single_argument )* )? _ ")";
+
+keyboard_arguments_separator <- ',' / ';';
+
+keyboard_single_argument <- "$" identifier;
 // END Keyboard
 
 

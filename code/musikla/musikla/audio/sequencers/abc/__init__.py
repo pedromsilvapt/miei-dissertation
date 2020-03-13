@@ -1,1 +1,1 @@
-from .sequencer import ABCSequencer
+from .sequencer import ABCSequencer, ABCSequencerFactory

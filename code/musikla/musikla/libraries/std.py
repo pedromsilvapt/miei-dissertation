@@ -78,17 +78,17 @@ def function_setinstrument ( context : Context, instrument : int ):
 def function_debug ( context : Context, expr ):
     value = expr.eval( context.fork() )
 
-    if value == None:
+    if value is None:
         print( None )
     elif isinstance( value, Music ):
         print( '<Music> ' + ' '.join( str( event ) for event in value.expand( context ) ) )
     else:
         print( "<%s>%s" % ( Value.typeof( value ), value ) )
 
-def function_inspect_context ( context : Context ):
+def function_inspect_context ( context : Context, ignore_root : bool = True ):
     symbols = context.symbols
     
-    while symbols != None and symbols.parent != None:
+    while symbols != None and ( not ignore_root or symbols.parent is not None ):
         print( f"Context#{ id( symbols ) } (Opaque = { symbols.opaque })" )
         for container_name, container in symbols.symbols.items():
             print( f"  - { container_name or '<default>' }:" )
