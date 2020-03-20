@@ -1,19 +1,17 @@
-import fluidsynth
+from musikla.core.voice import Voice
+from musikla.core.instrument import Instrument
+import pyfluidsynth
 from musikla.core import Clock
-from musikla.core.events import MusicEvent, VoiceEvent, NoteEvent, NoteOnEvent, NoteOffEvent, ChordEvent, ChordOnEvent, ChordOffEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
+from musikla.core.events import MusicEvent, VoiceEvent, NoteEvent, NoteOnEvent, NoteOffEvent, SoundEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
 from musikla.core.events.transformers import DecomposeChordsTransformer
 from .sequencer import Sequencer, SequencerFactory
-from ctypes import py_object, c_void_p, c_int
+from ctypes import c_void_p, c_int
 from threading import Semaphore
-from typing import Dict, List, Any
+from typing import Dict, List, Tuple, Any, Optional
 from time import sleep
-from configparser import ConfigParser
 from collections import defaultdict
 
-fluid_event_get_data = fluidsynth.cfunc('fluid_event_get_data', c_void_p,
-                                    ('evt', c_void_p, 1))
-
-fluid_synth_get_active_voice_count = fluidsynth.cfunc('fluid_synth_get_active_voice_count', c_int,
+fluid_synth_get_active_voice_count = pyfluidsynth.cfunc('fluid_synth_get_active_voice_count', c_int,
                                     ('synth', c_void_p, 1))
 
 class FluidSynthSequencer ( Sequencer ):
@@ -25,27 +23,32 @@ class FluidSynthSequencer ( Sequencer ):
         self.output : str = output or "pulseaudio"
         self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
 
-        self.synth : fluidsynth.Synth = None
-        self.synthId : int = None
-        self.soundfontId : int = None
-        self.sequencer : fluidsynth.Sequencer = None
-        self.client : int = None
+        self.synth : Optional[pyfluidsynth.Synth] = None
+        self.synthId : Optional[int] = None
+        self.soundfontId : Optional[int] = None
+        self.ramSoundfont : Optional[pyfluidsynth.RamSoundFont] = None
+        self.ramSoundfontId : Optional[int] = None
+        self.sequencer : Optional[pyfluidsynth.Sequencer] = None
+        self.client : Optional[int] = None
 
-        self.last_note : int = None
-        self.join_lock : Semaphore = None
+        self.last_note : Optional[int] = None
+        self.join_lock : Optional[Semaphore] = None
         self.start_time : int = 0
         self.keys_count : Dict[int, List[int]] = defaultdict(lambda: [ 0 for i in range( 0, 128 ) ])
 
         self.events_data : Dict[int, Any] = dict()
         self.events_data_id : int = 1
         self.voices : Dict[str, int] = dict()
+        self.samples : Dict[str, Tuple[int, int]] = dict()
+        self.samples_voices : Dict[int, Voice] = dict()
+        self.last_sample : int = 0
         self.clock : Clock = Clock()
 
         self.set_transformers(
             DecomposeChordsTransformer()
         )
     
-    def _get_voice_channel ( self, voice ) -> int:
+    def _get_voice_channel ( self, voice : Voice ) -> int:
         key = voice.name + '$' + str( voice.instrument.program )
 
         if key in self.voices:
@@ -55,9 +58,45 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.voices[ key ] = value
 
-        self.synth.program_change( value, voice.instrument.program )
+        if voice.instrument.soundfont is None and voice.instrument.bank is None:
+            self.synth.program_change( value, voice.instrument.program )
+        elif voice.instrument.soundfont is None and voice.instrument.bank is not None:
+            self.synth.program_select( value, self.soundfontId, voice.instrument.bank, voice.instrument.program )
+        else:
+            self.synth.program_select( value, voice.instrument.soundfont, voice.instrument.bank, voice.instrument.program )
 
         return value
+
+    def _sound_to_note_event ( self, event : SoundEvent ) -> NoteEvent:
+        if event.file not in self.samples:
+            sample_location = ( self.last_sample // 127 + 1, self.last_sample % 127 )
+
+            
+            self.ramSoundfont.add_wave_zone( 1, sample_location[ 0 ], event.wave, sample_location[ 1 ], sample_location[ 1 ] )
+            
+            self.samples[ event.file ] = sample_location
+
+            self.last_sample += 1
+        else:
+            sample_location = self.samples[ event.file ]
+
+        if sample_location[ 0 ] not in self.samples_voices:
+            voice = event.voice.clone( name = f"$$sample_voice_{ len( self.samples_voices ) }" )
+
+            voice.instrument = Instrument( f"Samples Virtual Instrument { len( self.samples_voices ) }", sample_location[ 0 ], 1, self.ramSoundfontId )
+
+            self.samples_voices[ sample_location[ 0 ] ] = voice
+        else:
+            voice = self.samples_voices[ sample_location[ 0 ] ]
+
+        return NoteEvent.from_pitch(
+            timestamp = event.timestamp,
+            duration = event.duration,
+            value = event.value,
+            pitch = sample_location[ 1 ],
+            velocity = event.velocity,
+            voice = voice
+        )
 
     @property
     def is_output_file ( self ) -> bool:
@@ -96,7 +135,7 @@ class FluidSynthSequencer ( Sequencer ):
         return self.sequencer.timer( time, data = data, source = source, dest = dest, absolute = absolute )
 
     def apply_event_callback ( self, time, event, seq, data ):
-        data = fluid_event_get_data( event )
+        data = pyfluidsynth.fluid_event_get_data( event )
 
         if data != None:
             data_id = data
@@ -126,15 +165,6 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.synth.noteon( channel, key, event.velocity )
     
-    
-    def apply_event_chordoff ( self, channel : int, event : ChordOffEvent ):
-        for event in event.notes:
-            self.apply_event_noteoff( channel, event )
-
-    def apply_event_chordon( self, channel, event : ChordOnEvent ):
-        for event in event.notes:
-            self.apply_event_noteon( channel, event )
-
     def apply_event ( self, event : MusicEvent ):
         if isinstance( event, VoiceEvent ):
             channel = self._get_voice_channel( event.voice )
@@ -143,10 +173,6 @@ class FluidSynthSequencer ( Sequencer ):
                 self.apply_event_noteon( channel, event )
             elif isinstance( event, NoteOffEvent ):
                 self.apply_event_noteoff( channel, event )
-            # if isinstance( event, ChordOnEvent ):
-            #     self.apply_event_chordon( channel, event )
-            # elif isinstance( event, ChordOffEvent ):
-            #     self.apply_event_chordoff( channel, event )
             elif isinstance( event, ProgramChangeEvent ):
                 self.synth.program_change( channel, event.program )
             elif isinstance( event, ControlChangeEvent ):
@@ -159,19 +185,16 @@ class FluidSynthSequencer ( Sequencer ):
     def on_event ( self, event : MusicEvent ):
         if isinstance( event, VoiceEvent ):
             self._get_voice_channel( event.voice )
-
+        
+        if isinstance( event, SoundEvent ):
+            event = self._sound_to_note_event( event )
+            
         if isinstance( event, NoteEvent ):
             noteon = event.note_on
             noteoff = event.note_off
             
             self.timer( self.start_time + noteon.timestamp, data = noteon, dest = self.client )
-            self.timer( self.start_time + noteoff.timestamp, data = noteoff, dest = self.client )
-        # elif isinstance( event, ChordEvent ):
-        #     chordon = event.chord_on
-        #     chordoff = event.chord_off
-            
-        #     self.timer( self.start_time + chordon.timestamp, data = chordon, dest = self.client )
-        #     self.timer( self.start_time + chordoff.timestamp, data = chordoff, dest = self.client )
+            self.timer( self.start_time + noteoff.timestamp, data = noteoff, dest = self.client )    
         else:
             self.timer( event.timestamp, data = event, dest = self.client )
     
@@ -205,26 +228,28 @@ class FluidSynthSequencer ( Sequencer ):
         #         break
 
     def start ( self ):
-        self.synth = fluidsynth.Synth()
+        self.synth = pyfluidsynth.Synth()
 
-        # 'alsa', 'oss', 'jack', 'portaudio', 'sndmgr', 'coreaudio', 'Direct Sound', 'pulseaudio'
-        fluidsynth.fluid_settings_setint(self.synth.settings, b'audio.period-size', 1024 )
-        fluidsynth.fluid_settings_setint( self.synth.settings, b'synth.verbose', 0 )
+        self.synth.setting( 'audio.period-size', 1024 )
+        self.synth.setting( 'synth.verbose', 0 )
 
         if self.is_output_file:
-            fluidsynth.fluid_settings_setstr( self.synth.settings, b'audio.file.name', self.output.encode() )
-            fluidsynth.fluid_settings_setstr( self.synth.settings, b'audio.driver', 'file'.encode() )
+            self.synth.setting( 'audio.file.name', self.output )
+            self.synth.setting( 'audio.driver', 'file' )
             
-            self.synth.audio_driver = fluidsynth.new_fluid_audio_driver( self.synth.settings, self.synth.synth )
+            self.synth.audio_driver = pyfluidsynth.new_fluid_audio_driver( self.synth.settings, self.synth.synth )
         else:
             self.synth.start( driver = self.output )
-        
+
         self.soundfontId = self.synth.sfload( self.soundfont, update_midi_preset = 1 )
 
+        self.ramSoundfont = pyfluidsynth.RamSoundFont()
+        self.ramSoundfontId = self.synth.add_sfont( self.ramSoundfont )
+        
         self.synth.cc( 0, 64, 127 )
         self.synth.program_change( 0, 1 )
     
-        self.sequencer = fluidsynth.Sequencer()
+        self.sequencer = pyfluidsynth.Sequencer()
         
         self.synthId = self.sequencer.register_fluidsynth( self.synth )
 

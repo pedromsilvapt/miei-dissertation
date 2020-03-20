@@ -1,10 +1,10 @@
+from typing import Optional
 from musikla.core.events.transformers import Transformer, ComposeNotesTransformer, ComposeChordsTransformer, VoiceIdentifierTransformer, AnnotateTransformer, EnsureOrderTransformer
 from musikla.core.events import MusicEvent, NoteEvent, ProgramChangeEvent
 from musikla.core import Clock
 from ..sequencer import Sequencer, SequencerFactory
 from .builder import ABCBuilder
 from pathlib import Path
-import time
 
 class ABCSequencer ( Sequencer ):
     def __init__ ( self, filename : str ):
@@ -54,7 +54,7 @@ class ABCSequencer ( Sequencer ):
         self.clock.start()
 
 class ABCSequencerFactory( SequencerFactory ):
-    def from_str ( self, uri : str ) -> ABCSequencer:
+    def from_str ( self, uri : str ) -> Optional[ABCSequencer]:
         suffix = ( Path( uri ).suffix or '' ).lower()
 
         if suffix == '.abc':

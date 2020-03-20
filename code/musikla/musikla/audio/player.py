@@ -27,6 +27,9 @@ class Player():
 
         for factory in self.sequencer_factories:
             if factory.default:
+                if default is not None:
+                    print( f"WARNING: Replacing default sequencer { default.__class__.__name__ } with { factory.__class__.__name__ }" )
+                    
                 default = factory
             else:
                 sequencer = factory.from_str( uri )

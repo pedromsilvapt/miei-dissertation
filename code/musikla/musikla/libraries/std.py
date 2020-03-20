@@ -153,7 +153,7 @@ class StandardLibrary(Library):
         context.symbols.assign( "dict", dict )
         context.symbols.assign( "range", range )
 
-        context.symbols.assign( "inspect_context", CallableValue( function_inspect_context ) )
+        context.symbols.assign( "inspect_context", CallablePythonValue( function_inspect_context ) )
         context.symbols.assign( "ord", CallableValue( function_ord ) )
         context.symbols.assign( "chr", CallableValue( function_chr ) )
         context.symbols.assign( "cc", CallablePythonValue( function_cc ) )

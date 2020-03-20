@@ -1,7 +1,11 @@
+from typing import Optional
+
 class Instrument():
-    def __init__ ( self, name, program ):
-        self.name = name
-        self.program = program
+    def __init__ ( self, name : str, program : int, bank : int = None, soundfont : int = None ):
+        self.name : str = name
+        self.program : int = program
+        self.bank : Optional[int] = bank
+        self.soundfont : Optional[int] = soundfont
 
 class GeneralMidi():
     # Piano

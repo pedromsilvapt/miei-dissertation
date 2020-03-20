@@ -1,12 +1,11 @@
 from musikla.libraries.keyboard_pynput import KeyboardPynputLibrary
 from musikla.libraries.keyboard_mido import KeyboardMidoLibrary
-from musikla.core.music import MusicBuffer
 from musikla.core import Context, Library, Music, Value
 from musikla.parser import Parser, Node
 from musikla.audio import Player, AsyncMidiPlayer
-from musikla.audio.sequencers import Sequencer, SequencerFactory, FluidSynthSequencerFactory, ABCSequencerFactory
+from musikla.audio.sequencers import Sequencer, SequencerFactory, FluidSynthSequencerFactory, ABCSequencerFactory, PDFSequencerFactory
 from musikla.libraries import StandardLibrary, MusicLibrary, KeyboardLibrary, MidiLibrary
-from typing import Optional, Union, List, Set, Dict, Any, cast
+from typing import Optional, Union, Set, Dict, Any, cast
 from pathlib import Path
 from configparser import ConfigParser
 import asyncio
@@ -33,8 +32,9 @@ class Script:
         
         self.libraries : Dict[str, Any] = {}
         
-        self.player.add_sequencer_factory( ABCSequencerFactory, self.context, self.config )
-        self.player.add_sequencer_factory( FluidSynthSequencerFactory, self.context, self.config )
+        self.add_sequencer_factory( ABCSequencerFactory )
+        self.add_sequencer_factory( PDFSequencerFactory )
+        self.add_sequencer_factory( FluidSynthSequencerFactory )
 
         # Import the builtin libraries
         self.import_library( StandardLibrary )
@@ -47,6 +47,9 @@ class Script:
         if code != None:
             self.eval( code )
     
+    def add_sequencer_factory ( self, factory : Any ):
+        self.player.add_sequencer_factory( factory, self.context, self.config )
+
     def add_library ( self, *libraries : Any ):
         for library in libraries:
             name : str = library.__name__
@@ -125,8 +128,11 @@ class Script:
     def execute_file ( self, file : str, context : Context = None, sync : bool = False, realtime : bool = True ):
         code = self.parser.parse_file( file )
         
+        absolute_file : str = os.path.abspath( file )
+
         value = self.eval( code, context = context, locals = {
-            __file__: file
+            '__file__': absolute_file,
+            '__dir__': str( Path( absolute_file ).parent )
         } )
         
         if value and isinstance( value, Music ):

@@ -1,0 +1,7 @@
+S4/4 L/4 T132 V120;
+
+$clhat = sample( $__dir__ + "/ClHat.wav", len = 1 );
+
+$flam = sample( $__dir__ + "/Flam.wav", len = 1 );
+
+play( $clhat $flam $flam $flam $clhat $flam $flam ( v1 $flam | $clhat ) );

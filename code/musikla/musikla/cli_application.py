@@ -60,8 +60,8 @@ class CliApplication:
         if options.midi != None:
             script.config.set( 'Musikla', 'midi_input', options.midi )
 
-        if options.outputs:
-            script.config.set( 'Musikla', 'outputs', options.outputs )
+        # if options.outputs:
+        #     script.config.set( 'Musikla', 'outputs', options.outputs )
 
         if options.outputs:
             for output in options.outputs:
