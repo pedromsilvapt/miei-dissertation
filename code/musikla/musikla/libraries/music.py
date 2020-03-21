@@ -38,7 +38,7 @@ def function_arpeggio_gen ( context : Context, chord : Music, pattern : Music = 
             yield event
 
 def function_sample ( context : Context, file : str, duration : float = None, len = None ):
-    event = SoundEvent( file, timestamp = context.cursor, voice = context.voice, duration = duration, value = len )
+    event = SoundEvent( file, timestamp = context.cursor, voice = context.voice, duration = duration, value = len, velocity = context.voice.velocity )
 
     context.cursor += event.duration
 
@@ -59,7 +59,11 @@ class MusicLibrary(Library):
     def on_link ( self ):
         context : Context = self.context
 
+        context.symbols.assign( 'is_sample_optimized', CallablePythonValue( SoundEvent.is_optimized ) )
+        context.symbols.assign( 'optimize_sample', CallablePythonValue( SoundEvent.optimize ) )
+        context.symbols.assign( 'optimize_samples_folder', CallablePythonValue( SoundEvent.optimize_folder ) )
         context.symbols.assign( "sample", CallablePythonValue( function_sample ) )
+
         context.symbols.assign( "arpeggio", CallablePythonValue( function_arpeggio ) )
         context.symbols.assign( "transpose", CallablePythonValue( function_transpose ) )
 

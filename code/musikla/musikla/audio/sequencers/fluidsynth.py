@@ -42,6 +42,10 @@ class FluidSynthSequencer ( Sequencer ):
         self.samples : Dict[str, Tuple[int, int]] = dict()
         self.samples_voices : Dict[int, Voice] = dict()
         self.last_sample : int = 0
+        # For some reason, notes below 15 are somewhat pitched down, and below 10 are heavily pitched down
+        # So all samples must start above 15. This means that instead of 128 notes available, we have 113
+        self.sample_note_offset : int = 15
+
         self.clock : Clock = Clock()
 
         self.set_transformers(
@@ -69,9 +73,10 @@ class FluidSynthSequencer ( Sequencer ):
 
     def _sound_to_note_event ( self, event : SoundEvent ) -> NoteEvent:
         if event.file not in self.samples:
-            sample_location = ( self.last_sample // 127 + 1, self.last_sample % 127 )
+            sno : int = self.sample_note_offset
 
-            
+            sample_location = ( self.last_sample // ( 128 - sno ) + 1, sno + self.last_sample % ( 128 - sno ) )
+
             self.ramSoundfont.add_wave_zone( 1, sample_location[ 0 ], event.wave, sample_location[ 1 ], sample_location[ 1 ] )
             
             self.samples[ event.file ] = sample_location
@@ -231,7 +236,7 @@ class FluidSynthSequencer ( Sequencer ):
         self.synth = pyfluidsynth.Synth()
 
         self.synth.setting( 'audio.period-size', 1024 )
-        self.synth.setting( 'synth.verbose', 0 )
+        self.synth.setting( 'synth.verbose', 0 )      
 
         if self.is_output_file:
             self.synth.setting( 'audio.file.name', self.output )

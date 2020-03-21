@@ -1,7 +1,37 @@
+# README
+# The `sample(file: str, [len: Fraction, duration:int])` function allows playing sounds together with regular notes, given a music file.
+# The `len` and `duration` are roughly equivalent, but while the duration parameter takes an integer in milliseconds, the `len`
+#   parameter expects a musical note length (1/4, 1, 2/3, etc...).
+#   Note: These do not affect the duration of the sound itself. But rather, when composing sounds and notes together, these values influence
+#         how long before whatever comes next starts playing.
+#
+# SUPPORTED FORMATS
+# The optimal file format is a WAV with 16bit depth, 44100hz and a single channel (mono). These kinds of files can be used directly without requiring
+#   extra conversions.
+# For convenience, when any other type of file is provided, the `sample()` function automatically converts it in runtime to a supported format
+#   and saves it in memory. Note that this requires `ffmpeg` to be installed on the system and be available in the PATH.
+#
+# This behavior is fine when playtesting things, but when using the language for more serious work, it is advisable to convert the
+#   files into a supported format before using them, to avoid converting them in runtime all the time.
+# To this effect, the language provides out of the box three simple methods:
+#   - `is_sample_optimized(file: str) -> bool` Checks if a file format is already optimized and can be used directly
+#        Example:
+#        `is_sample_optimized( $__dir__ + "/samples/ClHat-01.wav" )`
+#   - `optimize_sample(input: str, output: str)` Runs ffmpeg in the background to convert the file `input` into a supported
+#        format and saves it in the `output` location.
+#        Example:
+#        `optimize_sample( $__dir__ + "/ClHat-01.wav", $__dir__ + "/samples/ClHat-01.wav" );`
+#   - `optimize_samples_folder(input: str, output: str)` For each file in the `input` folder, optimizes it and saves it in the 
+#        `output` folder
+#        Example:
+#       `optimize_samples_folder( $__dir__ + "/unoptimized", $__dir__ + "/optimized" );`
+
 S4/4 L/4 T132 V120;
 
-$clhat = sample( $__dir__ + "/ClHat.wav", len = 1 );
+$clhat = sample( $__dir__ + "/samples/ClHat-01.wav", len = 1 );
 
-$flam = sample( $__dir__ + "/Flam.wav", len = 1 );
+$flam = sample( $__dir__ + "/samples/Flam-01.wav", len = 1 );
 
-play( $clhat $flam $flam $flam $clhat $flam $flam ( v1 $flam | $clhat ) );
+$kick = sample( $__dir__ + "/samples/Kick-08.wav", len = 1 );
+
+play( a $clhat $kick $kick $kick $clhat $kick $kick $flam );
