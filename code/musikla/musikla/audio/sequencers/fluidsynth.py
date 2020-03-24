@@ -15,13 +15,14 @@ fluid_synth_get_active_voice_count = pyfluidsynth.cfunc('fluid_synth_get_active_
                                     ('synth', c_void_p, 1))
 
 class FluidSynthSequencer ( Sequencer ):
-    def __init__ ( self, output : str = None, soundfont : str = None ):
+    def __init__ ( self, output : str = None, soundfont : str = None, settings : Dict[str, Any] = {} ):
         super().__init__()
 
         self.realtime = True
 
         self.output : str = output or "pulseaudio"
         self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+        self.settings : Dict[str, Any] = settings
 
         self.synth : Optional[pyfluidsynth.Synth] = None
         self.synthId : Optional[int] = None
@@ -236,7 +237,10 @@ class FluidSynthSequencer ( Sequencer ):
         self.synth = pyfluidsynth.Synth()
 
         self.synth.setting( 'audio.period-size', 1024 )
-        self.synth.setting( 'synth.verbose', 0 )      
+        self.synth.setting( 'synth.verbose', 0 )
+
+        for key, value in self.settings:
+            self.synth.setting( key, value )
 
         if self.is_output_file:
             self.synth.setting( 'audio.file.name', self.output )
@@ -268,4 +272,6 @@ class FluidSynthSequencerFactory( SequencerFactory ):
     def from_str ( self, uri : str ) -> FluidSynthSequencer:
         soundfont = self.config.get( 'Musikla', 'soundfont', fallback = None )
 
-        return FluidSynthSequencer( uri, soundfont )
+        
+
+        return FluidSynthSequencer( uri, soundfont, self.config[ 'FluidSynth.Settings' ] if 'FluidSynth.Settings' in self.config else {} )

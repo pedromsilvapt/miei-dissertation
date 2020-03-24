@@ -34,4 +34,4 @@ $flam = sample( $__dir__ + "/samples/Flam-01.wav", len = 1 );
 
 $kick = sample( $__dir__ + "/samples/Kick-08.wav", len = 1 );
 
-play( a $clhat $kick $kick $kick $clhat $kick $kick $flam );
+play( $clhat $kick $kick $kick $clhat $kick $kick $flam );
