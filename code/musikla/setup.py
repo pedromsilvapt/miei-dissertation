@@ -27,7 +27,7 @@ setuptools.setup(
         'mido',
         'python-rtmidi',
         'imgui[glfw]',
-        'arpeggio'
-    ],
-    dependency_links = ['http://github.com/pedromsilvapt/pyfluidsynth/tarball/master#egg=pyfluidsynth-1.2.5']
+        'arpeggio',
+        'pyfluidsynth-musikla @ http://github.com/pedromsilvapt/pyfluidsynth/archive/master.tar.gz'
+    ]
 )
