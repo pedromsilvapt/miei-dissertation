@@ -7,11 +7,12 @@ class Scale:
 
     def interval_at ( self, index : int ) -> Interval:
         l = len( self.intervals )
+        
         return Interval( octaves = index // l, semitones = self.intervals[ index % l ] )
 
 Scale.black_keys = Scale( [ 1, 3, 6, 8, 10 ] )
 
-Scale.white_keys = Scale( [ 0, 2, 4, 5, 7, 9, 11, 12 ] )
+Scale.white_keys = Scale( [ 0, 2, 4, 5, 7, 9, 11 ] )
 
 # major: W W H W W W H
 # minor: W H W W H W W

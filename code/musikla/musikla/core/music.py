@@ -2,7 +2,7 @@ from .context import Context
 from .voice import Voice
 from .events import NoteEvent, MusicEvent
 from .enumerable import merge_sorted
-from typing import List
+from typing import Any, Optional, List
 from itertools import islice
 
 class MusicBuffer:
@@ -54,6 +54,9 @@ class Music:
                     yield subnote
             else:
                 yield note
+
+    def transform ( self, transformer : Any, *args, **kargs ) -> 'MusicGen':
+        return MusicGen( self, lambda it: transformer.iter( it, *args, **kargs ) )
 
     def slice ( self, start = 0, end = 0 ):
         return MusicGen( self, lambda it: islice( it, start, end ) )
@@ -172,7 +175,7 @@ class SharedIterator():
 class TemplateMusic(Music):
     def __init__ ( self, notes = [] ):
         super().__init__( notes )
-        self.shared_music : SharedMusic = None
+        self.shared_music : Optional[SharedMusic] = None
 
     def shared ( self ):
         return self

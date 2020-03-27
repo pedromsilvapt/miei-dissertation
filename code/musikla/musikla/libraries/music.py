@@ -1,12 +1,14 @@
 from typing import Any, List, Optional
 from musikla.core import Context, Library
 from musikla.core.callable_python_value import CallablePythonValue
-from musikla.core import Value, Music
+from musikla.core import Music
 from musikla.core.events import NoteEvent, SoundEvent
 from musikla.core.theory import NotePitchClassesInv, NotePitchClassesIndexes
-from musikla.parser.abstract_syntax_tree.expressions import VariableExpressionNode
+from musikla.core.events.transformers import DecomposeChordsTransformer
 
 def function_arpeggio_gen ( context : Context, chord : Music, pattern : Music = None, bars : int = None ):
+    chord = chord.transform( DecomposeChordsTransformer )
+
     if pattern == None:
         baseline : Optional[int] = None
         
@@ -21,8 +23,8 @@ def function_arpeggio_gen ( context : Context, chord : Music, pattern : Music = 
             yield event
     else:
         notes_pool : List[Any] = [ evt for evt in chord if isinstance( evt, NoteEvent ) ]
-
-        for event in pattern:
+        
+        for event in pattern.transform( DecomposeChordsTransformer ):
             if not isinstance( event, NoteEvent ):
                 yield event
                 continue
@@ -32,7 +34,7 @@ def function_arpeggio_gen ( context : Context, chord : Music, pattern : Music = 
             archtype = notes_pool[ index ]
 
             event = archtype.from_pattern( event )
-
+            
             context.cursor = event.end_timestamp
 
             yield event

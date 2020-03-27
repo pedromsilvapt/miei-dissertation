@@ -54,6 +54,9 @@ class CliApplication:
 
         script.player.print_events = bool( options.print_events )
         
+        if not script.config.has_section( 'Musikla' ):
+            script.config.add_section( 'Musikla' )
+
         if options.soundfont != None:
             script.config.set( 'Musikla', 'soundfont', options.soundfont )
 

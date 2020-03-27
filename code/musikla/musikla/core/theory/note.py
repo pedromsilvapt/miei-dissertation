@@ -30,7 +30,7 @@ NotePitchClasses = {
 
 NotePitchClassesInv : Dict[int, str] = { v: k for k, v in NotePitchClasses.items() }
 
-NotePitchClassesIndexes : Dict[str, str] = keysToIndexes( NotePitchClasses )
+NotePitchClassesIndexes : Dict[str, int] = keysToIndexes( NotePitchClasses )
 
 class Note:
     # Static

@@ -85,6 +85,12 @@ def function_debug ( context : Context, expr ):
     else:
         print( "<%s>%s" % ( Value.typeof( value ), value ) )
 
+def function_mod ( n : float, d : float ) -> float: 
+    return n % d
+
+def function_div ( n : float, d : float ) -> float: 
+    return n // d
+
 def function_inspect_context ( context : Context, ignore_root : bool = True ):
     symbols = context.symbols
     
@@ -138,6 +144,7 @@ class StandardLibrary(Library):
     def on_link ( self ):
         context : Context = self.context
 
+        context.symbols.assign( "print", CallablePythonValue( print ) )
         context.symbols.assign( "debug", CallableValue( function_debug ) )
         context.symbols.assign( "discard", CallableValue( function_discard ) )
         context.symbols.assign( "play", CallableValue( function_play ) )
@@ -152,6 +159,9 @@ class StandardLibrary(Library):
         context.symbols.assign( "list", list )
         context.symbols.assign( "dict", dict )
         context.symbols.assign( "range", range )
+
+        context.symbols.assign( "mod", CallablePythonValue( function_mod ) )
+        context.symbols.assign( "div", CallablePythonValue( function_div ) )
 
         context.symbols.assign( "inspect_context", CallablePythonValue( function_inspect_context ) )
         context.symbols.assign( "ord", CallableValue( function_ord ) )
