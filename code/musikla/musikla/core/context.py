@@ -2,7 +2,7 @@ from .instrument import Instrument, GeneralMidi
 from .voice import Voice
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
-from typing import List, Hashable
+from typing import Any, List, Hashable
 from fractions import Fraction
 
 class Library:
@@ -106,3 +106,12 @@ class Context():
 
     def library ( self, library ) -> Library:
         return self.symbols.lookup( library, container = "libraries" )
+
+class StackFrame:
+    def __init__ ( self ):
+        self.returned : bool = False
+        self.returned_value : Any = None
+
+    def ret ( self, value : Any = None ):
+        self.returned = True
+        self.returned_value = value

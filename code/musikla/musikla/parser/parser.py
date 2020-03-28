@@ -22,7 +22,7 @@ from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, Less
 from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockNode, PropertyAccessorNode
 
 from .abstract_syntax_tree.statements import StatementsListNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
-from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode
+from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode, ReturnStatementNode
 
 from .abstract_syntax_tree.macros import KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode
 from .abstract_syntax_tree.macros import VoiceDeclarationMacroNode
@@ -38,7 +38,7 @@ class ParserVisitor(PTNodeVisitor):
 
         position = ( node.position, node.position_end )
 
-        return StatementsListNode( list( children ), position )
+        return StatementsListNode( list( children ), position = position )
 
     def visit_comment ( self, node, children ):
         return None
@@ -135,6 +135,14 @@ class ParserVisitor(PTNodeVisitor):
             return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], children.body[ 1 ], position )
 
         return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], position = position )
+
+    def visit_return_statement ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        if children.expression:
+            return ReturnStatementNode( children.expression[ 0 ], position = position )
+
+        return ReturnStatementNode( position = position )
 
     def visit_keyboard_declaration ( self, node, children ):
         if len( children.group ):

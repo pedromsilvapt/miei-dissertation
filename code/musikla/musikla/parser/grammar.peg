@@ -5,7 +5,7 @@ body <- statement ( ";" statement )* _ ";"? _
       ;
 
 // Statements
-statement <- _ ( var_declaration / voice_declaration / for_loop_statement / while_loop_statement / if_statement / expression ) _;
+statement <- _ ( var_declaration / voice_declaration / for_loop_statement / while_loop_statement / if_statement / return_statement / expression ) _;
 
 var_declaration <- "$" namespaced _ "=" _ expression;
 
@@ -43,6 +43,8 @@ while_loop_statement <- "while" _ "(" _ expression _ ")" _ "{" _ body _ "}";
 if_statement <- "if" _ "(" _ expression _ ")" _ "{" _ body _ "}" _ "else" _ "{" _ body _ "}"
               / "if" _ "(" _ expression _ ")" _ "{" _ body _ "}"
               ;
+
+return_statement <- "return" _ expression?;
 
 // BEGIN Keyboard
 keyboard_declaration <- "@keyboard" (_ alphanumeric)* ( _ group )? _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";

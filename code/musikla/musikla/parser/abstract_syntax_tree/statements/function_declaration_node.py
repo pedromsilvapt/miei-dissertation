@@ -1,14 +1,16 @@
 from musikla.core import Context, SymbolsScope, CallableValue, Value
 from .statement_node import StatementNode
 from ..expressions import VariableExpressionNode
+from ..stack_frame_node import StackFrameNode
+from typing import Tuple
 
 class FunctionDeclarationStatementNode( StatementNode ):
-    def __init__ ( self, name, arguments, body, position : (int, int) = None ):
+    def __init__ ( self, name, arguments, body, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.name = name
         self.arguments = arguments
-        self.body = body
+        self.body = StackFrameNode( body, position = position )
 
     def eval ( self, context : Context ):
         fn = CallableValue( lambda *args, **kargs: self.exec( context.symbols, *args, **kargs ) )

@@ -1,13 +1,13 @@
 fun keyboard ( $layout, $hshift = @{}, $scales = @{}, $row_octaves = @{}, $transpose = 0; $toggle = false ) {
     fun get_row_scale ( $row_index ) {
         if ( $scales::has( $row_index ) ) {
-            $scales::get( $row_index );
+            return $scales::get( $row_index );
+        };
+
+        if ( mod( $row_index, 2 ) == 0 ) {
+            return $scale::white_keys;
         } else {
-            if ( mod( $row_index, 2 ) == 0 ) {
-                $scale::white_keys;
-            } else {
-                $scale::black_keys;
-            };
+            return $scale::black_keys;
         };
     };
 
@@ -39,11 +39,11 @@ fun keyboard ( $layout, $hshift = @{}, $scales = @{}, $row_octaves = @{}, $trans
         $row_index = $row_index - 1;
     };
 
-    $kb;
+    return $kb;
 };
 
 $layout = 
-"\1234567890'«
+"1234567890'«
 qwertyuiop+´
 asdfghjklçº~
 <zxcvbnm,.-";

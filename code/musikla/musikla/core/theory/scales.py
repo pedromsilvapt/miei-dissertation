@@ -2,6 +2,9 @@ from typing import List
 from .interval import Interval
 
 class Scale:
+    black_keys : 'Scale'
+    white_keys : 'Scale'
+
     def __init__ ( self, intervals : List[int] ):
         self.intervals : List[int] = intervals
 
