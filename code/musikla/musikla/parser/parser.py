@@ -49,7 +49,15 @@ class ParserVisitor(PTNodeVisitor):
     def visit_var_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        return VariableDeclarationStatementNode( children[ 0 ], children[ 1 ], position = position )
+        operator = children.var_declaration_infix[ 0 ] if children.var_declaration_infix else None
+
+        return VariableDeclarationStatementNode( children.namespaced[ 0 ], children.expression[ 0 ], operator = operator, position = position )
+
+    def visit_var_declaration_infix ( self, node, children ):
+        if not children:
+            return None
+
+        return children[ 0 ]
 
     def visit_voice_declaration ( self, node, children ):
         position = ( node.position, node.position_end )

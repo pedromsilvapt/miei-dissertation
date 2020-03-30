@@ -7,7 +7,9 @@ body <- statement ( ";" statement )* _ ";"? _
 // Statements
 statement <- _ ( var_declaration / voice_declaration / for_loop_statement / while_loop_statement / if_statement / return_statement / expression ) _;
 
-var_declaration <- "$" namespaced _ "=" _ expression;
+var_declaration <- "$" namespaced _ var_declaration_infix? "=" _ expression;
+
+var_declaration_infix <- "+" / "-" / "/" / "*" / "|" / "&";
 
 voice_declaration <- !"::" ":" identifier _ "=" _ voice_declaration_body;
 

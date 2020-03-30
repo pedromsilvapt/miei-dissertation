@@ -1,9 +1,8 @@
 
-from .event import MusicEvent, DurationEvent, VoiceEvent
+from .event import DurationEvent, VoiceEvent
 from ..voice import Voice
 from ..theory import Note, NoteAccidental, Interval
-from fractions import Fraction
-from typing import Dict
+from typing import Optional, cast
 
 class NoteOnEvent ( VoiceEvent ):
     @staticmethod
@@ -26,7 +25,7 @@ class NoteOnEvent ( VoiceEvent ):
         self.accidental : int = accidental
         self.velocity : int = velocity
         self.tied : bool = tied
-        self.parent : 'NoteEvent' = parent
+        self.parent : Optional['NoteEvent'] = parent
 
         self._disabled : bool = False
 
@@ -37,7 +36,7 @@ class NoteOnEvent ( VoiceEvent ):
         return Note( self.pitch_class, self.octave, self.accidental )
 
     def note_off ( self, timestamp : int ) -> 'NoteOffEvent':
-        return NoteOffEvent( timestamp, self.pitch_class, self.octave, self.accidental, self.voice, self.parent )
+        return NoteOffEvent( timestamp, self.pitch_class, self.octave, self.accidental, self.voice, self.tied, self.parent )
 
     def __int__ ( self ):
         return int( self.note )
@@ -65,7 +64,7 @@ class NoteOffEvent ( VoiceEvent ):
         self.octave : int = octave
         self.accidental : int = accidental
         self.tied : bool = tied
-        self.parent : 'NoteEvent' = parent
+        self.parent : Optional['NoteEvent'] = parent
 
         super().__init__( timestamp, voice )
 
@@ -119,18 +118,18 @@ class NoteEvent( DurationEvent ):
         return NoteOnEvent( self.timestamp, self.pitch_class, self.octave, self.accidental, self.velocity, self.voice, self.tied, parent = self )
 
     @property
-    def note_off ( self ) -> NoteOnEvent:
+    def note_off ( self ) -> NoteOffEvent:
         return NoteOffEvent( self.timestamp + self.duration, self.pitch_class, self.octave, self.accidental, self.voice, self.tied, parent = self )
 
     def from_pattern ( self, pattern : 'NoteEvent' ) -> 'NoteEvent':
-        return self.clone( 
+        return cast( NoteEvent, self.clone( 
              timestamp = pattern.timestamp,
              octave = self.octave + ( pattern.octave - pattern.voice.octave ),
              value = pattern.value,
              duration = pattern.duration,
              velocity = pattern.velocity,
              voice = pattern.voice
-        )
+        ) )
 
     def with_pitch ( self, pitch : int ) -> 'NoteEvent':
         return NoteEvent.from_pitch(

@@ -2,7 +2,7 @@ from .context import Context
 from .voice import Voice
 from .events import NoteEvent, MusicEvent
 from .enumerable import merge_sorted
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Iterable
 from itertools import islice
 
 class MusicBuffer:
@@ -101,8 +101,8 @@ class Music:
                 yield note
 
 class SharedMusic(Music):
-    def __init__ ( self, base_music : Music ):
-        self.base_music : Music = base_music
+    def __init__ ( self, base_music : Iterable ):
+        self.base_music : Iterable = base_music
         self.shared_music : SharedIterator = SharedIterator( iter( base_music ) )
 
     def shared ( self ):

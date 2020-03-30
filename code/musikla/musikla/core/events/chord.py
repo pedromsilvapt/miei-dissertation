@@ -4,7 +4,7 @@ from .note import NoteEvent, NoteOnEvent, NoteOffEvent
 from ..voice import Voice
 from ..theory import Note, NoteAccidental, Interval
 from fractions import Fraction
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 class ChordEvent( DurationEvent ):
     def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, duration = 4, voice : Voice = None, velocity = 127, value = None, tied : bool = False ):
@@ -36,7 +36,7 @@ class ChordEvent( DurationEvent ):
         return SharedMusic( [ self ] )
 
     @property
-    def chord_on ( self ) -> NoteOnEvent:
+    def chord_on ( self ) -> 'ChordOnEvent':
         return ChordOnEvent( 
             timestamp = self.timestamp, 
             pitches = self.pitches, 
@@ -47,7 +47,7 @@ class ChordEvent( DurationEvent ):
         )
 
     @property
-    def chord_off ( self ) -> NoteOnEvent:
+    def chord_off ( self ) -> 'ChordOffEvent':
         return ChordOffEvent( 
             timestamp = self.timestamp + self.duration, 
             pitches = self.pitches, 
@@ -56,7 +56,7 @@ class ChordEvent( DurationEvent ):
             tied = self.tied
         )
 
-    def with_root_pitch ( self, pitch : int, **kargs ) -> 'NoteEvent':
+    def with_root_pitch ( self, pitch : int, **kargs ) -> 'ChordEvent':
         name = kargs[ 'name' ] if 'name' in kargs else self.name
 
         rp : int = self.pitches[ 0 ] if self.pitches else 0
@@ -71,7 +71,7 @@ class ChordEvent( DurationEvent ):
             value = self.value
         )
 
-    def with_pitches ( self, pitches : List[int], **kargs ) -> 'NoteEvent':
+    def with_pitches ( self, pitches : List[int], **kargs ) -> 'ChordEvent':
         name = kargs[ 'name' ] if 'name' in kargs else self.name
 
         return ChordEvent(
@@ -122,10 +122,19 @@ class ChordOnEvent( VoiceEvent ):
     def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, voice : Voice = None, velocity = 127, tied : bool = False ):
         super().__init__( timestamp, voice )
 
-        self.name : str = name
+        self.name : Optional[str] = name
         self.pitches : List[int] = pitches
         self.velocity = velocity
         self.tied : bool = tied
+
+    def chord_off ( self, timestamp : int ) -> 'ChordOffEvent':
+        return ChordOffEvent( 
+            timestamp = timestamp, 
+            pitches = self.pitches, 
+            name = self.name, 
+            voice = self.voice, 
+            tied = self.tied
+        )
 
     @property
     def notes ( self ) -> List[NoteEvent]:
@@ -145,7 +154,7 @@ class ChordOnEvent( VoiceEvent ):
 
         return SharedMusic( [ self ] )
 
-    def with_root_pitch ( self, pitch : int, **kargs ) -> 'NoteEvent':
+    def with_root_pitch ( self, pitch : int, **kargs ) -> 'ChordOnEvent':
         name = kargs[ 'name' ] if 'name' in kargs else self.name
 
         rp : int = self.pitches[ 0 ] if self.pitches else 0
@@ -158,7 +167,7 @@ class ChordOnEvent( VoiceEvent ):
             velocity = self.velocity, 
         )
 
-    def with_pitches ( self, pitches : List[int], **kargs ) -> 'NoteEvent':
+    def with_pitches ( self, pitches : List[int], **kargs ) -> 'ChordOnEvent':
         name = kargs[ 'name' ] if 'name' in kargs else self.name
 
         return ChordOnEvent(
@@ -196,7 +205,7 @@ class ChordOnEvent( VoiceEvent ):
         return f'[{self.timestamp}]' + str( self )
 
     def __str__ ( self ):
-        notes = ''.join( str( n ) for n in self.notes )
+        notes = ''.join( str( n.note ) for n in self.notes )
 
         if self.name is None:
             return f"[{ notes }](On)"
@@ -207,15 +216,15 @@ class ChordOffEvent( VoiceEvent ):
     def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, voice : Voice = None, tied : bool = False ):
         super().__init__( timestamp, voice )
 
-        self.name : str = name
+        self.name : Optional[str] = name
         self.pitches : List[int] = pitches
         self.tied : bool = tied
 
     @property
-    def notes ( self ) -> List[NoteEvent]:
+    def notes ( self ) -> List[NoteOffEvent]:
         return [ self.note_at( i ) for i in range( len( self.pitches ) ) ]
 
-    def note_at ( self, index : int ) -> NoteEvent:
+    def note_at ( self, index : int ) -> NoteOffEvent:
         return NoteOffEvent.from_pitch( 
             timestamp = self.timestamp,
             pitch = self.pitches[ index ],
@@ -228,7 +237,7 @@ class ChordOffEvent( VoiceEvent ):
 
         return SharedMusic( [ self ] )
 
-    def with_root_pitch ( self, pitch : int, **kargs ) -> 'NoteEvent':
+    def with_root_pitch ( self, pitch : int, **kargs ) -> 'ChordOffEvent':
         name = kargs[ 'name' ] if 'name' in kargs else self.name
 
         rp : int = self.pitches[ 0 ] if self.pitches else 0
@@ -240,7 +249,7 @@ class ChordOffEvent( VoiceEvent ):
             voice = self.voice,
         )
 
-    def with_pitches ( self, pitches : List[int], **kargs ) -> 'NoteEvent':
+    def with_pitches ( self, pitches : List[int], **kargs ) -> 'ChordOffEvent':
         name = kargs[ 'name' ] if 'name' in kargs else self.name
 
         return ChordOffEvent(
@@ -277,7 +286,7 @@ class ChordOffEvent( VoiceEvent ):
         return f'[{self.timestamp}]' + str( self )
 
     def __str__ ( self ):
-        notes = ''.join( str( n ) for n in self.notes )
+        notes = ''.join( str( n.note ) for n in self.notes )
 
         if self.name is None:
             return f"[{ notes }](Off)"

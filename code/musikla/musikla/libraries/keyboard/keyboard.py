@@ -1,3 +1,4 @@
+from decimal import InvalidOperation
 from musikla.core import Context, Value, Music
 from musikla.core.events import NoteEvent
 from typing import List, Dict, Optional, Union, Any, cast
@@ -140,3 +141,55 @@ class Keyboard:
             keyboard : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
 
             keyboard.close( self )
+
+    def _assert_keyboard ( self, obj ):
+        if obj is None:
+            raise InvalidOperation( "Cannot combine a keyboard with 'None'" )
+            
+        if not isinstance( obj, Keyboard ):
+            raise InvalidOperation( f"Cannot combine a keyboard with '{ type( obj ) }'" )
+
+    def __add__ ( self, other ):
+        from .library import KeyboardLibrary
+
+        self._assert_keyboard( other )
+
+        keyboard : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
+
+        kb = keyboard.create()
+
+        kb += self
+        kb += other
+
+        return kb
+
+    def __sub__ ( self, other ):
+        from .library import KeyboardLibrary
+
+        self._assert_keyboard( other )
+
+        keyboard : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
+
+        kb = keyboard.create()
+
+        kb += self
+        kb -= other
+
+        return kb
+
+    def __iadd__ ( self, other ):
+        self._assert_keyboard( other )
+
+        other.close()
+
+        self.keys.update( other.keys )
+
+        return self
+    
+    def __isub__ ( self, other ):
+        self._assert_keyboard( other )
+
+        for key in other.keys:
+            self.keys.pop( key, None )
+
+        return self

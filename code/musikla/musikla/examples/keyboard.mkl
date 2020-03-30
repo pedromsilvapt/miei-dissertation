@@ -48,4 +48,10 @@ qwertyuiop+´
 asdfghjklçº~
 <zxcvbnm,.-";
 
-keyboard( $layout, hshift = @{ 0 = 0 } );
+$kb = keyboard( $layout, hshift = @{ 0 = 0 } );
+
+$kb -= @keyboard hold extend {
+    a: [CM];
+    s: [DM];
+    d: [EM];
+};
