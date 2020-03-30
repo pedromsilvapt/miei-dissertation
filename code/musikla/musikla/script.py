@@ -3,7 +3,7 @@ from musikla.libraries.keyboard_mido import KeyboardMidoLibrary
 from musikla.core import Context, Library, Music, Value
 from musikla.parser import Parser, Node
 from musikla.audio import Player, AsyncMidiPlayer
-from musikla.audio.sequencers import Sequencer, SequencerFactory, FluidSynthSequencerFactory, ABCSequencerFactory, PDFSequencerFactory
+from musikla.audio.sequencers import FluidSynthSequencerFactory, ABCSequencerFactory, PDFSequencerFactory, HTMLSequencerFactory
 from musikla.libraries import StandardLibrary, MusicLibrary, KeyboardLibrary, MidiLibrary
 from typing import Optional, Union, Set, Dict, Any, cast
 from pathlib import Path
@@ -34,6 +34,7 @@ class Script:
         
         self.add_sequencer_factory( ABCSequencerFactory )
         self.add_sequencer_factory( PDFSequencerFactory )
+        self.add_sequencer_factory( HTMLSequencerFactory )
         self.add_sequencer_factory( FluidSynthSequencerFactory )
 
         # Import the builtin libraries

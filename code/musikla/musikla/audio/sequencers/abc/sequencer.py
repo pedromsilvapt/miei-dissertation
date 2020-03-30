@@ -38,14 +38,13 @@ class ABCSequencer ( Sequencer ):
         self.file_builder.add_event( event )
 
     def on_close ( self ):
-        with open( self.filename, 'w' ) as f:
-            file = self.file_builder.build()
+        if self.filename is not None:
+            with open( self.filename, 'w' ) as f:    
+                file = self.file_builder.build()
 
-            print( str( file ) )
-
-            f.write( str( file ) )
-            
-            f.flush()
+                f.write( str( file ) )
+                
+                f.flush()
 
     def join ( self ):
         pass
