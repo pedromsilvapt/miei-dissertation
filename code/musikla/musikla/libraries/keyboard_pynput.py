@@ -24,7 +24,7 @@ class KeyboardPynputEventSource( EventSource ):
 
     def get_key_info ( self, key : Key ) -> Tuple[bool, str, int]:
         if hasattr( key, '_value_' ):
-            value : int = int( key._value_[ 1 : -1 ] )
+            value : int = int( str( key._value_ )[ 1 : -1 ] )
         elif hasattr( key, '_scan' ):
             value : int = key._scan
         else:
@@ -54,6 +54,7 @@ class KeyboardPynputEventSource( EventSource ):
                     keystrokes.append( KeyStroke( ctrl, alt, shift, key ) )
                     keystrokes.append( KeyStroke( ctrl, alt, shift, value ) )
         else:
+            keystrokes.append( KeyStroke( ctrl, alt, shift, key ) )
             keystrokes.append( KeyStroke( ctrl, alt, shift, value ) )
 
         return keystrokes
@@ -81,7 +82,7 @@ class KeyboardPynputEventSource( EventSource ):
             del self.keyboard_state[ key ]
 
         if value in self.keyboard_state:
-            del self.keyboard_state[ key ]
+            del self.keyboard_state[ value ]
 
         for keystroke in keystrokes:
             virtual_keyboard.on_release( keystroke )

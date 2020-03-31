@@ -79,7 +79,7 @@ class KeyStroke(KeyboardEvent):
 
         mods.append( self.key )
 
-        return '+'.join( mods )
+        return '+'.join( [ str(m) for m in mods ] )
 
 class MouseMove( KeyboardEvent ):
     binary : bool = False
