@@ -22,7 +22,14 @@ class KeyboardPynputEventSource( EventSource ):
         self.mouse_listener : Optional[mouse.Listener] = None
         self.keyboard_state = dict()
 
-    def get_key_info ( self, key : Key ) -> Tuple[bool, str]:
+    def get_key_info ( self, key : Key ) -> Tuple[bool, str, int]:
+        if hasattr( key, '_value_' ):
+            value : int = int( key._value_[ 1 : -1 ] )
+        elif hasattr( key, '_scan' ):
+            value : int = key._scan
+        else:
+            value : int = -1
+
         key_str = str( key )
 
         # Hardcoded fix for wrong value for 5 numpad key
@@ -32,9 +39,9 @@ class KeyboardPynputEventSource( EventSource ):
 
         is_modifier : bool = key_str in [ 'ctrl', 'alt', 'shift' ]
         
-        return ( is_modifier, key_str )
+        return ( is_modifier, key_str, value )
 
-    def get_keystrokes ( self, is_modifier : bool, key : str ) -> List[KeyStroke]:
+    def get_keystrokes ( self, is_modifier : bool, key : str, value : int ) -> List[KeyStroke]:
         keystrokes : List[KeyStroke] = []
 
         ctrl = 'ctrl' in self.keyboard_state
@@ -45,17 +52,19 @@ class KeyboardPynputEventSource( EventSource ):
             for key in self.keyboard_state.keys():
                 if key not in [ 'ctrl', 'alt', 'shift' ]:
                     keystrokes.append( KeyStroke( ctrl, alt, shift, key ) )
+                    keystrokes.append( KeyStroke( ctrl, alt, shift, value ) )
         else:
-            keystrokes.append( KeyStroke( ctrl, alt, shift, key ) )
+            keystrokes.append( KeyStroke( ctrl, alt, shift, value ) )
 
         return keystrokes
 
     def on_press ( self, virtual_keyboard : KeyboardLibrary, key : Key ):
-        ( is_modifier, key ) = self.get_key_info( key )
+        ( is_modifier, key, value ) = self.get_key_info( key )
 
         self.keyboard_state[ key ] = True
+        self.keyboard_state[ value ] = True
 
-        keystrokes = self.get_keystrokes( is_modifier, key )
+        keystrokes = self.get_keystrokes( is_modifier, key, value )
             
         for keystroke in keystrokes:
             if keystroke == KeyStroke( True, True, True, 'c' ):
@@ -64,11 +73,14 @@ class KeyboardPynputEventSource( EventSource ):
             virtual_keyboard.on_press( keystroke )
 
     def on_release ( self, virtual_keyboard : KeyboardLibrary, key : Key ):
-        ( is_modifier, key ) = self.get_key_info( key )
+        ( is_modifier, key, value ) = self.get_key_info( key )
 
-        keystrokes = self.get_keystrokes( is_modifier, key )
+        keystrokes = self.get_keystrokes( is_modifier, key, value )
 
         if key in self.keyboard_state:
+            del self.keyboard_state[ key ]
+
+        if value in self.keyboard_state:
             del self.keyboard_state[ key ]
 
         for keystroke in keystrokes:
