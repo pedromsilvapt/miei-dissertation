@@ -1,0 +1,763 @@
+
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+      
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.pipeline.stopwords" content="True">
+      
+        <meta name="lang:search.pipeline.trimmer" content="True">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-4.6.3">
+    
+    
+      
+        <title>Programming - Musikla</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application.adb8469c.css">
+      
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr.86422ebf.js"></script>
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+    
+    <link rel="stylesheet" href="../../assets/fonts/material-icons.css">
+    
+    
+    
+      
+    
+    
+  </head>
+  
+    <body dir="ltr">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#programming" tabindex="0" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="../.." title="Musikla" aria-label="Musikla" class="md-header-nav__button md-logo">
+          
+            <i class="md-icon"></i>
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          
+            <span class="md-header-nav__topic">
+              Musikla
+            </span>
+            <span class="md-header-nav__topic">
+              
+                Programming
+              
+            </span>
+          
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" aria-label="search" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+      <main class="md-main" role="main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="../.." title="Musikla" class="md-nav__button md-logo">
+      
+        <i class="md-icon"></i>
+      
+    </a>
+    Musikla
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
+    
+    <label class="md-nav__link" for="nav-2">
+      Syntax
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Syntax
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../notes-and-rests/" title="Notes & Rests" class="md-nav__link">
+      Notes & Rests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../combinators/" title="Combinators" class="md-nav__link">
+      Combinators
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../chords/" title="Chords" class="md-nav__link">
+      Chords
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../voices/" title="Voices" class="md-nav__link">
+      Voices
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../sound-files/" title="Sound Files" class="md-nav__link">
+      Sound Files
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Programming
+      </label>
+    
+    <a href="./" title="Programming" class="md-nav__link md-nav__link--active">
+      Programming
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#variables" class="md-nav__link">
+    Variables
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-declarations" class="md-nav__link">
+    Function Declarations
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reference-arguments" class="md-nav__link">
+    Reference Arguments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ifelse" class="md-nav__link">
+    If/Else
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#while" class="md-nav__link">
+    While
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for" class="md-nav__link">
+    For
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arrays" class="md-nav__link">
+    Arrays
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dictionaries" class="md-nav__link">
+    Dictionaries
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Cookbook
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        Cookbook
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3-1" type="checkbox" id="nav-3-1">
+    
+    <label class="md-nav__link" for="nav-3-1">
+      Keyboard
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-3-1">
+        Keyboard
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cookbook/keyboards/custom-keyboard/" title="Custom Keyboards" class="md-nav__link">
+      Custom Keyboards
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cookbook/keyboards/paino-keyboard/" title="Piano Keyboards" class="md-nav__link">
+      Piano Keyboards
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cookbook/keyboards/midi-keyboard/" title="MIDI Keyboards" class="md-nav__link">
+      MIDI Keyboards
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#variables" class="md-nav__link">
+    Variables
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#function-declarations" class="md-nav__link">
+    Function Declarations
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reference-arguments" class="md-nav__link">
+    Reference Arguments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ifelse" class="md-nav__link">
+    If/Else
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#while" class="md-nav__link">
+    While
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for" class="md-nav__link">
+    For
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arrays" class="md-nav__link">
+    Arrays
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dictionaries" class="md-nav__link">
+    Dictionaries
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="programming">Programming</h1>
+<p>A <strong>musikla</strong> script is just a sequence of statements ( and expressions ). Each statement must be followed by a <code>;</code>, even if it ends in brackes <code>{</code> and <code>}</code> like an <code>if</code> or <code>while</code>.</p>
+<h2 id="variables">Variables</h2>
+<p>Variables can stored and accessed by prefixing their name with a dollar sign `$.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$var_name</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">true</span><span class="p">;</span><span class="s"></span>
+
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$var_name</span><span class="s"> </span><span class="kp">==</span><span class="s"> </span><span class="k">null</span><span class="s"> </span><span class="k">or</span><span class="s"> </span><span class="nv">$var_name</span><span class="s"> </span><span class="kp">==</span><span class="s"> </span><span class="m">false</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h2 id="function-declarations">Function Declarations</h2>
+<p>Functions are declared with the <code>fun</code> keyword, followed by an optional function name. Function declarations are expressions that return a reference to the newly created function. This means that they can be saved in variables, passed as parameters to other functions, or otherwise used anywhere an expression could generally be used.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> hello_world ( $name = &#39;User&#39; ) {</span><span class="s"></span>
+<span class="g">    return &#39;Hello &#39; + $name;</span><span class="s"></span>
+<span class="g">};</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<p>Function bodies can be multiline (like in the example above, surrounded by brackets <code>{</code>  <code>}</code>) or single line indicated by an arrow <code>=&gt;</code></p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> hello_world ( $name = &#39;User&#39; ) =&gt; &#39;Hello &#39; + $name;</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="reference-arguments">Reference Arguments</h3>
+<p>Function arguments can be declared as <code>ref</code>, meaning that any changes done to them will be reflected on the variable outside the function. Reference </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> increment ( ref $var ) {</span><span class="s"></span>
+<span class="g">    $var += 1;</span><span class="s"></span>
+<span class="g">};</span><span class="s"></span>
+
+<span class="g">$a = 0;</span><span class="s"></span>
+
+<span class="g">inc( $a );</span><span class="s"></span>
+
+<span class="g">print( $a ); # prints 1</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h2 id="ifelse">If/Else</h2>
+<p>Right now <code>else if</code>'s are not supported. The <code>else</code> block is optional, of course.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">if</span><span class="s"> </span><span class="p">(</span><span class="s"> </span><span class="nv">$condition</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="m">1</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="p">}</span><span class="s"> </span><span class="k">else</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="m">2</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h2 id="while">While</h2>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">while</span><span class="s"> </span><span class="p">(</span><span class="s"> </span><span class="nv">$condition</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="m">1</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h2 id="for">For</h2>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">for</span><span class="s"> </span><span class="p">(</span><span class="s"> </span><span class="nv">$item</span><span class="s"> </span><span class="k">in</span><span class="s"> </span><span class="nv">$collection</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$item</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h2 id="arrays">Arrays</h2>
+<p>Arrays are a very common construct in programming languages, and they have proven very useful here as well.</p>
+<p>Array literals can be constructed with the syntax <code>@[]</code></p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$array</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@</span><span class="p">[</span><span class="s"> </span><span class="m">1</span><span class="p">,</span><span class="s"> </span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">3</span><span class="p">,</span><span class="s"> </span><span class="m">4</span><span class="s"> </span><span class="p">];</span><span class="s"></span>
+
+<span class="c"># Iterate over the array</span><span class="s"></span>
+<span class="k">for</span><span class="s"> </span><span class="p">(</span><span class="s"> </span><span class="nv">$i</span><span class="s"> </span><span class="k">in</span><span class="s"> </span><span class="nv">$array</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$i</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
+
+<span class="c"># Print the first and last element of the array</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$array</span><span class="gr">::</span><span class="p">[</span><span class="s"> </span><span class="m">0</span><span class="s"> </span><span class="p">],</span><span class="s"> </span><span class="nv">$array</span><span class="gr">::</span><span class="p">[</span><span class="s"> </span><span class="kp">-</span><span class="m">1</span><span class="s"> </span><span class="p">]</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h2 id="dictionaries">Dictionaries</h2>
+<p>Similar to arrays, dictionary literals can be constructed with the syntax <code>@{}</code></p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$dict</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@</span><span class="p">{</span><span class="s"> </span><span class="m">foo </span><span class="kp">=</span><span class="s"> </span><span class="m">1</span><span class="p">,</span><span class="s"> </span><span class="m">bar </span><span class="kp">=</span><span class="s"> </span><span class="m">true</span><span class="p">,</span><span class="s"> </span><span class="m">get </span><span class="kp">=</span><span class="s"> </span><span class="m">1</span><span class="s"> </span><span class="p">};</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<p>Dictionaries have four methods: <code>has()</code>, <code>get()</code>, <code>set()</code> and <code>delete()</code>. For convenience, their values can also be accessed using the regular property accessor syntax.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="c"># We check if the key exists, and access it directly</span><span class="s"></span>
+<span class="k">if</span><span class="s"> </span><span class="p">(</span><span class="s"> </span><span class="nv">$dict</span><span class="kp">::</span><span class="nf">has</span><span class="p">(</span><span class="s"> &#39;foo&#39; </span><span class="p">)</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$dict</span><span class="kp">::</span><span class="nf">foo</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
+
+<span class="c"># With the `get` method we can provide a default value</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$dict</span><span class="kp">::</span><span class="nf">get</span><span class="p">(</span><span class="s"> &#39;foo&#39;</span><span class="p">,</span><span class="s"> </span><span class="m">default </span><span class="kp">=</span><span class="s"> </span><span class="k">null</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+
+<span class="nv">$dict</span><span class="kp">::</span><span class="nf">set</span><span class="p">(</span><span class="s"> &#39;bar&#39;</span><span class="p">,</span><span class="s"> </span><span class="m">false</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+
+<span class="nv">$dict</span><span class="kp">::</span><span class="nf">delete</span><span class="p">(</span><span class="s"> &#39;foo&#39; </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+                
+                  
+                
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../sound-files/" title="Sound Files" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Sound Files
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../../cookbook/keyboards/custom-keyboard/" title="Custom Keyboards" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Custom Keyboards
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        powered by
+        <a href="https://www.mkdocs.org" target="_blank" rel="noopener">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs</a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application.c33a9706.js"></script>
+      
+      <script>app.initialize({version:"1.1",url:{base:"../.."}})</script>
+      
+    
+  </body>
+</html>
