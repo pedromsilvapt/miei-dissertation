@@ -1,4 +1,4 @@
-from musikla.core import Context, Value
+from musikla.core import Context, Value, Music
 from musikla.core.events import NoteEvent
 from musikla.core.theory import Note
 from typing import List, Dict, Union, Any
@@ -10,11 +10,17 @@ class KeyboardEvent:
         return {}
 
 class PianoKey(KeyboardEvent):
-    def __init__ ( self, event : Union[NoteEvent, Note] ):
+    def __init__ ( self, event : Union[Music, NoteEvent, Note, None] ):
         super().__init__()
+
+        if isinstance( event, Music ):
+            event = event.first_note( Context() )
 
         if isinstance( event, NoteEvent ):
             event = event.note
+
+        if event is None:
+            raise Exception( "Cannot create PianoKey of None" )
 
         self.note : Note = event.timeless()
     
@@ -45,9 +51,9 @@ class KeyStroke(KeyboardEvent):
         alt = 'alt' in mods
         shift = 'shift' in mods
 
-        return KeyStroke( ctrl, alt, shift, key )
+        return KeyStroke( key, ctrl, alt, shift )
 
-    def __init__ ( self, ctrl, alt, shift, key ):
+    def __init__ ( self, key, ctrl : bool = False, alt : bool = False, shift : bool = False ):
         super().__init__()
 
         self.ctrl = ctrl

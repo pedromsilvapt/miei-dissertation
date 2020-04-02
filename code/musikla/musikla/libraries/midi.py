@@ -158,7 +158,7 @@ def function_set_midi_input_name ( context : Context, name : str ):
     context.library( MidiLibrary ).set_midi_default_input( name )
 
 class MidiLibrary(Library):
-    def on_link ( self ):
+    def on_link ( self, script ):
         context : Context = self.context
 
         context.symbols.assign( "readmidi", CallablePythonValue( function_readmidi ) )

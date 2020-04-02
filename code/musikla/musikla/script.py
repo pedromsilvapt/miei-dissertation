@@ -65,7 +65,7 @@ class Script:
             if library in self.libraries:
                 lib_instance = cast( Library, self.libraries[ library ]( *args ) )
 
-                self.context.link( lib_instance )
+                self.context.link( lib_instance, self )
             elif library.lower().endswith( '.mkl' ):
                 node = self.parser.parse_file( library )
 
@@ -73,9 +73,9 @@ class Script:
             else:
                 raise Exception( f'Trying to import library {library} not found.' )
         elif isinstance( library, Library ):
-            self.context.link( library )
+            self.context.link( library, self )
         elif issubclass( library, Library ):
-            self.context.link( library( *args ) )
+            self.context.link( library( *args ), self )
         else:
             raise Exception( f'Trying to import library {library} not found.' )
 
@@ -99,44 +99,47 @@ class Script:
 
             return task
     
-    def create_subcontext ( self, context = None, **kargs ) -> Context:
-        context = ( context or self.context ).fork( symbols = self.context.symbols.fork() )
+    def create_subcontext ( self, context = None, fork : bool = True, **kargs ) -> Context:
+        context = ( context or self.context )
+        
+        if fork:
+            context = context.fork( symbols = self.context.symbols.fork() )
 
         for key, value in kargs.items():
             context.symbols.assign( key, value, local = True )
 
         return context
 
-    def eval ( self, code : Union[str, Node], context : Context = None, locals : Dict[str, Any] = {} ) -> Any:
+    def eval ( self, code : Union[str, Node], context : Context = None, fork : bool = True, locals : Dict[str, Any] = {} ) -> Any:
         if type( code ) is str:
             code = self.parse( code )
 
         if context is None:
-            context = self.create_subcontext( **locals )
+            context = self.create_subcontext( None, fork, **locals )
         elif locals:
-            context = self.create_subcontext( context, **locals )
+            context = self.create_subcontext( context, fork, **locals )
 
         return Value.eval( context, code )
     
-    def execute ( self, code : Union[str, Node], context : Context = None, sync : bool = False, realtime : bool = True ):
-        value = self.eval( code, context = context )
+    def execute ( self, code : Union[str, Node], context : Context = None, fork : bool = True, silent : bool = False, sync : bool = False, realtime : bool = True ):
+        value = self.eval( code, context = context, fork = fork )
 
-        if value and isinstance( value, Music ):
+        if not silent and value and isinstance( value, Music ):
             return self.play( value, sync = sync, realtime = realtime )
 
         return None
     
-    def execute_file ( self, file : str, context : Context = None, sync : bool = False, realtime : bool = True ):
+    def execute_file ( self, file : str, context : Context = None, fork : bool = True, silent : bool = False, sync : bool = False, realtime : bool = True ):
         code = self.parser.parse_file( file )
         
         absolute_file : str = os.path.abspath( file )
 
-        value = self.eval( code, context = context, locals = {
+        value = self.eval( code, context = context, fork = fork, locals = {
             '__file__': absolute_file,
             '__dir__': str( Path( absolute_file ).parent )
         } )
         
-        if value and isinstance( value, Music ):
+        if not silent and value and isinstance( value, Music ):
             return self.play( value, sync = sync, realtime = realtime )
 
         return None

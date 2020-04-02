@@ -61,7 +61,7 @@ class Music:
     def slice ( self, start = 0, end = 0 ):
         return MusicGen( self, lambda it: islice( it, start, end ) )
 
-    def first_note ( self, context : Context ):
+    def first_note ( self, context : Context ) -> Optional[NoteEvent]:
         it = self.expand( context )
 
         try:

@@ -3,8 +3,9 @@ from musikla.audio import Player
 from musikla.core.callable_python_value import CallablePythonValue
 from typing import List, Set, Union, Optional, Iterator, Tuple, Any, cast
 from musikla.parser.abstract_syntax_tree import Node
-from asyncio import Future, sleep, FIRST_COMPLETED, create_task
+from asyncio import Future, sleep, create_task
 from io import FileIO
+from pathlib import Path
 from .grid import Grid
 from .keyboard import Keyboard
 from .event import EventSource, KeyboardEvent, MouseClick, MouseMove, MouseScroll
@@ -89,7 +90,7 @@ class KeyboardLibrary(Library):
 
         self.player : Player = player
     
-    def on_link ( self ):
+    def on_link ( self, script ):
         self.assign_internal( "keyboards", list() )
         self.assign_internal( "event_sources", list() )
 
@@ -99,8 +100,6 @@ class KeyboardLibrary(Library):
         self.assign( "push_prefix", CallablePythonValue( push_prefix ) )
         self.assign( "pop_prefix", CallablePythonValue( pop_prefix ) )
         self.assign( "register", CallablePythonValue( register_key ) )
-        # self.assign( "register_hold", CallablePythonValue( register_key_hold ) )
-        # self.assign( "register_toggle", CallablePythonValue( register_key_toggle ) )
         self.assign( "on_press", CallablePythonValue( on_press ) )
         self.assign( "on_release", CallablePythonValue( on_release ) )
         self.assign( "start", CallablePythonValue( start ) )
@@ -119,6 +118,8 @@ class KeyboardLibrary(Library):
         self.assign( "MouseClick", MouseClick )
         self.assign( "MouseMove", MouseMove )
         self.assign( "MouseScroll", MouseScroll )
+
+        self.eval_file( script, Path( __file__ ).parent / "library.mkl" )
     
     @property
     def keyboards ( self ) -> List[Keyboard]:

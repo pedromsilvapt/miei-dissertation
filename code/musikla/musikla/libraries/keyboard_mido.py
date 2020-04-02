@@ -12,7 +12,7 @@ class KeyboardMidoLibrary( Library ):
     def __init__ ( self ):
         super().__init__( "keyboard_mido" )
 
-    def on_link ( self ):
+    def on_link ( self, script ):
         keyboard : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
 
         if keyboard is not None:

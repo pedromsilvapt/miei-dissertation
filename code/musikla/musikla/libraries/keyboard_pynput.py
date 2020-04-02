@@ -9,7 +9,7 @@ class KeyboardPynputLibrary( Library ):
     def __init__ ( self ):
         super().__init__( "keyboard_pynput" )
 
-    def on_link ( self ):
+    def on_link ( self, script ):
         keyboard : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
 
         if keyboard is not None:
@@ -24,7 +24,7 @@ class KeyboardPynputEventSource( EventSource ):
 
     def get_key_info ( self, key : Key ) -> Tuple[bool, str, int]:
         if hasattr( key, '_value_' ):
-            value : int = int( str( key._value_ )[ 1 : -1 ] )
+            value : int = int( key._value_.vk )
         elif hasattr( key, '_scan' ):
             value : int = key._scan
         else:
@@ -51,11 +51,11 @@ class KeyboardPynputEventSource( EventSource ):
         if is_modifier:
             for key in self.keyboard_state.keys():
                 if key not in [ 'ctrl', 'alt', 'shift' ]:
-                    keystrokes.append( KeyStroke( ctrl, alt, shift, key ) )
-                    keystrokes.append( KeyStroke( ctrl, alt, shift, value ) )
+                    keystrokes.append( KeyStroke( key, ctrl, alt, shift ) )
+                    keystrokes.append( KeyStroke( value, ctrl, alt, shift ) )
         else:
-            keystrokes.append( KeyStroke( ctrl, alt, shift, key ) )
-            keystrokes.append( KeyStroke( ctrl, alt, shift, value ) )
+            keystrokes.append( KeyStroke( key, ctrl, alt, shift ) )
+            keystrokes.append( KeyStroke( value, ctrl, alt, shift ) )
 
         return keystrokes
 
@@ -68,7 +68,7 @@ class KeyboardPynputEventSource( EventSource ):
         keystrokes = self.get_keystrokes( is_modifier, key, value )
             
         for keystroke in keystrokes:
-            if keystroke == KeyStroke( True, True, True, 'c' ):
+            if keystroke == KeyStroke( 'c', True, True, True ):
                 raise KeyboardInterrupt()
             
             virtual_keyboard.on_press( keystroke )

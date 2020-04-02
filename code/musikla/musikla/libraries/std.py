@@ -130,8 +130,6 @@ def function_voices_create ( context : Context, name : str, instrument : int = N
         voice.tempo = inherit.tempo
     
     if modifiers != None:
-        # Value.expect( modifiers, MusicSequenceNode )
-
         if isinstance( modifiers, MusicSequenceNode ):
             for modifier in modifiers:
                 modifier.apply( voice )
@@ -141,7 +139,7 @@ def function_voices_create ( context : Context, name : str, instrument : int = N
     return voice
 
 class StandardLibrary(Library):
-    def on_link ( self ):
+    def on_link ( self, script ):
         context : Context = self.context
 
         context.symbols.assign( "print", CallablePythonValue( print ) )

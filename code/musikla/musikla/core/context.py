@@ -2,15 +2,15 @@ from .instrument import Instrument, GeneralMidi
 from .voice import Voice
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
-from typing import Any, List, Hashable
+from typing import Any, List, Hashable, Optional
 from fractions import Fraction
 
 class Library:
     def __init__ ( self, namespace : str = None ):
-        self.namespace : str = namespace
-        self.context : 'Context' = None
+        self.namespace : Optional[str] = namespace
+        self.context : Optional['Context'] = None
 
-    def on_link ( self ):
+    def on_link ( self, script ):
         pass
 
     def resolve ( self, name : str ) -> str:
@@ -43,6 +43,12 @@ class Library:
 
     def assign_internal ( self, name, value ):
         self.context.symbols.assign_internal( self.resolve( name ), value )
+    
+    def eval_file ( self, script, file ):
+        script.execute_file( file, context = self.context, fork = False, silent = True )
+    
+    def eval ( self, script, code ):
+        script.execute( code, context = self.context, fork = False, silent = True )
 
 class Context():
     @staticmethod
@@ -96,13 +102,13 @@ class Context():
     def is_linked ( self, library : Library ) -> bool:
         return self.symbols.lookup( library.__class__, container = 'libraries' ) != None
 
-    def link ( self, library : Library ):
+    def link ( self, library : Library, script ):
         if not self.is_linked( library ):
             library.context = self
 
             self.symbols.assign( library.__class__, library, container = "libraries" )
 
-            library.on_link()
+            library.on_link( script )
 
     def library ( self, library ) -> Library:
         return self.symbols.lookup( library, container = "libraries" )

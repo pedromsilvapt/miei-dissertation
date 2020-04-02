@@ -1,54 +1,10 @@
-fun keyboard ( $layout, $hshift = @{}, $scales = @{}, $row_octaves = @{}, $transpose = 0; $toggle = false ) {
-    fun get_row_scale ( $row_index ) {
-        if ( $scales::has( $row_index ) ) {
-            return $scales::get( $row_index );
-        };
-
-        if ( mod( $row_index, 2 ) == 0 ) {
-            return $scale::white_keys;
-        } else {
-            return $scale::black_keys;
-        };
-    };
-
-    $kb = keyboard\create();
-
-    $rows = $layout::splitlines();
-
-    $rows::reverse();
-
-    $row_index = $rows::__len__() - 1;
-
-    while ( $row_index >= 0 ) {
-        $row_scale = get_row_scale( $row_index );
-
-        $row_transpose = $hshift::get( $row_index, default = 0 );
-
-        $row_base_octave = $row_octaves::get( $row_index, default = div( $row_index, 2 ) );
-
-        $i = $row_transpose;
-
-        for ( $letter in $rows::[ $row_index ] ) {
-            $music = C + interval( octaves = $row_base_octave ) + $row_scale::interval_at( $i ) + $transpose;
-
-            keyboard\register( $kb, key = $letter, expression = $music, hold = not $toggle, toggle = $toggle, extend = true );
-
-            $i = $i + 1;
-        };
-
-        $row_index = $row_index - 1;
-    };
-
-    return $kb;
-};
-
 $layout = 
 "1234567890'«
 qwertyuiop+´
 asdfghjklçº~
 <zxcvbnm,.-";
 
-$kb = keyboard( $layout, hshift = @{ 0 = 0 } );
+$kb = keyboard\piano( $layout, hshift = @{ 0 = 0 } );
 
 $kb -= @keyboard hold extend {
     a: [CM];

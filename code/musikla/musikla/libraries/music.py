@@ -58,7 +58,7 @@ def function_transpose ( note, semitones : int = 0, octaves : int = 1 ):
     return note
 
 class MusicLibrary(Library):
-    def on_link ( self ):
+    def on_link ( self, script ):
         context : Context = self.context
 
         context.symbols.assign( 'is_sample_optimized', CallablePythonValue( SoundEvent.is_optimized ) )
