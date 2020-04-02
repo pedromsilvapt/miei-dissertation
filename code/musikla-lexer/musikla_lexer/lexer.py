@@ -97,6 +97,7 @@ class MusiklaLexer(RegexLexer):
             ('.', String),
         ], 
         'keyboard__3' : [
+            (u'(#.*)', bygroups(Comment)),
             (u'(\\[)', bygroups(Punctuation), 'keyboard__4'),
             (u'(\\:)', bygroups(Punctuation), 'keyboard__5'),
             ('(\n|\r|\r\n)', String),
