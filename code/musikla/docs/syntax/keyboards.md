@@ -54,7 +54,7 @@ The currently available types of events provided out-of-the-box by the language 
 
 | Type                   | Parameters                        | Description                                  |
 |------------------------|-----------------------------------|----------------------------------------------|
-| `keyboard\KeyStroke`   | `$vel`                            | Is triggered by a bey press/release.         |
+| `keyboard\KeyStroke`   | *N/A*                             | Is triggered by a bey press/release.         |
 | `keyboard\PianoKey`    | `$vel`                            | Is triggered by a note on/off midi event.    |
 | `keyboard\MouseClick`  | `$x`, `$y`, `$button`, `$pressed` | Is triggered when a mouse button is clicked. |
 | `keyboard\MouseMove`   | `$x`, `$y`                        | Is triggered when the mouse moves.           |

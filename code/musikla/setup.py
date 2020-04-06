@@ -28,6 +28,7 @@ setuptools.setup(
         'python-rtmidi',
         'imgui[glfw]',
         'arpeggio',
+        'colorama',
         'pyfluidsynth-musikla @ http://github.com/pedromsilvapt/pyfluidsynth/archive/master.tar.gz'
     ]
 )

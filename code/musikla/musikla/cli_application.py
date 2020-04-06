@@ -6,6 +6,7 @@ from musikla.core import Context
 from musikla.libraries import KeyboardLibrary, MidiLibrary
 from musikla import Script
 from typing import cast
+from colorama import init
 
 class CliApplication:
     default_output = 'pulseaudio' if os.name == 'posix' else 'dsound'
@@ -39,6 +40,8 @@ class CliApplication:
             self.enable_echo( sys.stdin.fileno(), True )
 
     async def run ( self ):
+        init()
+        
         parser = argparse.ArgumentParser( description = 'Evaluate musical expression' )
 
         parser.add_argument( 'file', type = str, nargs = '?', help = 'Files to evaluate. No file means the input will be read from the stdin' )

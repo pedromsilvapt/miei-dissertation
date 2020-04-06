@@ -99,8 +99,6 @@ class KeyboardPynputEventSource( EventSource ):
     def listen ( self ):
         virtual_keyboard : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
 
-        print( "Listening to keyboard", virtual_keyboard != None )
-
         if virtual_keyboard != None:
             loop = asyncio.get_running_loop()
 

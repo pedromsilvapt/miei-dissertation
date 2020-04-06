@@ -2,13 +2,13 @@ from .instrument import Instrument, GeneralMidi
 from .voice import Voice
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
-from typing import Any, List, Hashable, Optional
+from typing import Any, Hashable, Optional, cast
 from fractions import Fraction
 
 class Library:
     def __init__ ( self, namespace : str = None ):
         self.namespace : Optional[str] = namespace
-        self.context : Optional['Context'] = None
+        self.context : Context = cast( Any, None )
 
     def on_link ( self, script ):
         pass

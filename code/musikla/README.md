@@ -8,6 +8,7 @@ Python port of the experiments that were started in the .NET project.
  - `python-rtmidi` (requires `libasound2-dev` (or `--install-option="--no-alsa"`) and `libjack-dev` (or `--install-option="--no-jack"`))
  - `imgui[glfw]` (requires `libglfw3` and `libglfw3-dev`
  - `arpeggio`
+ - `colorama`
  - `pyFluidSynth` (required `fluidsynth >=1.1.9`)
  > **Note** Instead of installing pyFluidSynth from PyPi, we need to use the more up-to-date version (which accepts pulseaudio) from the git repo
  > ```shell
