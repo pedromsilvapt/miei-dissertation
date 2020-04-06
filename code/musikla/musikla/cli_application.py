@@ -41,7 +41,7 @@ class CliApplication:
 
     async def run ( self ):
         init()
-        
+
         parser = argparse.ArgumentParser( description = 'Evaluate musical expression' )
 
         parser.add_argument( 'file', type = str, nargs = '?', help = 'Files to evaluate. No file means the input will be read from the stdin' )
@@ -88,8 +88,18 @@ class CliApplication:
         try:
             if options.file == None:
                 # Super duper naive repl that accepts only a sequence of one-liners
+                print( "Welcome to the Musikla REPL. Type \"quit();\" to exit." )
+                print( '>>> ', end = '' )
                 for line in sys.stdin:
-                    script.execute( line, sync = False, realtime = script.player.realtime )
+                    try:
+                        if line == 'quit();':
+                            break
+
+                        script.execute( line, sync = False, realtime = script.player.realtime )
+                    except:
+                        print( sys.exc_info()[ 0 ] )
+
+                    print( '>>> ', end = '' )
             else:
                 script.execute_file( options.file, sync = False, realtime = script.player.realtime )
 
