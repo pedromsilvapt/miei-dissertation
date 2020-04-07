@@ -1,12 +1,12 @@
 from pathlib import Path
 from arpeggio.peg import ParserPEG
 from arpeggio import PTNodeVisitor, visit_parse_tree
-from typing import List
+from typing import Any, List, cast
 from musikla.core.events import NoteEvent
 from musikla.core.theory import NoteAccidental, Note, Chord
 from .abstract_syntax_tree import Node
 from .abstract_syntax_tree import NoteNode, ChordNode, MusicSequenceNode, MusicParallelNode, RestNode
-from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, TempoModifierNode, VoiceBlockModifier
+from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, InstrumentModifierNode, TempoModifierNode, VoiceBlockModifier
 
 from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionExpressionNode, ListComprehensionNode
 from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode, BoolLiteralNode, NoneLiteralNode
@@ -66,30 +66,29 @@ class ParserVisitor(PTNodeVisitor):
         args = children.voice_declaration_body[ 0 ]
         
         return VoiceDeclarationMacroNode( 
-            name, args[ 0 ], args[ 1 ], args[ 2 ],
-            position = position 
+            name, args[ 0 ], args[ 1 ],
+            position = position
         )
     
     def visit_voice_declaration_body ( self, node, children ):
-        instrument = None
-        modifiers = None
+        modifiers = children.expression[ 0 ]
         parent = None
 
-        if children.function_parameters:
-            params = children.function_parameters[ 0 ][ 0 ]
+        # if children.function_parameters:
+        #     params = children.function_parameters[ 0 ][ 0 ]
 
-            instrument = params[ 0 ]
+        #     instrument = params[ 0 ]
             
-            if len( params ) > 1:
-                modifiers = params[ 1 ]
+        #     if len( params ) > 1:
+        #         modifiers = params[ 1 ]
 
         if children.identifier:
             parent = VariableExpressionNode( children.identifier[ 0 ] ) 
 
-        if children.integer:
-            instrument = NumberLiteralNode( children.integer[ 0 ] )
+        # if children.integer:
+        #     instrument = NumberLiteralNode( children.integer[ 0 ] )
 
-        return ( instrument, modifiers, parent )
+        return ( modifiers, parent )
 
     def visit_function_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -349,7 +348,7 @@ class ParserVisitor(PTNodeVisitor):
 
         position = ( node.position, node.position_end )
 
-        return PropertyAccessorNode( None, identifier, position = position )
+        return PropertyAccessorNode( cast( Any, None ), identifier, position = position )
         
     def visit_property_call ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -540,6 +539,7 @@ class ParserVisitor(PTNodeVisitor):
         
         if c == 't': return TempoModifierNode( children[ 1 ], position )
         elif c == 'v': return VelocityModifierNode( children[ 1 ], position )
+        elif c == 'i': return InstrumentModifierNode( children[ 1 ], position )
         elif c == 'l': return LengthModifierNode( children[ 1 ], position )
         elif c == 's':
             if len( children ) == 3:

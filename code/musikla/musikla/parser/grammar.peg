@@ -13,9 +13,8 @@ var_declaration_infix <- "+" / "-" / "/" / "*" / "|" / "&";
 
 voice_declaration <- !"::" ":" identifier _ "=" _ voice_declaration_body;
 
-voice_declaration_body <- integer
-                        / "(" _ function_parameters _ ")"
-                        / !"::" ":" identifier _ "(" _ function_parameters _ ")"
+voice_declaration_body <- !"::" ":" identifier _ "(" _ expression _ ")"
+                        / expression
                         ;
 
 function_declaration <- "fun" _ namespaced? _ "(" _ arguments? _ ")" _ "{" body "}"
@@ -129,6 +128,7 @@ note_pitch_raw <- r"[cdefgab]" "'"*
 modifier
     <- r"[tT]" _ integer
      / r"[vV]" _ integer
+     / r"[iI]" _ integer
      / r"[lL]" _ note_value
      / r"[sS]" _ integer _ "/" _ integer
      / r"[sS]" _ integer

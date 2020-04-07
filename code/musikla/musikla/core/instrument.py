@@ -1,6 +1,10 @@
 from typing import Optional
 
 class Instrument():
+    @staticmethod
+    def from_program ( program : int ) -> 'Instrument':
+        return Instrument( GeneralMidi.get_name( program ), program )
+
     def __init__ ( self, name : str, program : int, bank : int = None, soundfont : int = None ):
         self.name : str = name
         self.program : int = program
@@ -8,6 +12,16 @@ class Instrument():
         self.soundfont : Optional[int] = soundfont
 
 class GeneralMidi():
+    @staticmethod
+    def get_name ( program : int ) -> str:
+        for attr in dir( program ):
+            if attr.startswith( "_" ): continue
+
+            if hasattr( GeneralMidi, attr ) and getattr( GeneralMidi, attr ) == program:
+                return attr
+        
+        return "(Unknown)"
+
     # Piano
     AcousticGrandPiano = 1
     BrightAcousticPiano = 2

@@ -1,4 +1,4 @@
-:accord = ( 22; S3/4 T120 L/4 );
+:accord = I22 S3/4 T120 L/4;
 setvoice( $accord );
 
 cc( 64; 0 );

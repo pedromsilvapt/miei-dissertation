@@ -36,5 +36,3 @@ However, voices can also be used to change more than just the instrument. We can
     #!musikla
     :piano = I1 S6/8 T140 L/8 V120;
     :violin = :piano( I41 );
-
- > **NOTE** This syntax is slightly different from the current implementation.

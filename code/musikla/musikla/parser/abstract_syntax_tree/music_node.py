@@ -1,8 +1,9 @@
+from typing import Tuple
 from .expressions import ExpressionNode
-from musikla.core import Value, Music
+from musikla.core import Music
 
 class MusicNode( ExpressionNode ):
-    def __init__ ( self, position : (int, int) = None ):
+    def __init__ ( self, position : Tuple[int, int] = None ):
         super().__init__( position )
     
     def get_events ( self, context ):

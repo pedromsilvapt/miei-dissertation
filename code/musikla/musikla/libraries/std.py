@@ -113,16 +113,14 @@ def function_import ( context : Context, file : Node ):
 
     return ast.eval( context )
 
-def function_voices_create ( context : Context, name : str, instrument : int = None, modifiers : Node = None, inherit : Voice = None ):
+def function_voices_create ( context : Context, name : str, modifiers : Node = None, inherit : Voice = None ):
     if inherit != None:
         pass
 
-    voice = Voice( name, Instrument( name, 1 if instrument is None else instrument ) )
+    voice = Voice( name, Instrument( name, 1 ) )
 
     if inherit != None:
-        if instrument is None:
-            voice.instrument = inherit.instrument
-
+        voice.instrument = inherit.instrument
         voice.time_signature = inherit.time_signature
         voice.velocity = inherit.velocity
         voice.octave = inherit.octave

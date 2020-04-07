@@ -1,19 +1,17 @@
+from typing import Tuple
 from ..statements import StatementNode, VariableDeclarationStatementNode
 from ..expressions import FunctionExpressionNode, StringLiteralNode, VariableExpressionNode
 from .macro import MacroNode
 from musikla.core import Instrument
 
 class VoiceDeclarationMacroNode( MacroNode ):
-    def __init__ ( self, name, program = None, modifiers = None, parent = None, position : (int, int) = None ):
+    def __init__ ( self, name, modifiers = None, parent = None, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.name = name
 
         kargs = {}
 
-        if program != None:
-            kargs[ 'instrument' ] = program
-        
         if modifiers != None:
             kargs[ 'modifiers' ] = modifiers
         

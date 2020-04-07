@@ -1,8 +1,9 @@
+from typing import Tuple
 from musikla.core import Context, Value, Music
 from ..node import Node
 
 class PropertyAccessorNode( Node ):
-    def __init__ ( self, expression : Node, name : Node, position : (int, int) = None ):
+    def __init__ ( self, expression : Node, name : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
         
         self.expression : Node = expression
