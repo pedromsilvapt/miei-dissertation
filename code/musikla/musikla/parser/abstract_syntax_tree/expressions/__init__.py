@@ -6,6 +6,7 @@ from .string_literal_node import StringLiteralNode
 from .number_literal_node import NumberLiteralNode
 from .property_accessor_node import PropertyAccessorNode
 from .bool_literal_node import BoolLiteralNode
+from .constant_node import ConstantNode
 from .none_literal_node import NoneLiteralNode
 from .array_literal_node import ArrayLiteralNode
 from .object_literal_node import ObjectLiteralNode, Object

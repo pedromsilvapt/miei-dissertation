@@ -7,14 +7,27 @@ $e1 = ( c5/2 r/2 | r [cde][cde] );
 $e2 = ( c5/2 r/2 );
 $pat = $e1;
 
+# HOW THIS GRID WORKS (grid cell length = 3, or 1500ms)
+# g1: When the user plays an arpeggio, it is pushed to the left, meaning, to the begining of the beat.
+# That chord then starts playing "in the middle of the action"
+# However, if we play that arpeggio when there are less than 500ms left in the grid, they are not touched
+# 
+# g2: Instead of starting to play right away, it is pushed to the right: meaning, it will play when the next
+# grid alignment starts
+$g = keyboard\Grid( 3, direction = 'left', forgiveness_left = 500 );
+$g = keyboard\Grid( 3, direction = 'right', sync_with = $g, prealign_with = $g );
+
 $keyboard = @keyboard {
-    a: al( $g; arpeggio( [Cm]; $pat ) );
-    s: al( $g; arpeggio( [Fm]; $pat ) );
-    d: al( $g; arpeggio( [Gm]; $pat ) );
+    a: arpeggio( [Cm]; $pat );
+    s: arpeggio( [Fm]; $pat );
+    d: arpeggio( [Gm]; $pat );
+
+    r: $g::reset();
 
     8: { $pat = $e1 };
     9: { $pat = $e2 };
-};
+}::map( fun ( $k, $music ) => $g::align( $music ) );
 
-$g = keyboard\grid\create( $keyboard; 3 );
-$al = $keyboard\grid\align;
+print( $g::length_duration ); 
+
+$g::cli_metronome();

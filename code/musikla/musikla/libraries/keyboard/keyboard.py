@@ -1,9 +1,9 @@
 from decimal import InvalidOperation
 from musikla.core import Context, Value, Music
 from musikla.core.events import NoteEvent
-from typing import List, Dict, Optional, Union, Any, cast
+from typing import Callable, List, Dict, Optional, Union, Any, cast
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
-from musikla.parser.abstract_syntax_tree.expressions import BoolLiteralNode
+from musikla.parser.abstract_syntax_tree.expressions import BoolLiteralNode, FunctionExpressionNode, ConstantNode
 from musikla.audio import Player
 from fractions import Fraction
 from .event import KeyStroke, PianoKey, KeyboardEvent
@@ -25,13 +25,26 @@ class Keyboard:
         else:
             raise Exception( "Keyboard value is invalid" )
 
-    def __init__ ( self, context : Context, player : Player ):
-        self.context : Context = context
-        self.player : Player = player
+    def __init__ ( self, context : Context ):
+        self.context : Context = context        
+        self._player : Optional[Player] = None
 
         self.keys : Dict[KeyboardEvent, KeyAction] = dict()
         self.global_flags : Dict[str, int] = dict()
         self.global_prefixes : List[Node] = list()
+
+        self.manual_lifetime : bool = False
+
+    @property
+    def player ( self ) -> Player:
+        if self._player is None:
+            from .library import KeyboardLibrary
+
+            lib : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
+
+            self._player = lib.player
+
+        return self._player
 
     def get_keyboard_flag ( self, context : Context, node : Optional[Node], name : str ) -> bool:
         if node != None:
@@ -132,7 +145,7 @@ class Keyboard:
         if key_stroke in self.keys:
             self.keys[ key_stroke ].on_release( self.context, self.player )
 
-    def close ( self, closing : bool = False ):
+    def close ( self, closing : bool = False ) -> 'Keyboard':
         from .library import KeyboardLibrary
 
         self.stop_all()
@@ -141,6 +154,8 @@ class Keyboard:
             keyboard : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
 
             keyboard.close( self )
+        
+        return self
 
     def _assert_keyboard ( self, obj ):
         if obj is None:
@@ -148,6 +163,34 @@ class Keyboard:
             
         if not isinstance( obj, Keyboard ):
             raise InvalidOperation( f"Cannot combine a keyboard with '{ type( obj ) }'" )
+
+    def clone ( self ):
+        from .library import KeyboardLibrary
+
+        lib : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
+
+        keyboard = lib.create()
+        
+        if not self.manual_lifetime:
+            self.close()
+
+        keyboard.context = self.context
+        keyboard.keys = dict( self.keys )
+        keyboard.global_flags = dict( self.global_flags )
+        keyboard.global_prefixes = list( self.global_prefixes )
+        keyboard.manual_lifetime = self.manual_lifetime
+        
+        return keyboard
+
+    def map ( self, mapper : Node ) -> 'Keyboard':
+        keyboard = self.clone()
+
+        for key, action in self.keys.items():
+            keyboard.keys[ key ] = action.clone(
+                expr = FunctionExpressionNode( mapper, [ ConstantNode( action.key ), action.expr ] )
+            )
+
+        return keyboard
 
     def __add__ ( self, other ):
         from .library import KeyboardLibrary
@@ -180,7 +223,8 @@ class Keyboard:
     def __iadd__ ( self, other ):
         self._assert_keyboard( other )
 
-        other.close()
+        if not other.manual_lifetime:
+            other.close()
 
         self.keys.update( other.keys )
 
@@ -193,3 +237,16 @@ class Keyboard:
             self.keys.pop( key, None )
 
         return self
+
+# class ActionMapNode(Node):
+#     def __init__ ( self, mapper, key : KeyboardEvent, original : Node ):
+#         self.mapper = mapper
+#         self.key : KeyboardEvent = key
+#         self.original : Node = original
+    
+#     def eval ( self, context : Context ):
+#         result = Value.eval( context, self.original )
+
+        
+
+#         return self.mapper( self.key, result )

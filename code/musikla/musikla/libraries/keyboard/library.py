@@ -11,16 +11,16 @@ from .keyboard import Keyboard
 from .event import EventSource, KeyboardEvent, MouseClick, MouseMove, MouseScroll
 from .action import KeyAction
 
-def grid_create ( keyboard : Keyboard, num : int = 1, den : int = 1 ) -> Grid:
-    return Grid( keyboard, num, den )
+# def grid_create ( keyboard : Keyboard, num : int = 1, den : int = 1 ) -> Grid:
+#     return Grid( keyboard, num, den )
 
-def grid_reset ( grid : Grid ) -> Grid:
-    grid.reset()
+# def grid_reset ( grid : Grid ) -> Grid:
+#     grid.reset()
 
-    return grid
+#     return grid
 
-def grid_align ( context : Context, grid : Grid, music : Music ) -> Music:
-    return grid.align( context, music )
+# def grid_align ( context : Context, grid : Grid, music : Music ) -> Music:
+#     return grid.align( context, music )
 
 def register_key ( context : Context, keyboard : Keyboard, key : Node, expression : Node, args : List[str] = [], toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
     return keyboard.register_key( context, key, expression, args, toggle, hold, repeat, extend )
@@ -111,9 +111,7 @@ class KeyboardLibrary(Library):
         self.assign( "record", CallablePythonValue( keyboard_record ) )
         self.assign( "replay", CallablePythonValue( keyboard_replay ) )
 
-        self.assign( "grid\\create", CallablePythonValue( grid_create ) )
-        self.assign( "grid\\reset", CallablePythonValue( grid_reset ) )
-        self.assign( "grid\\align", CallablePythonValue( grid_align ) )
+        self.assign( "Grid", Grid )
 
         self.assign( "MouseClick", MouseClick )
         self.assign( "MouseMove", MouseMove )
@@ -171,7 +169,7 @@ class KeyboardLibrary(Library):
         return has_keys
 
     def create ( self ) -> Keyboard:
-        keyboard = Keyboard( self.context, self.player )
+        keyboard = Keyboard( self.context )
 
         self.keyboards.append( keyboard )
 

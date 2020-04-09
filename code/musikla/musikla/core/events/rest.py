@@ -8,6 +8,9 @@ class RestEvent( DurationEvent ):
 
         self.visible = visible
 
+    def __repr__ ( self ):
+        return f'[{self.timestamp}]' + str( self )
+
     def __str__ ( self ) -> str:
         rest = 'z' if self.visible else 'x'
 

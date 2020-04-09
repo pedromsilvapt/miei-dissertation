@@ -45,7 +45,7 @@ class KeyAction:
                 return value
             elif callable( value ):
                 from musikla.core.callable_python_value import CallablePythonValue
-                
+
                 value = CallablePythonValue.call( value, forked_context )
 
                 if isinstance( value, Music ):
@@ -94,3 +94,20 @@ class KeyAction:
 
         if self.hold:
             self.stop( context, player )
+
+    def clone ( self, **kargs ) -> 'KeyAction':
+        action = KeyAction(
+            key = self.key,
+            expr = self.expr,
+            args = self.args,
+            context = self.context,
+            toggle = self.toggle,
+            hold = self.hold,
+            repeat = self.repeat,
+            extend = self.extend,
+        )
+
+        for key, value in kargs.items():
+            setattr( action, key, value )
+        
+        return action

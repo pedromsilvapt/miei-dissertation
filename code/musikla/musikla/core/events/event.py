@@ -1,4 +1,4 @@
-from typing import Callable, Any
+from typing import Callable, Any, cast
 from ..voice import Voice
 from copy import copy
 
@@ -9,9 +9,18 @@ class MusicEvent():
     @property
     def end_timestamp ( self ) -> int:
         if hasattr( self, 'duration' ):
-            return self.timestamp + self.duration
+            return self.timestamp + cast( DurationEvent, self ).duration
         else:
             return self.timestamp
+        
+    @end_timestamp.setter 
+    def end_timestamp( self, value ):
+        if hasattr( self, 'duration' ):
+            self.duration = value - self.timestamp
+        
+            if hasattr( self, 'value' ) and hasattr( self, 'value' ):
+                self.value = cast( VoiceEvent, self ).voice.from_duration_absolute( self.duration )
+
 
     def clone ( self, **kargs ):
         instance = copy( self )
@@ -22,7 +31,8 @@ class MusicEvent():
         return instance
 
     def join ( self, context ):
-        context.cursor = self.end_timestamp
+        if context.cursor < self.end_timestamp:
+            context.cursor = self.end_timestamp
 
         return self
 

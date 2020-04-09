@@ -44,7 +44,7 @@ class Music:
     def __init__ ( self, notes = [] ):
         self.notes = notes
 
-    def shared ( self ):
+    def shared ( self ) -> 'SharedMusic':
         return SharedMusic( self )
 
     def expand ( self, context : Context ):
@@ -58,8 +58,55 @@ class Music:
     def transform ( self, transformer : Any, *args, **kargs ) -> 'MusicGen':
         return MusicGen( self, lambda it: transformer.iter( it, *args, **kargs ) )
 
-    def slice ( self, start = 0, end = 0 ):
-        return MusicGen( self, lambda it: islice( it, start, end ) )
+    def slice ( self, start = None, end = None, time : bool = True, cut : bool = False ) -> 'Music':
+        if time:
+            if cut:
+                if start is not None and end is not None:
+                    def _map ( event, index, start ):
+                        if event.timestamp < start or event.end_timestamp > end:
+                            timestamp = max( event.timestamp, start )
+
+                            diff = timestamp - event.timestamp
+
+                            return event.clone( timestamp = timestamp, duration = min( event.duration - diff, end - timestamp ) )
+
+                        return event
+                    
+                    return self.filter( lambda e, i, s: e.end_timestamp > start and e.timestamp < end ).map( _map )
+                elif start is not None:
+                    def _map ( event, index, start ):
+                        if event.timestamp < start:
+                            diff = start - event.timestamp
+
+                            return event.clone( timestamp = start, duration = event.duration - diff )
+
+                        return event
+
+                    return self.filter( lambda e, i, s: e.end_timestamp > start ).map( _map )
+                elif end is not None:
+                    def _map ( event, index, start ):
+                        if event.end_timestamp > end:
+                            return event.clone( duration = end )
+
+                        return event
+
+                    return self.filter( lambda e, i, s: e.timestamp < end ).map( _map )
+            else:
+                if start is not None and end is not None:
+                    return self.filter( lambda e, i, s: e.timestamp >= start and e.end_timestamp <= end )
+                elif start is not None:
+                    return self.filter( lambda e, i, s: e.timestamp >= start )
+                elif end is not None:
+                    return self.filter( lambda e, i, s: e.end_timestamp <= end )
+        else:
+            if start is not None and end is not None:
+                return MusicGen( self, lambda it: islice( it, start, end ) )
+            elif start is not None:
+                return MusicGen( self, lambda it: islice( it, start ) )
+            elif end is not None:
+                return MusicGen( self, lambda it: islice( it, 0, end ) )
+
+        return self
 
     def first_note ( self, context : Context ) -> Optional[NoteEvent]:
         it = self.expand( context )
@@ -108,6 +155,31 @@ class SharedMusic(Music):
     def shared ( self ):
         return self
 
+    def peek ( self ) -> Optional[MusicEvent]:
+        event : Optional[MusicEvent] = None
+
+        for ev in self:
+            event = ev
+            break
+        
+        return event
+        
+    def peek_many ( self, count : int ) -> List[MusicEvent]:
+        events : List[MusicEvent] = []
+
+        i = 0
+
+        for ev in self:
+            events.append( ev )
+            
+            i += 1
+
+            if i >= count:
+                break
+        
+        return events
+    
+
     def retime ( self, context, offset, note ):
         if offset is None:
             offset = context.cursor - note.timestamp
@@ -133,7 +205,7 @@ class SharedMusic(Music):
                 yield note
 
     def __iter__ ( self ):
-        for note in self.base_music:
+        for note in self.shared_music:
             yield note
 
 class SharedIterator():
