@@ -45,6 +45,7 @@ class CliApplication:
         parser = argparse.ArgumentParser( description = 'Evaluate musical expression' )
 
         parser.add_argument( 'file', type = str, nargs = '?', help = 'Files to evaluate. No file means the input will be read from the stdin' )
+        parser.add_argument( '-c', '--code', type = str, help = 'Execute a piece of code' )
         parser.add_argument( '-i', '--import', dest = 'imports', action = 'append', type = str, help = 'Import an additional library. These can be builtin libraries, or path to .ml and .py files' )
         parser.add_argument( '-o', '--output', dest = 'outputs', type = str, action = 'append', help = 'Where to output to. By default outputs the sounds to the device\'s speakers.' )
         parser.add_argument( '--midi', type = str, help = 'Use a custom MIDI port by default when no name is specified' )
@@ -66,9 +67,6 @@ class CliApplication:
         if options.midi != None:
             script.config.set( 'Musikla', 'midi_input', options.midi )
 
-        # if options.outputs:
-        #     script.config.set( 'Musikla', 'outputs', options.outputs )
-
         if options.outputs:
             for output in options.outputs:
                 script.player.add_sequencer( output )
@@ -86,7 +84,9 @@ class CliApplication:
             lib.set_midi_default_input( script.config.get( 'Musikla', 'midi_input' ) )
 
         try:
-            if options.file == None:
+            if options.code is not None:
+                script.execute( options.code, sync = False, realtime = script.player.realtime )
+            elif options.file is None:
                 # Super duper naive repl that accepts only a sequence of one-liners
                 print( "Welcome to the Musikla REPL. Type \"quit();\" to exit." )
                 print( '>>> ', end = '' )
