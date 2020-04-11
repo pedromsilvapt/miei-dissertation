@@ -35,9 +35,11 @@ single_argument_eval <- "$" identifier _ "=" _ expression
                       / "$" identifier
                       ;
 
-for_loop_statement <- "for" _ "(" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ ")" _ "{" _ body? _ "}"
-                    / "for" _ "(" _ "$" namespaced _ "in" _ value_expression _ ")" _ "{" _ body? _ "}"
-                    ;
+for_loop_head <- "for" _ "(" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ ")"
+               / "for" _ "(" _ "$" namespaced _ "in" _ value_expression _ ")"
+               ;
+
+for_loop_statement <- for_loop_head _ "{" _ body? _ "}";
 
 while_loop_statement <- "while" _ "(" _ expression _ ")" _ "{" _ body _ "}";
 
@@ -48,7 +50,28 @@ if_statement <- "if" _ "(" _ expression _ ")" _ "{" _ body _ "}" _ "else" _ "{" 
 return_statement <- "return" _ expression?;
 
 // BEGIN Keyboard
-keyboard_declaration <- "@keyboard" (_ alphanumeric)* ( _ group )? _ "{" ( _ keyboard_shortcut _  ";" )* _ "}";
+keyboard_declaration <- "@keyboard" (_ alphanumeric)* ( _ group )? _ "{" _ keyboard_body _ "}";
+
+keyboard_body <- keyboard_body_statement ( _ ";" _ keyboard_body_statement )* _ ";"?
+             / ""
+             ;
+
+keyboard_body_statement <- keyboard_for
+                         / keyboard_while
+                         / keyboard_if
+                         / keyboard_block
+                         / keyboard_shortcut
+                         ;
+
+keyboard_for <- for_loop_head _ "{" _ keyboard_body _ "}";
+
+keyboard_while <- "while" _ "(" _ expression _ ")" _ "{" _ keyboard_body _ "}";
+
+keyboard_if <- "if" _ "(" _ expression _ ")" _ "{" _ keyboard_body _ "}" _ "else" _ "{" _ keyboard_body _ "}"
+             / "if" _ "(" _ expression _ ")" _ "{" _ keyboard_body _ "}"
+             ;
+
+keyboard_block <- "{" _ body _ "}";
 
 keyboard_shortcut <- keyboard_shortcut_key _ keyboard_arguments? _ ":" _ expression
                    ;
@@ -69,7 +92,6 @@ keyboard_arguments_separator <- ',' / ';';
 
 keyboard_single_argument <- "$" identifier;
 // END Keyboard
-
 
 expression <- e music_expression;
 

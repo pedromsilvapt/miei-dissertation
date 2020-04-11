@@ -24,7 +24,7 @@ from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockN
 from .abstract_syntax_tree.statements import StatementsListNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode, ReturnStatementNode
 
-from .abstract_syntax_tree.macros import KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode
+from .abstract_syntax_tree.macros import KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode, KeyboardForLoopMacroNode, KeyboardWhileLoopMacroNode, KeyboardIfMacroNode, KeyboardBlockMacroNode
 from .abstract_syntax_tree.macros import VoiceDeclarationMacroNode
 
 from fractions import Fraction
@@ -120,15 +120,21 @@ class ParserVisitor(PTNodeVisitor):
 
         return ( children.identifier[ 0 ], None, None )
 
+    def visit_for_loop_head ( self, node, children ):
+        if len( children.value_expression ) == 1:
+            expression = children.value_expression[ 0 ]
+        else:
+            expression = FunctionExpressionNode( VariableExpressionNode( "range" ), [ children.value_expression[ 0 ], children.value_expression[ 1 ] ] )
+        
+        return ( children.namespaced[ 0 ], expression )
+            
+
     def visit_for_loop_statement ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        if len( children.value_expression ) == 1:
-            return ForLoopStatementNode( children.namespaced[ 0 ], children.value_expression[ 0 ], children.body[ 0 ], position )
+        var_name, expression = children.for_loop_head[ 0 ]
 
-        r = FunctionExpressionNode( VariableExpressionNode( "range" ), [ children.value_expression[ 0 ], children.value_expression[ 1 ] ] )
-
-        return ForLoopStatementNode( children.namespaced[ 0 ], r, children.body[ 0 ], position )
+        return ForLoopStatementNode( var_name, expression, children.body[ 0 ], position )
 
     def visit_while_loop_statement ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -153,9 +159,39 @@ class ParserVisitor(PTNodeVisitor):
 
     def visit_keyboard_declaration ( self, node, children ):
         if len( children.group ):
-            return KeyboardDeclarationMacroNode( list( children.keyboard_shortcut ), list( children.alphanumeric ), children.group[ 0 ].expression )
+            return KeyboardDeclarationMacroNode( children.keyboard_body[ 0 ], list( children.alphanumeric ), children.group[ 0 ].expression )
 
-        return KeyboardDeclarationMacroNode( list( children.keyboard_shortcut ), list( children.alphanumeric ) )
+        return KeyboardDeclarationMacroNode( children.keyboard_body[ 0 ], list( children.alphanumeric ) )
+
+    def visit_keyboard_body ( self, node, children ):
+        return list( children.keyboard_body_statement )
+
+    def visit_keyboard_body_statement ( self, node, children ):
+        return children[ 0 ]
+
+    def visit_keyboard_for ( self, node, children ):
+        position = ( node.position, node.position_end )
+        
+        var_name, expression = children.for_loop_head[ 0 ]
+
+        return KeyboardForLoopMacroNode( var_name, expression, children.keyboard_body[ 0 ], position = position )
+    
+    def visit_keyboard_while ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        return KeyboardWhileLoopMacroNode( children.expression[ 0 ], children.keyboard_body[ 0 ], position = position )
+    
+    def visit_keyboard_if ( self, node, children ):
+        position = ( node.position, node.position_end )
+        
+        else_body = children.keyboard_body[ 1 ] if len( children.keyboard_body ) > 1 else None
+
+        return KeyboardIfMacroNode( children.expression[ 0 ], children.keyboard_body[ 0 ], else_body, position = position )
+    
+    def visit_keyboard_block ( self, node, children ):
+        position = ( node.position, node.position_end )
+        
+        return KeyboardBlockMacroNode( children.body[ 0 ], position = position )
 
     def visit_keyboard_shortcut ( self, node, children ):
         position = ( node.position, node.position_end )
