@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from musikla.core.context import StackFrame
 from ..node import Node
 from .statement_node import StatementNode
@@ -22,3 +23,9 @@ class ReturnStatementNode( StatementNode ):
             stack_frame.ret( Value.eval( context, self.expression ) )
 
         return None
+
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( "return " )
+
+        if self.expression is not None:
+            self.expression.to_source( printer )

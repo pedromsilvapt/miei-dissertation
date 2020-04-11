@@ -1,15 +1,18 @@
+from musikla.parser.printer import CodePrinter
 from .music_node import MusicNode
-from .music_parallel_node import MusicParallelNode
-from musikla.core.theory import NoteAccidental, NotePitchClasses, NotePitchClassesInv, Note, Chord, Interval
-from musikla.core.events import NoteEvent, ChordEvent
-from typing import List
+from musikla.core.theory import Chord, Interval
+from musikla.core.events import ChordEvent
+from typing import Tuple
 
 class ChordNode( MusicNode ):
-    def __init__ ( self, chord : Chord, position : (int, int) = None ):
+    def __init__ ( self, chord : Chord, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.chord : Chord = chord
     
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( str( self.chord ) )
+
     def get_events ( self, context ):
         o = Interval.octaves_to_semitones( context.voice.octave )
 

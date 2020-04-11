@@ -1,12 +1,24 @@
 from typing import Any, Optional, Tuple
 from .statement_node import StatementNode
 from musikla.core import Music, StackFrame, Context
+from musikla.parser.printer import CodePrinter
 
 class StatementsListNode( StatementNode ):
     def __init__ ( self, nodes, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.statements = nodes
+
+    def to_source ( self, printer : CodePrinter ):
+        for i in range( len( self.statements ) ):
+            if i > 0:
+                printer.add_token( ';' )
+            
+            printer.begin_line()
+
+            self.statements[ i ].to_source( printer )
+
+        # return ';\n'.join( node.to_source() for node in self.statements )
 
     def get_events ( self, context : Context, stack_frame : Optional[StackFrame], value, index ):
         for event in value:

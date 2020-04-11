@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 from .expression_node import ExpressionNode
 from musikla.core import Value
@@ -22,3 +23,30 @@ class FunctionExpressionNode( ExpressionNode ):
                 raise BaseException( "Calling undefined function" )
 
         return CallablePythonValue.call( value, context, self.parameters, self.named_parameters )
+
+    def to_source ( self, printer : CodePrinter ):
+        from .variable_expression_node import VariableExpressionNode
+
+        if isinstance( self.expression, VariableExpressionNode ):
+            printer.add_token( self.expression.name )
+        else:
+            self.expression.to_source( printer )
+        
+        with printer.block( '(', ')' ):
+            for i in range( len( self.parameters ) ):
+                if i > 0:
+                    printer.add_token( '; ' )
+                
+                self.parameters[ i ].to_source( printer )
+
+            not_first = bool( self.parameters )
+
+            for key, node in self.named_parameters.items():
+                if not_first:
+                    printer.add_token( '; ' )
+
+                printer.add_token( key + ' = ' )
+                
+                node.to_source( printer )
+
+                not_first = True

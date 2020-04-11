@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from musikla.core import Context, SymbolsScope, CallableValue, Value
 from .statement_node import StatementNode
 from ..expressions import VariableExpressionNode
@@ -49,3 +50,35 @@ class FunctionDeclarationStatementNode( StatementNode ):
                 forked.symbols.assign( name, Value.assignment( node.eval( arg_context.fork() ) ) )
 
         return self.body.eval( forked )
+    
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( 'fun ' )
+
+        if self.name is not None:
+            printer.add_token( self.name + ' ' )
+
+        printer.begin_block( '(', ')' )
+
+        for i in range( len( self.arguments ) ):
+            if i > 0:
+                printer.add_token( ', ' )
+
+            name, mod, expr = self.arguments[ i ]
+
+            if mod is not None:
+                printer.add_token( mod + ' ' )
+            
+            printer.add_token( '$' + name )
+
+            if expr is not None:
+                printer.add_token( ' = ' )
+
+                expr.to_source( printer )
+
+        printer.end_block()
+
+        printer.begin_block()
+
+        self.body.to_source( printer )
+
+        printer.end_block()

@@ -1,15 +1,19 @@
+from musikla.parser.printer import CodePrinter
 from .music_node import MusicNode
 from .music_parallel_node import MusicParallelNode
 from musikla.core.theory import NoteAccidental, NotePitchClasses, NotePitchClassesInv, Note
 from musikla.core.events import NoteEvent
-from typing import List
+from typing import List, Tuple
 
 class NoteNode( MusicNode ):
-    def __init__ ( self, note : Note, position : (int, int) = None ):
+    def __init__ ( self, note : Note, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.note : Note = note
     
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( str( self.note ) )
+
     def get_events ( self, context ):
         note = NoteEvent(
             timestamp = context.cursor,
@@ -31,4 +35,4 @@ class NoteNode( MusicNode ):
 
         nodes = [ NoteNode( note, self.position ) for note in notes ]
 
-        return MusicParallelNode( nodes, self.position )
+        return MusicParallelNode( nodes, position = self.position )

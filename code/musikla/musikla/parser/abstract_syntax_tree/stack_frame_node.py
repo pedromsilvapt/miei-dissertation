@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from typing import Tuple
 from .node import Node
 from musikla.core import Value, StackFrame, Context
@@ -8,6 +9,9 @@ class StackFrameNode( Node ):
 
         self.child : Node = child
     
+    def to_source ( self, printer : CodePrinter ):
+        self.child.to_source( printer )
+
     def eval ( self, context : Context ):
         context.symbols.assign( 'stack_frame', StackFrame(), container = 'stack' )
 

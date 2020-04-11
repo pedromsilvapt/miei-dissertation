@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from .expression_node import ExpressionNode
 from typing import Any, Tuple
 
@@ -9,3 +10,6 @@ class ConstantNode( ExpressionNode ):
 
     def eval ( self, context ):
         return self.value
+
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( str( self.value ) )

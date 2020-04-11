@@ -1,10 +1,11 @@
+from musikla.parser.printer import CodePrinter
 from ..node import Node
 from .expression_node import ExpressionNode
 from musikla.core import Value, Music
-from typing import Union
+from typing import Optional, Tuple, Union
 
 class BinaryOperatorNode( ExpressionNode ):
-    def __init__ ( self, left : Node, right : Node, position : (int, int) = None ):
+    def __init__ ( self, left : Node, right : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.left : Node = left
@@ -20,6 +21,13 @@ class PlusBinaryOperatorNode(BinaryOperatorNode):
 
         return left_value + right_value
 
+    def to_source ( self, printer : CodePrinter ):
+        self.left.to_source( printer )
+
+        printer.add_token( ' + ' )
+
+        self.right.to_source( printer )
+
 class MinusBinaryOperatorNode(BinaryOperatorNode):
     def eval ( self, context ):
         left_value = self.left.eval( context )
@@ -27,6 +35,13 @@ class MinusBinaryOperatorNode(BinaryOperatorNode):
 
         return left_value - right_value
     
+    def to_source ( self, printer : CodePrinter ):
+        self.left.to_source( printer )
+
+        printer.add_token( ' - ' )
+
+        self.right.to_source( printer )
+
 class MultBinaryOperatorNode(BinaryOperatorNode):
     def get_events ( self, context, events : Music, count : int ):
         if count == 0: return
@@ -52,6 +67,13 @@ class MultBinaryOperatorNode(BinaryOperatorNode):
         else:
             return left_value * right_value
     
+    def to_source ( self, printer : CodePrinter ):
+        self.left.to_source( printer )
+
+        printer.add_token( ' * ' )
+
+        self.right.to_source( printer )
+
 class DivBinaryOperatorNode(BinaryOperatorNode):
     def eval ( self, context ):
         left_value = self.left.eval( context )
@@ -59,6 +81,13 @@ class DivBinaryOperatorNode(BinaryOperatorNode):
 
         return left_value / right_value
     
+    def to_source ( self, printer : CodePrinter ):
+        self.left.to_source( printer )
+
+        printer.add_token( ' / ' )
+
+        self.right.to_source( printer )
+
 class AndLogicOperatorNode(BinaryOperatorNode):
     def eval ( self, context ):
         left_value = self.left.eval( context )
@@ -68,6 +97,13 @@ class AndLogicOperatorNode(BinaryOperatorNode):
         right_value = self.right.eval( context )
 
         return bool( right_value )
+
+    def to_source ( self, printer : CodePrinter ):
+        self.left.to_source( printer )
+
+        printer.add_token( ' and ' )
+
+        self.right.to_source( printer )
 
 class OrLogicOperatorNode(BinaryOperatorNode):
     def eval ( self, context ):
@@ -80,11 +116,18 @@ class OrLogicOperatorNode(BinaryOperatorNode):
 
         return right_value if right_value else False
 
-class ComparisonOperatorNode(BinaryOperatorNode):
-    def __init__ ( self, left : Node, right : Node, position : (int, int) = None ):
-        super().__init__( left, right, position )
+    def to_source ( self, printer : CodePrinter ):
+        self.left.to_source( printer )
 
-        self.operator = None
+        printer.add_token( ' or ' )
+
+        self.right.to_source( printer )
+
+class ComparisonOperatorNode(BinaryOperatorNode):
+    operator : Optional[str] = None
+
+    def __init__ ( self, left : Node, right : Node, position : Tuple[int, int] = None ):
+        super().__init__( left, right, position )
 
     def compare ( self, a, b ):
         pass
@@ -94,6 +137,13 @@ class ComparisonOperatorNode(BinaryOperatorNode):
         right_value = self.right.eval( context )
 
         return self.compare( left_value, right_value )
+
+    def to_source ( self, printer : CodePrinter ):
+        self.left.to_source( printer )
+
+        printer.add_token( ' ' + self.operator + ' ' )
+
+        self.right.to_source( printer )
 
 class GreaterEqualComparisonOperatorNode(ComparisonOperatorNode):
     operator : str = '>='

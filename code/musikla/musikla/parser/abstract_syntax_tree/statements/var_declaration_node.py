@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from typing import Optional, Tuple
 from .statement_node import StatementNode
 from musikla.core import Value, Context
@@ -30,3 +31,8 @@ class VariableDeclarationStatementNode( StatementNode ):
             context.symbols.assign( self.name, value, local = self.local )
 
         return None
+
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( f"${ self.name } { self.operator if self.operator is not None else '' }= " )
+        
+        self.expression.to_source( printer )

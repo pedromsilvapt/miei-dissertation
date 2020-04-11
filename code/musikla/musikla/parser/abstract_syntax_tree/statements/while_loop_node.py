@@ -1,9 +1,11 @@
-from musikla.core import Context, SymbolsScope, Value
+from typing import Tuple
+from musikla.parser.printer import CodePrinter
+from musikla.core import Context
 from ..node import Node
 from .statement_node import StatementNode
 
 class WhileLoopStatementNode( StatementNode ):
-    def __init__ ( self, condition : Node, body : Node, position : (int, int) = None ):
+    def __init__ ( self, condition : Node, body : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.condition : Node = condition
@@ -21,3 +23,11 @@ class WhileLoopStatementNode( StatementNode ):
 
         return result
 
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( 'while ' )
+
+        with printer.block( '(', ')' ):
+            self.condition.to_source( printer )
+
+        with printer.block():
+            self.body.to_source( printer )

@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from typing import Tuple
 from musikla.core import Context, SymbolsScope, Value
 from ..node import Node
@@ -12,12 +13,8 @@ class ForLoopStatementNode( StatementNode ):
         self.body : Node = body
 
     def eval ( self, context : Context ):
-        # Value.expect( min_value, float, "For loop minimum" )
-        # Value.expect( max_value, float, "For loop maximum" )
-
         result = None
 
-        # TODO Study creating a custom scope for this loop
         for i in Value.eval( context.fork(), self.it ):
             forked = context.fork( symbols = context.symbols.fork( opaque = False ) )
 
@@ -27,3 +24,13 @@ class ForLoopStatementNode( StatementNode ):
             
         return result
 
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( 'for ' )
+
+        with printer.block( '(', ')' ):
+            printer.add_token( "$" + self.variable + " in " )
+
+            self.it.to_source( printer )
+
+        with printer.block():
+            self.body.to_source( printer )

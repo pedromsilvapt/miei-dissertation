@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from typing import Tuple
 from .expression_node import ExpressionNode
 from ..node import Node
@@ -17,3 +18,7 @@ class BlockNode( ExpressionNode ):
             return self.body.eval( forked )
         finally:
             context.join( forked )
+
+    def to_source ( self, printer : CodePrinter ):
+        with printer.block():
+            self.body.to_source( printer )
