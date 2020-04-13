@@ -5,14 +5,14 @@ markdown_extensions:
 nav:
   - Home: 'index.md'
   - Getting Started: 
-    - 'Notes & Rests': 'syntax/notes-and-rests.md'
-    - 'Combinators': 'syntax/combinators.md'
-    - 'Chords': 'syntax/chords.md'
-    - 'Voices': 'syntax/voices.md'
-    - 'Sound Files': 'syntax/sound-files.md'
-    - 'Keyboards': 'syntax/keyboards.md'
-    - 'Grids': 'syntax/grids.md'
-    - 'Programming': 'syntax/programming.md'
+    - 'Notes & Rests': 'getting-started/notes-and-rests.md'
+    - 'Combinators': 'getting-started/combinators.md'
+    - 'Chords': 'getting-started/chords.md'
+    - 'Voices': 'getting-started/voices.md'
+    - 'Sound Files': 'getting-started/sound-files.md'
+    - 'Keyboards': 'getting-started/keyboards.md'
+    - 'Grids': 'getting-started/grids.md'
+    - 'Programming': 'getting-started/programming.md'
   - Cookbook:
     - 'Keyboard':
       - 'Custom Keyboards': 'cookbook/keyboards/custom-keyboard.md'
