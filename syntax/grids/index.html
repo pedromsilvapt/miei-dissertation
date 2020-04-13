@@ -36,7 +36,7 @@
     
     
       
-        <title>Sound Files - Musikla</title>
+        <title>Grids - Musikla</title>
       
     
     
@@ -75,7 +75,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#sound-files" tabindex="0" class="md-skip">
+      <a href="#grids" tabindex="0" class="md-skip">
         Skip to content
       </a>
     
@@ -101,7 +101,7 @@
             </span>
             <span class="md-header-nav__topic">
               
-                Sound Files
+                Grids
               
             </span>
           
@@ -249,56 +249,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Sound Files
-      </label>
-    
-    <a href="./" title="Sound Files" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../sound-files/" title="Sound Files" class="md-nav__link">
       Sound Files
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#optimal-format" class="md-nav__link">
-    Optimal Format
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#optimizing" class="md-nav__link">
-    Optimizing
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -318,11 +273,70 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../grids/" title="Grids" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Grids
+      </label>
+    
+    <a href="./" title="Grids" class="md-nav__link md-nav__link--active">
       Grids
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#direction" class="md-nav__link">
+    Direction
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#range" class="md-nav__link">
+    Range
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#forgiveness" class="md-nav__link">
+    Forgiveness
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#composition" class="md-nav__link">
+    Composition
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -508,15 +522,29 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#optimal-format" class="md-nav__link">
-    Optimal Format
+  <a href="#direction" class="md-nav__link">
+    Direction
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#optimizing" class="md-nav__link">
-    Optimizing
+  <a href="#range" class="md-nav__link">
+    Range
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#forgiveness" class="md-nav__link">
+    Forgiveness
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#composition" class="md-nav__link">
+    Composition
   </a>
   
 </li>
@@ -538,74 +566,76 @@
               
                 
                 
-                <h1 id="sound-files">Sound Files</h1>
-<p>We've seen how to play notes and chords from instruments, but sometimes it can be interesting to mix things up a bit and play sound files directly.</p>
-<p>Sound files can be played just like notes, and to do so, they simply have to be loaded first.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="l">A</span><span class="s"> </span><span class="l">B</span><span class="s"> </span><span class="nf">sample</span><span class="p">(</span><span class="s"> &quot;cihat.wav&quot; </span><span class="p">);</span><span class="s"></span>
-</code></pre></div>
-</td></tr></table>
-
-<p>To avoid loading the sample every time, we can load it once and save it in a <a href="../programming/#variables">variable</a>.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$cihat</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">sample</span><span class="p">(</span><span class="s"> &quot;cihat.wav&quot; </span><span class="p">);</span><span class="s"></span>
-
-<span class="l">A</span><span class="s"> </span><span class="l">B</span><span class="s"> </span><span class="nv">$cihat</span><span class="p">;</span><span class="s"></span>
-</code></pre></div>
-</td></tr></table>
-
-<p>The sound files can be in virtually any common format. If they are already optimized, they are loaded straight away. If not, they are converted in runtime in memory using <a href="https://ffmpeg.org/">FFMPEG</a> in the background.</p>
-<blockquote>
-<p><strong>NOTE</strong> Optimizing files in the background requires FFMPEG to be installed and available in the <code>$PATH</code>.</p>
-</blockquote>
-<h2 id="optimal-format">Optimal Format</h2>
-<p>Sound files in this format do not require any kind of preprocessing and can be loaded directly into memory, minimizing the performance overhead. When possible, use of convert files to this format.</p>
-<table>
-<thead>
-<tr>
-<th>Setting</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Format</strong></td>
-<td>WAVE</td>
-</tr>
-<tr>
-<td><strong>Sample Rate</strong></td>
-<td>41.100hz</td>
-</tr>
-<tr>
-<td><strong>Channels</strong></td>
-<td>1 (<em>Mono</em>)</td>
-</tr>
-<tr>
-<td><strong>Bit depth</strong></td>
-<td>16bit</td>
-</tr>
-<tr>
-<td><strong>Compression</strong></td>
-<td>None</td>
-</tr>
-</tbody>
-</table>
-<h2 id="optimizing">Optimizing</h2>
-<p>When the file format is not optimal, optimizing it beforehand can make the whole program more performant and reduce load times. To simplify the experience, and to avoid forcing the user to figure out what tool to use and what configurations to apply to convert the files, the language comes equipped with two utility functions that simplify this process.</p>
-<p>The user simply has to provide the file or folder paths containing the files he wishes to optimize, and indicate where the optimized versions should be saved.</p>
+                <h1 id="grids">Grids</h1>
+<p>Grids provide a way for the user to define rules for how to align musical events (also referred to as <a href="https://en.wikipedia.org/wiki/Quantization_(music)">quantization</a>) in order to remove imprecisions resulting from the process of performing the music live. Grids can change just the duration of events, or only their start time. They can also affect each event individually, of treat certain groups of events as one atomic unit.</p>
+<p>The most important parameter of a grid is it's <strong>cell duration</strong> (or length). Any events that don't fall on the edges of a grid cell are pushed to the closest one.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3
 4
 5
-6</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="c"># Converts a single file and stores it in the given path</span><span class="s"></span>
-<span class="nf">optimize_sample</span><span class="p">(</span><span class="s"> &quot;cihat.mp3&quot;</span><span class="p">,</span><span class="s"> &quot;cihat.mp3&quot; </span><span class="p">);</span><span class="s"></span>
+6
+7
+8</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$grid</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">keyboard\Grid</span><span class="p">(</span><span class="s"> </span><span class="m">1</span><span class="kp">/</span><span class="m">2</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 
-<span class="c"># Converts every file inside the `samples/` folder into an optimized version </span><span class="s"></span>
-<span class="c">#and stores them, with the same name inside the `samples-optimized/` folder.</span><span class="s"></span>
-<span class="nf">optimize_samples_folder</span><span class="p">(</span><span class="s"> &quot;samples/&quot;</span><span class="p">,</span><span class="s"> &quot;samples-optimized/&quot; </span><span class="p">);</span><span class="s"></span>
+<span class="c"># We can then instruct a keyboard to use this grid</span><span class="s"></span>
+<span class="k">@keyboard</span><span class="s"> </span><span class="m">toggle</span><span class="s"> </span><span class="m">extend</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    z</span><span class="p">:</span><span class="s"> </span><span class="l">C</span><span class="s">;</span>
+<span class="s">    x: </span><span class="l">D</span><span class="s">;</span>
+<span class="s">    </span><span class="l">c</span><span class="s">: </span><span class="l">E</span><span class="s">;</span>
+<span class="p">}</span><span class="kp">::</span><span class="nf">with_grid</span><span class="p">(</span><span class="s"> </span><span class="nv">$grid</span><span class="s"> </span><span class="p">)</span><span class="s">;</span>
 </code></pre></div>
 </td></tr></table>
+
+<p>In the example below, <strong>Event A</strong> would be moved to the position <strong>0</strong>, while <strong>Event B</strong> would be moved to the position <strong>1/2</strong>.
+<img alt="Screenshot" src="/assets/grids_default.png" /></p>
+<h2 id="direction">Direction</h2>
+<p>It is also possible to condition a grid to only align events <code>left</code> (backards in time) or <code>right</code> (forwards in time) relative to the event's original timestamp.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$grid</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">keyboard\Grid</span><span class="p">(</span><span class="s"> </span><span class="m">1</span><span class="kp">/</span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">direction </span><span class="kp">=</span><span class="s"> &#39;left&#39; </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<p>In this case, both events would be moved to the position <strong>0</strong>.</p>
+<p><img alt="Screenshot" src="/assets/grids_direction_left.png" /></p>
+<p>Aditionally, there are also two parameters that control when the alignment should occur, and when the event should be left untouched.</p>
+<ul>
+<li><strong>Range</strong> How close (in time units) the event has to be from a cell edge to still be realigned.</li>
+<li><strong>Forgiveness</strong> How close (in time units) the event has to be from a cell edge to <em>not</em> be realigned.</li>
+</ul>
+<p>Both of those parameters can be set once equally, or customized for each side (<code>left</code> and <code>right</code>).</p>
+<h2 id="range">Range</h2>
+<p>Range describes how close to a cell edge an event has to be to still be realigned. This means that events too far away are ignored. When no custom range is provided, the grid covers the entire cell duration. We can provide a equal range for both directions, or specify different values for the <code>left</code> and <code>right</code> directions.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$grid</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">keyboard\Grid</span><span class="p">(</span><span class="s"> </span><span class="m">1</span><span class="kp">/</span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">range_left </span><span class="kp">=</span><span class="s"> </span><span class="m">600</span><span class="p">,</span><span class="s"> </span><span class="m">range_right </span><span class="kp">=</span><span class="s"> </span><span class="m">200</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<p>As we can see, a grid cell does not have to be completely covered, neither do both ranges have to be the same.</p>
+<p>In this case, the <strong>Event A</strong> will be left untouched, while <strong>Event B</strong> will be moved to the position <strong>1/2</strong>.</p>
+<p><img alt="Screenshot" src="/assets/grids_ranges.png" /></p>
+<h2 id="forgiveness">Forgiveness</h2>
+<p>We've seen how ranges can leave events far away from the edges left untouched. But what if we want to ignore the ones close to the edges?
+Forgiveness is the opposite of <em>range</em>.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$grid</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">keyboard\Grid</span><span class="p">(</span><span class="s"> </span><span class="m">1</span><span class="kp">/</span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">forgiveness_left </span><span class="kp">=</span><span class="s"> </span><span class="m">300</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<p>Here we see that every cell edge has a gap to their left with the duration of <code>300ms</code>. This leaves <strong>Event B</strong> untouched, while <strong>Event A</strong> is still pulled to the left.
+<img alt="Screenshot" src="/assets/grids_forgiveness.png" /></p>
+<h2 id="composition">Composition</h2>
+<p>We've covered above how we can customize to our needs how each grid affects each event. But using only one grid is still limiting. That's why we can compose multiple grids, each with their own ranges and forgiveness, in a sequential manner, to </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$grid</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nv">$keyboard\Grid</span><span class="kp">::</span><span class="nf">compose</span><span class="p">(</span><span class="s"></span>
+<span class="s">    </span><span class="nf">keyboard\Grid</span><span class="p">(</span><span class="s"> </span><span class="m">1</span><span class="kp">/</span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">direction </span><span class="kp">=</span><span class="s"> &#39;left&#39;</span><span class="p">,</span><span class="s"> </span><span class="m">forgiveness_left </span><span class="kp">=</span><span class="s"> </span><span class="m">500</span><span class="s"> </span><span class="p">),</span><span class="s"> </span><span class="c">#g1</span><span class="s"></span>
+<span class="s">    </span><span class="nf">keyboard\Grid</span><span class="p">(</span><span class="s"> </span><span class="m">1</span><span class="kp">/</span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">direction </span><span class="kp">=</span><span class="s"> &#39;right&#39; </span><span class="p">)</span><span class="s"> </span><span class="c">#g2</span><span class="s"></span>
+<span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<p>In this example, we see how the first grid aligns <strong>Event A</strong> to the left, but ignores <strong>EventB</strong> because of the forgiveness parameter. Right after, the second grid then ignores <strong>Event A</strong> because it is already aligned, and aligns <strong>Event B</strong> to the right.
+<img alt="Screenshot" src="/assets/grids_composition_1.png" />
+<img alt="Screenshot" src="/assets/grids_composition_2.png" /></p>
                 
                   
                 
@@ -627,7 +657,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../voices/" title="Voices" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../keyboards/" title="Keyboards" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -636,19 +666,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Voices
+                Keyboards
               </span>
             </div>
           </a>
         
         
-          <a href="../keyboards/" title="Keyboards" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../programming/" title="Programming" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Keyboards
+                Programming
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">
