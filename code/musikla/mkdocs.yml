@@ -4,13 +4,14 @@ markdown_extensions:
   - codehilite
 nav:
   - Home: 'index.md'
-  - Syntax: 
+  - Getting Started: 
     - 'Notes & Rests': 'syntax/notes-and-rests.md'
     - 'Combinators': 'syntax/combinators.md'
     - 'Chords': 'syntax/chords.md'
     - 'Voices': 'syntax/voices.md'
     - 'Sound Files': 'syntax/sound-files.md'
     - 'Keyboards': 'syntax/keyboards.md'
+    - 'Grids': 'syntax/grids.md'
     - 'Programming': 'syntax/programming.md'
   - Cookbook:
     - 'Keyboard':

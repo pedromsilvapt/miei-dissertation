@@ -1,9 +1,11 @@
 from decimal import InvalidOperation
+from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 from musikla.core import Context, Value, Music
 from musikla.core.events import NoteEvent
 from typing import Callable, List, Dict, Optional, Union, Any, cast
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
-from musikla.parser.abstract_syntax_tree.expressions import BoolLiteralNode, FunctionExpressionNode, ConstantNode
+from musikla.parser.abstract_syntax_tree.expressions import BoolLiteralNode, FunctionExpressionNode, ConstantNode, PropertyAccessorNode, StringLiteralNode
+from musikla.parser.abstract_syntax_tree.statements import FunctionDeclarationStatementNode
 from musikla.audio import Player
 from fractions import Fraction
 from .event import KeyStroke, PianoKey, KeyboardEvent
@@ -191,6 +193,13 @@ class Keyboard:
             )
 
         return keyboard
+
+    def with_grid ( self, grid ) -> 'Keyboard':
+        body = PropertyAccessorNode( ConstantNode( grid ), StringLiteralNode( 'align' ) )
+
+        body = FunctionExpressionNode( body, [ VariableExpressionNode( 'music' ) ] )
+
+        return self.map( FunctionDeclarationStatementNode( None, [ ( 'k', None, None ), ( 'music', None, None ) ], body ) )
 
     def __add__ ( self, other ):
         from .library import KeyboardLibrary

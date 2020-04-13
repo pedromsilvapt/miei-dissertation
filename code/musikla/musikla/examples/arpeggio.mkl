@@ -14,8 +14,10 @@ $pat = $e1;
 # 
 # g2: Instead of starting to play right away, it is pushed to the right: meaning, it will play when the next
 # grid alignment starts
-$g = keyboard\Grid( 3, direction = 'left', forgiveness_left = 500 );
-$g = keyboard\Grid( 3, direction = 'right', sync_with = $g, prealign_with = $g );
+$g = $keyboard\Grid::compose(
+    keyboard\Grid( 3, direction = 'left', forgiveness_left = 500 ), #g1
+    keyboard\Grid( 3, direction = 'right' ) #g2
+);
 
 $keyboard = @keyboard {
     a: arpeggio( [Cm]; $pat );
@@ -26,7 +28,7 @@ $keyboard = @keyboard {
 
     8: { $pat = $e1 };
     9: { $pat = $e2 };
-}::map( fun ( $k, $music ) => $g::align( $music ) );
+}::with_grid( $g );
 
 print( $g::length_duration ); 
 

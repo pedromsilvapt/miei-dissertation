@@ -1,6 +1,7 @@
 from typing import Any, Optional, Union, cast
 from musikla.core import Context, Music
 from musikla.core.events import MusicEvent
+from musikla.core.events.transformers import SortTransformer
 from .keyboard import Keyboard
 from fractions import Fraction
 import asyncio
@@ -17,6 +18,11 @@ class Grid:
         
         self._start : Optional[int] = None
         self.realtime : bool = False
+
+        self.range : int = -1
+        self.range_left : int = -1
+        self.range_right : int = -1
+
         # A natural number specifying the nonaligment forgiveness: if the event is badly aligned with the grid but the
         # distance is less than the forgiveness set, in milliseconds, then no alignment is performed.
         self.forgiveness : int = forgiveness
@@ -44,11 +50,6 @@ class Grid:
     def start ( self ) -> Optional[int]:
         if self.sync_with is not None:
             return self.sync_with.start
-        
-        # if self._start is None:
-        #     self._start = self.player.get_time()
-
-        #     print( self._start )
 
         return self._start
 
@@ -65,10 +66,6 @@ class Grid:
         else:
             delta = -rest
         
-        # dir = self.forgiveness_direction
-
-        # can_be_forgiven = dir == DIRECTION_BOTH or ( dir == DIRECTION_LEFT and delta < 0 ) or ( dir == DIRECTION_RIGHT and delta > 0 )
-
         fl = self.forgiveness + self.forgiveness_left
         fr = self.forgiveness + self.forgiveness_right
 
@@ -114,7 +111,11 @@ class Grid:
         if isinstance( music, Music ):
             aligned : Music = music.map( lambda e, i, s: self._align_event( e, s, individually, maintain_duration ).join( context ) )
 
-            # aligned = aligned.transform( SortTransform, self.forgiveness )
+            if individually:
+                forgiveness = self.forgiveness + self.forgiveness_left + self.forgiveness_right
+
+                if forgiveness != 0:
+                    aligned = aligned.transform( SortTransformer, forgiveness )
 
             return aligned
         elif isinstance( music, MusicEvent ):
@@ -150,3 +151,15 @@ class Grid:
                 await asyncio.sleep(0.01)
 
         asyncio.create_task( periodic() )
+
+    @staticmethod
+    def compose ( *args ):
+        last_grid = args[ 0 ]
+
+        for i in range( 1, len( args ) ):
+            args[ i ].sync_with = last_grid.sync_with if last_grid.sync_with is not None else last_grid
+            args[ i ].prealign_with = last_grid
+
+            last_grid = args[ i ]
+
+        return last_grid

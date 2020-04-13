@@ -3,10 +3,11 @@ from typing import List, Union
 
 class TeeTransformer(Transformer):
     def __init__ ( self, sinks : Union[Transformer, List[Transformer]] = [] ):
-        if type( sinks ) == list:
-            sinks = [ sinks ]
+        if isinstance( sinks, Transformer ):
+            self.sinks : List[Transformer] = [ sinks ]
+        else:
+            self.sinks : List[Transformer] = sinks
 
-        self.sinks : List[Transformer] = sinks
 
     def transform ( self ):
         while True:
