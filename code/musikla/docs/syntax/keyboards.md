@@ -77,3 +77,21 @@ Currently there are four flags available to customize the behavior of the keyboa
 | hold   | Starts playing on key press, but stops when the key is released.                 |
 | toggle | Starts playing when the key is pressed once, and stops when it is pressed again. |
 | extend | Ignores the length of the note(s), and instead play it while the key is active.  |
+
+## Control Structures
+To avoid having to type every keyboard key manually, when a pattern or repetition can be devised, control structures such as `for` and `while` loops or `if` and `else` conditionals can be employed.
+
+    #!musikla
+    $array = @[ 'z', 'x', 'c', 'v' ];
+
+    @keyboard {
+        for ($i in range( len( $array ) ) ) {
+            { 
+                $key = C::first_note() + $scale::white_keys::interval_at( $i );
+            };
+
+            [ $array::[ $i ] ]: $key;
+        }
+    }
+
+The body of these structures still needs to be keyboard declaration shortcuts, not random statements. However, if one needs custom code inside the loops, regular code blocks can be inserted wrapped around by braces `{` and `}`.
