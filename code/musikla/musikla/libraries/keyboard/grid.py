@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Tuple, Union, cast
 from musikla.core import Context, Music
 from musikla.core.events import MusicEvent
 from musikla.core.events.transformers import SortTransformer
@@ -11,7 +11,7 @@ DIRECTION_RIGHT = 'right'
 DIRECTION_BOTH = 'both'
 
 class Grid:
-    def __init__ ( self, context : Context, num : int = 1, den : int = 1, forgiveness : int = 0, forgiveness_left : int = 0, forgiveness_right : int = 0, direction : str = DIRECTION_BOTH, sync_with : 'Grid' = None, prealign_with : 'Grid' = None ):
+    def __init__ ( self, context : Context, num : int = 1, den : int = 1, forgiveness : int = 0, forgiveness_left : int = 0, forgiveness_right : int = 0, range : int = None, range_left : int = None, range_right : int = None, direction : str = DIRECTION_BOTH, sync_with : 'Grid' = None, prealign_with : 'Grid' = None ):
         self.context : Context = context
         self.length : Fraction = Fraction( num, den )
         self.length_duration : int = self.context.voice.get_duration( float( self.length ) )
@@ -19,9 +19,9 @@ class Grid:
         self._start : Optional[int] = None
         self.realtime : bool = False
 
-        self.range : int = -1
-        self.range_left : int = -1
-        self.range_right : int = -1
+        self.range : Optional[int] = range
+        self.range_left : Optional[int] = range_left
+        self.range_right : Optional[int] = range_right
 
         # A natural number specifying the nonaligment forgiveness: if the event is badly aligned with the grid but the
         # distance is less than the forgiveness set, in milliseconds, then no alignment is performed.
@@ -53,32 +53,57 @@ class Grid:
 
         return self._start
 
+    def _real_ranges ( self ) -> Tuple[int, int]:
+        range = int( self.length_duration / 2 ) if self.range is None else self.range
+        
+        range_left = range if self.range_left is None else self.range_left
+        
+        range_right = range if self.range_right is None else self.range_right
+        
+        if self.range_left is None and self.range_right is not None:
+            range_left = range * 2 - self.range_right
+        elif self.range_left is not None and self.range_right is None:
+            range_right = range * 2 - self.range_left
+
+        return ( range_left, range_right )
+
+    def _real_forgiveness ( self ) -> Tuple[int, int]:
+        forgiveness = 0 if self.forgiveness is None else self.forgiveness
+
+        forgiveness_left = forgiveness if self.forgiveness_left is None else self.forgiveness_left
+        
+        forgiveness_right = forgiveness if self.forgiveness_right is None else self.forgiveness_right
+        
+        return ( forgiveness_left, forgiveness_right )
+
+    def _within_forgiveness ( self, dist_l : int, dist_r : int ) -> bool:
+        fl, fr = self._real_forgiveness()
+
+        return dist_r <= fl or abs( dist_l ) <= fr
+
+    def _within_range ( self, dist_l : int, dist_r : int ) -> int:
+        rl, rr = self._real_ranges()
+
+        if dist_l <= rr:
+            return dist_r if self.direction == 'right' else -dist_l
+        elif dist_r <= rl:
+            return -dist_l if self.direction == 'left' else dist_r
+        else:
+            return 0
+    
     def get_delta ( self, time : int ) -> int:
         rest = ( time - self.start ) % self.length_duration
 
         if rest == 0:
             return 0
 
-        delta = 0
-
-        if rest > self.length_duration / 2:
-            delta = self.length_duration - rest
-        else:
-            delta = -rest
-        
-        fl = self.forgiveness + self.forgiveness_left
-        fr = self.forgiveness + self.forgiveness_right
-
-        # if can be forgiven
-        if delta > 0 and delta < fl or delta <= 0 and abs( delta ) < fr:
+        dist_l = rest
+        dist_r = self.length_duration - rest
+            
+        if self._within_forgiveness( dist_l, dist_r ):
             return 0
-        else:
-            if self.direction == 'left' and delta > 0:
-                return -rest
-            elif self.direction == 'right' and delta < 0:
-                return self.length_duration - rest
-            else:
-                return delta
+
+        return self._within_range( dist_l, dist_r )
 
     def reset ( self, base : int = None ):
         if self.sync_with is not None:

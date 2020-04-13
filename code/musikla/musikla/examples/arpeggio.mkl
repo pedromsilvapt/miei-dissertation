@@ -19,6 +19,9 @@ $g = $keyboard\Grid::compose(
     keyboard\Grid( 3, direction = 'right' ) #g2
 );
 
+# A much simpler equivalent
+$g = keyboard\Grid( 3, range_left = 500 );
+
 $keyboard = @keyboard {
     a: arpeggio( [Cm]; $pat );
     s: arpeggio( [Fm]; $pat );
