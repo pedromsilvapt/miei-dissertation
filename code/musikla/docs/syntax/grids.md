@@ -14,7 +14,7 @@ The most important parameter of a grid is it's **cell duration** (or length). An
     }::with_grid( $grid );
 
 In the example below, **Event A** would be moved to the position **0**, while **Event B** would be moved to the position **1/2**.
-![Screenshot](/assets/grids_default.png)
+![Screenshot](../assets/grids_default.png)
 
 ## Direction
 
@@ -25,7 +25,7 @@ It is also possible to condition a grid to only align events `left` (backards in
 
 In this case, both events would be moved to the position **0**.
 
-![Screenshot](/assets/grids_direction_left.png)
+![Screenshot](../assets/grids_direction_left.png)
 
 Aditionally, there are also two parameters that control when the alignment should occur, and when the event should be left untouched.
 
@@ -44,7 +44,7 @@ As we can see, a grid cell does not have to be completely covered, neither do bo
 
 In this case, the **Event A** will be left untouched, while **Event B** will be moved to the position **1/2**.
 
-![Screenshot](/assets/grids_ranges.png)
+![Screenshot](../assets/grids_ranges.png)
 
 ## Forgiveness
 We've seen how ranges can leave events far away from the edges left untouched. But what if we want to ignore the ones close to the edges?
@@ -54,7 +54,7 @@ Forgiveness is the opposite of *range*.
     $grid = keyboard\Grid( 1/2, forgiveness_left = 300 );
 
 Here we see that every cell edge has a gap to their left with the duration of `300ms`. This leaves **Event B** untouched, while **Event A** is still pulled to the left.
-![Screenshot](/assets/grids_forgiveness.png)
+![Screenshot](../assets/grids_forgiveness.png)
 
 ## Composition
 We've covered above how we can customize to our needs how each grid affects each event. But using only one grid is still limiting. That's why we can compose multiple grids, each with their own ranges and forgiveness, in a sequential manner, to 
@@ -66,5 +66,5 @@ We've covered above how we can customize to our needs how each grid affects each
     );
 
 In this example, we see how the first grid aligns **Event A** to the left, but ignores **EventB** because of the forgiveness parameter. Right after, the second grid then ignores **Event A** because it is already aligned, and aligns **Event B** to the right.
-![Screenshot](/assets/grids_composition_1.png)
-![Screenshot](/assets/grids_composition_2.png)
+![Screenshot](../assets/grids_composition_1.png)
+![Screenshot](../assets/grids_composition_2.png)
