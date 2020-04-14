@@ -303,6 +303,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#control-structures" class="md-nav__link">
+    Control Structures
+  </a>
+  
+</li>
+      
       
       
       
@@ -521,6 +528,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#control-structures" class="md-nav__link">
+    Control Structures
+  </a>
+  
+</li>
+      
       
       
       
@@ -696,6 +710,33 @@
 </tr>
 </tbody>
 </table>
+<h2 id="control-structures">Control Structures</h2>
+<p>To avoid having to type every keyboard key manually, when a pattern or repetition can be devised, control structures such as <code>for</code> and <code>while</code> loops or <code>if</code> and <code>else</code> conditionals can be employed.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$array</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@</span><span class="p">[</span><span class="s"> &#39;z&#39;</span><span class="p">,</span><span class="s"> &#39;x&#39;</span><span class="p">,</span><span class="s"> &#39;c&#39;</span><span class="p">,</span><span class="s"> &#39;v&#39; </span><span class="p">];</span><span class="s"></span>
+
+<span class="k">@keyboard</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    for ($i in range( len( $array ) ) ) {</span>
+<span class="s">        { </span>
+<span class="s">            $key = C</span><span class="p">:</span><span class="nv">:first_note</span><span class="p">()</span><span class="s"> </span><span class="kp">+</span><span class="s"> </span><span class="nv">$scale</span><span class="kp">::</span><span class="nf">white_keys</span><span class="kp">::</span><span class="nf">interval_at</span><span class="p">(</span><span class="s"> </span><span class="nv">$i</span><span class="s"> </span><span class="p">)</span><span class="s">;</span>
+<span class="s">        </span><span class="p">}</span><span class="s">;</span>
+
+<span class="s">        </span><span class="p">[</span><span class="s"> </span><span class="nv">$array</span><span class="s">::</span><span class="p">[</span><span class="s"> </span><span class="nv">$i</span><span class="s"> </span><span class="p">]</span><span class="s"> </span><span class="p">]</span><span class="s">: </span><span class="nv">$key</span><span class="s">;</span>
+<span class="s">    </span><span class="p">}</span><span class="s"></span>
+<span class="p">}</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<p>The body of these structures still needs to be keyboard declaration shortcuts, not random statements. However, if one needs custom code inside the loops, regular code blocks can be inserted wrapped around by braces <code>{</code> and <code>}</code>.</p>
                 
                   
                 
