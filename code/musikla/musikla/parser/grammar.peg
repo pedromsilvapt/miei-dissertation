@@ -5,7 +5,7 @@ body <- statement ( ";" statement )* _ ";"? _
       ;
 
 // Statements
-statement <- _ ( var_declaration / voice_declaration / for_loop_statement / while_loop_statement / if_statement / return_statement / expression ) _;
+statement <- _ ( var_declaration / voice_declaration / for_loop_statement / while_loop_statement / if_statement / return_statement / python_statement / expression ) _;
 
 var_declaration <- "$" namespaced _ var_declaration_infix? "=" _ expression;
 
@@ -92,6 +92,14 @@ keyboard_arguments_separator <- ',' / ';';
 
 keyboard_single_argument <- "$" identifier;
 // END Keyboard
+
+python_expression <- "@py" _ "{" _ python_expression_body _ "}";
+
+python_expression_body <- r"[^\}]*";
+
+python_statement <- "@python" python_statement_body;
+
+python_statement_body <- ( r".*" r"\r?\n"? )*;
 
 expression <- e music_expression;
 
@@ -181,7 +189,7 @@ unary_operator_expression <- ( "not" / ""  ) _  expression_single;
 
 expression_single <- expression_single_prefix ( ( _ property_accessor ) / property_call )*;
 
-expression_single_prefix  <- function_declaration / string_value / number_value / bool_value / none_value / variable / function / keyboard_declaration / array_value / object_value / group / block / chord / note / rest / modifier / instrument_modifier;
+expression_single_prefix  <- function_declaration / string_value / number_value / bool_value / none_value / variable / function / keyboard_declaration / python_expression / array_value / object_value / group / block / chord / note / rest / modifier / instrument_modifier;
 
 property_accessor <- "::" _ ( identifier / ( "[" _ expression _ "]" ) );
 

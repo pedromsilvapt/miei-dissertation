@@ -226,12 +226,22 @@ statement : context {
       }
    }
    
+   # Keyboard
+   : inline_push {
+      regex          \= (@python)
+      default_style   = .base
+      styles []       = .keyword;
+      
+      : pop {
+         regex       \= (\}\}\})
+         styles []    = .punctuation;
+      }
+   }
+   
    : pattern {
       regex          \= (#.*)
       styles []       = .comment;
    }
-   
-   : include "keyboard";
    
    : include "expression";
    
@@ -250,7 +260,21 @@ statement : context {
 
 expression : context {
    :include "codeblock";
-         
+   
+   : include "keyboard";
+   
+   # Keyboard
+   : inline_push {
+      regex          \= (@py)([ \t]*\{)
+      default_style   = .text
+      styles []       = .keyword, .punctuation;
+      
+      : pop {
+         regex       \= (\})
+         styles []    = .punctuation;
+      }
+   }
+   
    :pattern {
       regex          \= (=>|<=|>=|==|!=|[=\*\|\+\-\/]|>=)
       styles []       = .operator;
@@ -334,6 +358,36 @@ expression : context {
    : include "numeric";
 }
 
+keyboard_body : context {
+   description = keyboard_body
+   
+   : inline_push {
+      regex       \= (\[)
+      styles []    = .punctuation;
+   
+      : pop {
+         regex    \= (\])
+         styles [] = .punctuation;
+      }
+      
+      :include "expression";
+   }
+   
+   : inline_push {
+      regex       \= (\:)
+      styles []    = .punctuation;
+   
+      : pop {
+         regex    \= (\;)
+         styles [] = .punctuation;
+      }
+      
+      :include "expression";
+   }
+   
+   :include "codeblock";
+}
+
 keyboard : context {
    description = keyboard
    
@@ -374,29 +428,7 @@ keyboard : context {
          }
          
          
-         : inline_push {
-            regex       \= (\[)
-            styles []    = .punctuation;
-         
-            : pop {
-               regex    \= (\])
-               styles [] = .punctuation;
-            }
-            
-            :include "expression";
-         }
-         
-         : inline_push {
-            regex       \= (\:)
-            styles []    = .punctuation;
-         
-            : pop {
-               regex    \= (\;)
-               styles [] = .punctuation;
-            }
-            
-            :include "expression";
-         }
+         :include "keyboard_body";
       }
    }
 }

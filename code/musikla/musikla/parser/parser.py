@@ -4,7 +4,7 @@ from arpeggio import PTNodeVisitor, visit_parse_tree
 from typing import Any, List, cast
 from musikla.core.events import NoteEvent
 from musikla.core.theory import NoteAccidental, Note, Chord
-from .abstract_syntax_tree import Node
+from .abstract_syntax_tree import Node, PythonNode
 from .abstract_syntax_tree import NoteNode, ChordNode, MusicSequenceNode, MusicParallelNode, RestNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, InstrumentModifierNode, TempoModifierNode, VoiceBlockModifier
 
@@ -38,7 +38,15 @@ class ParserVisitor(PTNodeVisitor):
 
         position = ( node.position, node.position_end )
 
-        return StatementsListNode( list( children ), position = position )
+        children = list( children )
+
+        if any( ( c.hoisted for c in children ) ):
+            children = [
+                *filter( lambda c: c.hoisted, children ),
+                *filter( lambda c: not c.hoisted, children )
+            ]
+
+        return StatementsListNode( children, position = position )
 
     def visit_comment ( self, node, children ):
         return None
@@ -259,6 +267,22 @@ class ParserVisitor(PTNodeVisitor):
 
     def visit_keyboard_single_argument ( self, node, children ):
         return children.identifier[ 0 ]
+
+    def visit_python_expression ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        return PythonNode( children.python_expression_body[ 0 ], True, position = position )
+
+    def visit_python_expression_body ( self, node, children ):
+        return node.value
+
+    def visit_python_statement ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        return PythonNode( children.python_statement_body[ 0 ], False, position = position )
+
+    def visit_python_statement_body ( self, node, children ):
+        return ''.join( children )
 
     def visit_expression ( self, node, children ):
         return children[ 0 ]

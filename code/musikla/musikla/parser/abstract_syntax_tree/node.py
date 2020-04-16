@@ -5,6 +5,7 @@ from musikla.core import Context
 class Node():
     def __init__ ( self, position : Tuple[int, int] = None ):
         self.position : Optional[Tuple[int, int]] = position
+        self.hoisted : bool = False
 
     def eval ( self, context : Context ) -> Any:
         return None
