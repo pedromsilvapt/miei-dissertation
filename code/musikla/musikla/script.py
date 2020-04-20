@@ -103,7 +103,7 @@ class Script:
         context = ( context or self.context )
         
         if fork:
-            context = context.fork( symbols = self.context.symbols.fork() )
+            context = context.fork( symbols = context.symbols.fork() )
 
         for key, value in kargs.items():
             context.symbols.assign( key, value, local = True )

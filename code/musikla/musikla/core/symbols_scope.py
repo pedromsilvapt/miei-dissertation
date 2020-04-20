@@ -1,4 +1,4 @@
-from typing import Hashable
+from typing import Hashable, Optional
 
 class Pointer:
     def __init__ ( self, scope, name ):
@@ -23,6 +23,27 @@ class SymbolsScope:
         self.parent : SymbolsScope = parent
         self.symbols : dict = dict()
         self.opaque : bool = opaque
+
+    @property
+    def root ( self ) -> 'SymbolsScope':
+        scope : SymbolsScope = self
+
+        while scope.parent is not None:
+            scope = scope.parent
+        
+        return scope
+
+    @property
+    def prelude ( self ) -> Optional['SymbolsScope']:
+        scope : SymbolsScope = self
+
+        while scope is not None:
+            if scope.lookup( "is_prelude", 'internal', recursive = False ):
+                return scope
+            
+            scope = scope.parent
+        
+        return None
 
     def pointer ( self, name : Hashable, container : str = "", shallow : bool = False ) -> Pointer:
         scope : SymbolsScope = self
@@ -63,19 +84,23 @@ class SymbolsScope:
         
         return pointer.scope if pointer != None else None
 
-    def lookup ( self, name : Hashable, container : str = "", recursive : bool = True, follow_pointers : bool = True, default = None ):
-        if container in self.symbols and name in self.symbols[ container ]:
-            value = self.symbols[ container ][ name ]
+    def lookup ( self, name : Hashable, container : str = "", recursive : bool = True, follow_pointers : bool = True, default = None, raise_default : bool = False, stop_on : Optional['SymbolsScope'] = None ):
+        if stop_on is None or self != stop_on:
+            if container in self.symbols and name in self.symbols[ container ]:
+                value = self.symbols[ container ][ name ]
 
-            if follow_pointers and isinstance( value, Pointer ):
-                return value.scope.lookup( value.name, container = container )
+                if follow_pointers and isinstance( value, Pointer ):
+                    return value.scope.lookup( value.name, container = container )
 
-            return value
+                return value
+            
+            if recursive and self.parent != None:
+                return self.parent.lookup( name, container = container, follow_pointers = follow_pointers, default = default, raise_default = raise_default, stop_on = stop_on )
         
-        if recursive and self.parent != None:
-            return self.parent.lookup( name, container = container, follow_pointers = follow_pointers, default = default )
-        
-        return default
+        if raise_default:
+            raise default
+        else:
+            return default
 
     def assign ( self, name : Hashable, value, container = "", follow_pointers : bool = True, local : bool = True ):
         if container not in self.symbols:

@@ -57,6 +57,7 @@ class Context():
             voice = Voice( "default", instrument = Instrument( 'Acoustic Grand Piano', GeneralMidi.AcousticGrandPiano ) )
         )
 
+        ctx.symbols.assign( 'is_prelude', True, container = 'internal' )
         ctx.symbols.assign( ctx.voice.name, ctx.voice )
 
         return ctx
@@ -68,7 +69,7 @@ class Context():
                    symbols : SymbolsScope = SymbolsScope(),
                  ):
         self.shared : SharedContext = shared
-        self.voice : Voice = voice
+        self.voice : Optional[Voice] = voice
         self.cursor : int = cursor
         self.symbols : SymbolsScope = symbols
 
