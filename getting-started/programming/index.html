@@ -375,6 +375,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#embedding-python" class="md-nav__link">
+    Embedding Python
+  </a>
+  
+</li>
+      
       
       
       
@@ -467,6 +474,18 @@
         
       </ul>
     </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cookbook/midi-output-waveform/" title="Recording to Traktion Waveform" class="md-nav__link">
+      Recording to Traktion Waveform
+    </a>
   </li>
 
         
@@ -613,6 +632,13 @@
         <li class="md-nav__item">
   <a href="#dictionaries" class="md-nav__link">
     Dictionaries
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#embedding-python" class="md-nav__link">
+    Embedding Python
   </a>
   
 </li>
@@ -766,6 +792,39 @@
 <span class="nv">$dict</span><span class="kp">::</span><span class="nf">set</span><span class="p">(</span><span class="s"> &#39;bar&#39;</span><span class="p">,</span><span class="s"> </span><span class="m">false</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 
 <span class="nv">$dict</span><span class="kp">::</span><span class="nf">delete</span><span class="p">(</span><span class="s"> &#39;foo&#39; </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h2 id="embedding-python">Embedding Python</h2>
+<p>It is possible to embed python code inside the language directly through the use of two directives: <code>@py</code> for single python expressions and <code>@python</code> for statement blocks.</p>
+<p>The first directive can only contain python expressions, but can be used anywhere in the code. For instance, if we wanted to be able to use python list comprehensions on an array, we could simply do:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$arr</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@</span><span class="p">[</span><span class="s"> </span><span class="m">1</span><span class="p">,</span><span class="s"> </span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">3</span><span class="s"> </span><span class="p">];</span><span class="s"></span>
+
+<span class="nv">$arr</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@py</span><span class="s"> </span><span class="p">{</span><span class="s"> </span><span class="p">[</span><span class="s"> </span><span class="gr">i</span><span class="s"> </span><span class="kp">*</span><span class="s"> </span><span class="m">2</span><span class="s"> </span><span class="k">for</span><span class="s"> </span><span class="gr">i</span><span class="s"> </span><span class="k">in</span><span class="s"> </span><span class="l">arr</span><span class="s"> </span><span class="p">]</span><span class="s"> </span><span class="p">};</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<blockquote>
+<p><strong>Note</strong> How variables in musikla are prefixed by a dollar sign <code>$</code> but in python are referenced simply by their name</p>
+</blockquote>
+<p>The second directive <code>@python</code> currently can only be used at the end of the file, since it treats everything after it as python code. It's execution is hoisted though (runs before anything else) which gives the user the possibility of defining functions or classes in python and using them in their code.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$arr</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@</span><span class="p">[</span><span class="s"> </span><span class="m">1</span><span class="p">,</span><span class="s"> </span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">3</span><span class="s"> </span><span class="p">];</span><span class="s"></span>
+
+<span class="nf">do_something</span><span class="p">(</span><span class="s"> </span><span class="nv">$arr</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+
+<span class="gr">@python</span><span class="s"></span>
+<span class="gr">@</span><span class="nf">export</span><span class="p">()</span><span class="s"></span>
+<span class="l">def</span><span class="s"> </span><span class="nf">do_something</span><span class="p">(</span><span class="s"> </span><span class="l">arr</span><span class="s"> </span><span class="p">)</span><span class="gr">:</span><span class="s"></span>
+<span class="s">    </span><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="l">arr</span><span class="s"> </span><span class="p">)</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
                 
