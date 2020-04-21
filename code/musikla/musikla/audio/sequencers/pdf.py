@@ -35,7 +35,10 @@ class PDFSequencer ( Sequencer ):
         self.abc_sequencer.start()
 
 class PDFSequencerFactory( SequencerFactory ):
-    def from_str ( self, uri : str ) -> Optional[PDFSequencer]:
+    def init ( self ):
+        self.name = 'pdf'
+
+    def from_str ( self, uri : str, args ) -> Optional[PDFSequencer]:
         suffix = ( Path( uri ).suffix or '' ).lower()
 
         if suffix == '.pdf':

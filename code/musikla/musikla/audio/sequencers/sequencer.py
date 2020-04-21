@@ -1,8 +1,9 @@
 from musikla.core import Context
 from musikla.core.events import MusicEvent
 from musikla.core.events.transformers import Transformer
-from typing import Iterable, Optional
+from typing import Any, Iterable, Optional
 from configparser import ConfigParser
+from argparse import ArgumentParser
 
 class Sequencer:
     def __init__ ( self ):
@@ -55,8 +56,15 @@ class SequencerFactory:
     default : bool = False
 
     def __init__ ( self, context : Context, config : ConfigParser ):
+        self.name : str = ""
+        self.argparser : Optional[ArgumentParser] = None
         self.context : Context = context
         self.config : ConfigParser = config
-        
-    def from_str ( self, uri : str ) -> Optional[Sequencer]:
+
+        self.init()
+    
+    def init ( self ):
+        pass
+
+    def from_str ( self, uri : str, args : Any = None ) -> Optional[Sequencer]:
         return None

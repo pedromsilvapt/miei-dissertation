@@ -269,7 +269,10 @@ class FluidSynthSequencer ( Sequencer ):
 class FluidSynthSequencerFactory( SequencerFactory ):
     default : bool = True
 
-    def from_str ( self, uri : str ) -> FluidSynthSequencer:
+    def init ( self ):
+        self.name = 'fluidsynth'
+
+    def from_str ( self, uri : str, args ) -> FluidSynthSequencer:
         soundfont = self.config.get( 'Musikla', 'soundfont', fallback = None )
 
         return FluidSynthSequencer( uri, soundfont, self.config[ 'FluidSynth.Settings' ] if 'FluidSynth.Settings' in self.config else {} )

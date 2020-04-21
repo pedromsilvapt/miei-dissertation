@@ -2,6 +2,7 @@ import time
 from .sequencers import Sequencer, SequencerFactory
 from musikla.core import Context
 from configparser import ConfigParser
+from argparse import Namespace
 from typing import List, Any, Optional, Union
 
 def get_milliseconds () -> int:
@@ -20,7 +21,30 @@ class Player():
     def add_sequencer_factory ( self, factory : Any, context : Context, config : ConfigParser ):
         self.sequencer_factories.append( factory( context, config ) )
 
-    def make_sequencer ( self, uri : str ) -> Sequencer:
+    def make_sequencer_from_format ( self, format : str, uri : str, args : List[str] = [] ) -> Sequencer:
+        factory : Optional[SequencerFactory] = None
+
+        for f in self.sequencer_factories:
+            if f.name == format:
+                factory = f
+                break
+        
+        if factory is None:
+            raise Exception( f"Could not create a sequencer for format { format }" )
+
+        if factory.argparser is not None:
+            arguments = factory.argparser.parse_args( args )
+        else:
+            arguments = args
+
+        sequencer = factory.from_str( uri, arguments )
+
+        if sequencer is None:
+            raise Exception( f"Could not create a sequencer format { format } for { uri }" )
+
+        return sequencer
+
+    def make_sequencer_from_uri ( self, uri : str, args : List[str] = [] ) -> Sequencer:
         default : Optional[SequencerFactory] = None
         
         sequencer : Optional[Sequencer] = None
@@ -32,12 +56,22 @@ class Player():
                     
                 default = factory
             else:
-                sequencer = factory.from_str( uri )
+                if factory.argparser is not None:
+                    arguments = factory.argparser.parse_args( args )
+                else:
+                    arguments = args
+
+                sequencer = factory.from_str( uri, arguments )
 
             if sequencer != None: break
 
         if sequencer is None and default is not None:
-            sequencer = default.from_str( uri )
+            if default.argparser is not None:
+                arguments = default.argparser.parse_args( args )
+            else:
+                arguments = args
+
+            sequencer = default.from_str( uri, arguments )
         
         if sequencer is None:
             raise Exception( f"Could not create a sequencer for { uri }" )
@@ -46,10 +80,9 @@ class Player():
 
     def add_sequencer ( self, sequencer : Union[Sequencer, str] ):
         if type( sequencer ) is str:
-            sequencer = self.make_sequencer( sequencer )
+            sequencer = self.make_sequencer_from_uri( sequencer )
 
         self.sequencers.append( sequencer )
-
 
     @property
     def realtime ( self ) -> bool:

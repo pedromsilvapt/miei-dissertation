@@ -4,8 +4,10 @@ import os
 
 from musikla.core import Context
 from musikla.libraries import KeyboardLibrary, MidiLibrary
+from musikla.audio import Player
+from musikla.audio.sequencers import Sequencer, SequencerFactory
 from musikla import Script
-from typing import cast
+from typing import List, Optional, cast
 from colorama import init
 
 class CliApplication:
@@ -39,6 +41,43 @@ class CliApplication:
         finally:
             self.enable_echo( sys.stdin.fileno(), True )
 
+    def split_argv ( self, argv : List[str], separators : List[str] ) -> List[List[str]]:
+        groups : List[List[str]] = []
+
+        start = 0
+
+        for i in range( len( argv ) ):
+            if argv[ i ] in separators:
+                groups.append( argv[ start : i ] )
+
+                start = i
+        
+        groups.append( argv[ start: ] )
+
+        return groups
+
+    def parse_outputs_args ( self, player : Player, argvs : List[List[str]] ) -> List[Sequencer]:
+        sequencers : List[Sequencer] = []
+
+        for argv in argvs:
+            format : Optional[str] = None
+
+            output : str = argv[ 1 ]
+            
+            if len( argv ) >= 4 and ( argv[ 2 ] == '-f' or argv[ 2 ] == '--format' ):
+                format = argv[ 3 ]
+
+                argv = argv[ 4: ]
+            else:
+                argv = argv[ 2: ]
+
+            if format is not None:
+                sequencers.append( player.make_sequencer_from_format( format, output, argv ) )
+            else:
+                sequencers.append( player.make_sequencer_from_uri( output, argv ) )
+
+        return sequencers
+
     async def run ( self ):
         init()
 
@@ -48,13 +87,18 @@ class CliApplication:
         parser.add_argument( '-c', '--code', type = str, help = 'Execute a piece of code' )
         parser.add_argument( '-i', '--import', dest = 'imports', action = 'append', type = str, help = 'Import an additional library. These can be builtin libraries, or path to .ml and .py files' )
         parser.add_argument( '-o', '--output', dest = 'outputs', type = str, action = 'append', help = 'Where to output to. By default outputs the sounds to the device\'s speakers.' )
+        parser.add_argument( '-f', '--format', dest = 'formats', type = str, action = 'append', help = 'Type of output to use' )
         parser.add_argument( '--midi', type = str, help = 'Use a custom MIDI port by default when no name is specified' )
         parser.add_argument( '--soundfont', type = str, help = 'Use a custom soundfont .sf2 file' )
         parser.add_argument( '--print-events', dest = 'print_events', action='store_true', help = 'Print events (notes) to the console as they are played.' )
-        
-        options = parser.parse_args( self.argv )
+
+        argv = self.split_argv( self.argv, [ '-o', '--output' ] )
+
+        options = parser.parse_args( argv[ 0 ] )
 
         script = Script()
+
+        sequencers = self.parse_outputs_args( script.player, argv[ 1: ] )
 
         script.player.print_events = bool( options.print_events )
         
@@ -67,9 +111,9 @@ class CliApplication:
         if options.midi != None:
             script.config.set( 'Musikla', 'midi_input', options.midi )
 
-        if options.outputs:
-            for output in options.outputs:
-                script.player.add_sequencer( output )
+        if sequencers:
+            for sequencer in sequencers:
+                script.player.add_sequencer( sequencer )
         elif script.config.has_option( 'Musikla', 'output' ):
             script.player.add_sequencer( script.config.get( 'Musikla', 'output' ) )
         else:

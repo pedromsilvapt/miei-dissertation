@@ -61,7 +61,10 @@ class HTMLSequencer ( Sequencer ):
         self.abc_sequencer.start()
 
 class HTMLSequencerFactory( SequencerFactory ):
-    def from_str ( self, uri : str ) -> Optional[HTMLSequencer]:
+    def init ( self ):
+        self.name = 'html'
+    
+    def from_str ( self, uri : str, args ) -> Optional[HTMLSequencer]:
         suffix = ( Path( uri ).suffix or '' ).lower()
 
         if suffix == '.html' or suffix == '.htm':

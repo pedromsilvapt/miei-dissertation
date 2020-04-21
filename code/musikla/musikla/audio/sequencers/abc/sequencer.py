@@ -53,7 +53,10 @@ class ABCSequencer ( Sequencer ):
         self.clock.start()
 
 class ABCSequencerFactory( SequencerFactory ):
-    def from_str ( self, uri : str ) -> Optional[ABCSequencer]:
+    def init ( self ):
+        self.name = 'abc'
+
+    def from_str ( self, uri : str, args ) -> Optional[ABCSequencer]:
         suffix = ( Path( uri ).suffix or '' ).lower()
 
         if suffix == '.abc':

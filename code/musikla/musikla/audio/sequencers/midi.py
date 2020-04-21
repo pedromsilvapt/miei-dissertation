@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from musikla.core import Clock
 from musikla.core.events import MusicEvent, ControlChangeEvent, ProgramChangeEvent, NoteOnEvent, NoteOffEvent
 from musikla.core.events.transformers import DecomposeChordsTransformer, DecomposeNotesTransformer
@@ -8,13 +9,14 @@ import mido
 import asyncio
 
 class MidiSequencer ( Sequencer ):
-    def __init__ ( self, port : str = None, filename : str = None, last_time : int = 0 ):
+    def __init__ ( self, port : str = None, filename : str = None, virtual : bool = False, last_time : int = 0 ):
         super().__init__()
 
         self.filename : Optional[str] = filename
         self.port : Optional[str] = port
         self.clock : Clock = Clock( auto_start = False )
         self.realtime = self.port is not None
+        self.virtual : bool = virtual
 
         self.port_obj : Optional[mido.ports.BaseOutput] = None
         self.file_obj : Optional[mido.MidiFile] = None
@@ -56,7 +58,6 @@ class MidiSequencer ( Sequencer ):
             return mido.Message( 'note_off', channel = 0, note = int( event ), time = time )
 
     def send ( self, msg : mido.Message ):
-        print( msg )
         self.port_obj.send( msg )
 
     async def _schedule ( self, delay : float, fn, argument = tuple() ):
@@ -101,19 +102,26 @@ class MidiSequencer ( Sequencer ):
             self.track_obj = self.file_obj.add_track()
         
         if self.port is not None:
-            self.port_obj = mido.open_output( self.port )
-            # self.port_scheduler = scheduler( time.time, time.sleep )
-            # self.port_scheduler.enter( 100, 1, lambda: None )
-            # self.port_thread = Thread( target = self.run )
-            # self.port_thread.start()
+            self.port_obj = mido.open_output( self.port, virtual = self.virtual )
 
         self.clock.start()
 
 class MidiSequencerFactory( SequencerFactory ):
-    def from_str ( self, uri : str ) -> Optional[MidiSequencer]:
+    def init ( self ):
+        self.name = 'midi'
+        self.argparser = ArgumentParser( description = 'Output events to a MIDI file or as MIDI messages to an output port' )
+        self.argparser.add_argument( '-p', '--port', dest = 'port', default = False, action='store_true', help = 'Force this output to be treated as a port' )
+        self.argparser.add_argument( '-v', '--virtual', dest = 'virtual', default = False, action='store_true', help = 'Whether this is a virtual port to be created' )
+
+    def from_str ( self, uri : str, args ) -> Optional[MidiSequencer]:
         suffix = ( Path( uri ).suffix or '' ).lower()
 
-        if suffix == '.midi':
+        is_port = args.port or args.virtual
+
+        if suffix == '.midi' and not is_port:
             return MidiSequencer( filename = uri )
         elif uri.startswith( 'midi://' ):
-            return MidiSequencer( port = uri[ len( 'midi://' ): ] )
+            return MidiSequencer( port = uri[ len( 'midi://' ): ], virtual = args.virtual )
+        elif is_port:
+            return MidiSequencer( port = uri, virtual = args.virtual )
+
