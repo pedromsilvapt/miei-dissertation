@@ -103,12 +103,14 @@ Dictionaries have four methods: `has()`, `get()`, `set()` and `delete()`. For co
 ## Embedding Python
 It is possible to embed python code inside the language directly through the use of two directives: `@py` for single python expressions and `@python` for statement blocks.
 
-The first directive can only contain expressions, but can be used anywhere. For instance, if we wanted to be able to use python list comprehensions on an array, we could simply do:
+The first directive can only contain python expressions, but can be used anywhere in the code. For instance, if we wanted to be able to use python list comprehensions on an array, we could simply do:
 
     #!musikla
     $arr = @[ 1, 2, 3 ];
     
-    $arr = @py { [ i * 2 for i in $arr ] };
+    $arr = @py { [ i * 2 for i in arr ] };
+
+> **Note** How variables in musikla are prefixed by a dollar sign `$` but in python are referenced simply by their name
 
 The second directive `@python` currently can only be used at the end of the file, since it treats everything after it as python code. It's execution is hoisted though (runs before anything else) which gives the user the possibility of defining functions or classes in python and using them in their code.
 
@@ -116,7 +118,7 @@ The second directive `@python` currently can only be used at the end of the file
     #!musikla
     $arr = @[ 1, 2, 3 ];
 
-    do_something( $arr )
+    do_something( $arr );
     
     @python
     @export()

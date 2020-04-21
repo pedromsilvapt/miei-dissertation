@@ -7,7 +7,7 @@ from musikla.core.events.transformers import DecomposeChordsTransformer
 from .sequencer import Sequencer, SequencerFactory
 from ctypes import c_void_p, c_int
 from threading import Semaphore
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Mapping, Tuple, Any, Optional
 from time import sleep
 from collections import defaultdict
 
@@ -15,14 +15,14 @@ fluid_synth_get_active_voice_count = pyfluidsynth.cfunc('fluid_synth_get_active_
                                     ('synth', c_void_p, 1))
 
 class FluidSynthSequencer ( Sequencer ):
-    def __init__ ( self, output : str = None, soundfont : str = None, settings : Dict[str, Any] = {} ):
+    def __init__ ( self, output : str = None, soundfont : str = None, settings : Mapping[str, Any] = {} ):
         super().__init__()
 
         self.realtime = True
 
         self.output : str = output or "pulseaudio"
         self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
-        self.settings : Dict[str, Any] = settings
+        self.settings : Mapping[str, Any] = settings
 
         self.synth : Optional[pyfluidsynth.Synth] = None
         self.synthId : Optional[int] = None
@@ -271,7 +271,5 @@ class FluidSynthSequencerFactory( SequencerFactory ):
 
     def from_str ( self, uri : str ) -> FluidSynthSequencer:
         soundfont = self.config.get( 'Musikla', 'soundfont', fallback = None )
-
-        
 
         return FluidSynthSequencer( uri, soundfont, self.config[ 'FluidSynth.Settings' ] if 'FluidSynth.Settings' in self.config else {} )
