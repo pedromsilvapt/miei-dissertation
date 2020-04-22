@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from musikla.core import Clock
+from musikla.core import Clock, Scheduler
 from musikla.core.events import MusicEvent, ControlChangeEvent, ProgramChangeEvent, NoteOnEvent, NoteOffEvent
 from musikla.core.events.transformers import DecomposeChordsTransformer, DecomposeNotesTransformer
 from .sequencer import Sequencer, SequencerFactory
@@ -18,6 +18,7 @@ class MidiSequencer ( Sequencer ):
         self.realtime = self.port is not None
         self.virtual : bool = virtual
 
+        self.scheduler : Scheduler = Scheduler()
         self.port_obj : Optional[mido.ports.BaseOutput] = None
         self.file_obj : Optional[mido.MidiFile] = None
         self.track_obj : Optional[mido.MidiTrack] = None
@@ -60,10 +61,10 @@ class MidiSequencer ( Sequencer ):
     def send ( self, msg : mido.Message ):
         self.port_obj.send( msg )
 
-    async def _schedule ( self, delay : float, fn, argument = tuple() ):
-        await asyncio.sleep( delay )
+    # async def _schedule ( self, delay : float, fn, argument = tuple() ):
+    #     await asyncio.sleep( delay )
 
-        fn( *argument )
+    #     fn( *argument )
 
     def schedule ( self, delay : float, fn, argument ):
         asyncio.create_task( self._schedule( delay, fn, argument ) )
@@ -83,7 +84,8 @@ class MidiSequencer ( Sequencer ):
             if message is None:
                 return
 
-            self.schedule( ( message.time - self.clock.elapsed() ) / 1000.0, self.send, argument=( message, ) )
+            # self.schedule( ( message.time - self.clock.elapsed() ) / 1000.0, self.send, argument=( message, ) )
+            self.scheduler.enqueue( message.time + self.clock.start_time, self.send, args = ( message, ) )
 
     def on_close ( self ):
         if self.file_obj is not None:
@@ -91,6 +93,8 @@ class MidiSequencer ( Sequencer ):
         
         if self.port_obj is not None and not self.port_obj.closed:
             self.port_obj.close()
+
+            self.scheduler.stop()
 
     def join ( self ):
         pass
@@ -103,6 +107,7 @@ class MidiSequencer ( Sequencer ):
         
         if self.port is not None:
             self.port_obj = mido.open_output( self.port, virtual = self.virtual )
+            self.scheduler.start()
 
         self.clock.start()
 
