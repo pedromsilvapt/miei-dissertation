@@ -1,0 +1,224 @@
+
+\documentclass[a4paper,UKenglish,cleveref, autoref]{oasics-v2019}
+
+\bibliographystyle{plainurl}
+\usepackage{booktabs}
+\usepackage{fancyvrb}
+\fvset{fontsize=\small,commandchars=\\\{\}}
+
+
+\def\ourtitle{Semantics of Implicitly Timed Musical Events}
+\title{\ourtitle}
+\titlerunning{\ourtitle}
+
+\author{Pedro M. Silva}{Dummy University Computing Laboratory, Portugal \and My second affiliation, Country \and \url{http://www.myhomepage.edu} }{johnqpublic@dummyuni.org}{https://orcid.org/0000-0002-1825-0097}{(Optional) author-specific funding acknowledgements}
+
+\author{José João Almeida}%
+       {Algoritmi, Departamento de Informática, Universidade do Minho, Braga, Portugal}%
+       {jj@di.uminho.pt}%
+       {https://orcid.org/0000-0002-0722-2031}
+       {}
+       
+\authorrunning{A. Simões, B. Sacanene, Á. Iriarte, J.\,J. Almeida and J. Macedo}
+\Copyright{Alberto Simões, Bernardo Sacanene, Álvaro Iriarte, José João Almeida and Joaquim Macedo}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10010147.10010178.10010179.10010186</concept_id>
+<concept_desc>Computing methodologies~Language resources</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Computing methodologies~Language resources}
+
+\keywords{Umbundu, Angola Languages, Morphological Analysis, Spell Checking}
+
+\funding{This research was partially funded by Portuguese National funds
+(PIDDAC), through the FCT – Fundação para a Ciência e Tecnologia and
+FCT/MCTES under the scope of the projects UIDB/05549/2020 and
+UIDB/00319/2020.  Bernardo Sacanene acknowledges from the Angolan
+govenment his PhD grant, through INAGBE (Instituto Nacional de Gestão
+de Bolsas de Estudos).}
+
+%\nolinenumbers %uncomment to disable line numbering
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\EventEditors{John Q. Open and Joan R. Access}
+\EventNoEds{2}
+\EventLongTitle{42nd Conference on Very Important Topics (SLATE 2020)}
+\EventShortTitle{SLATE 2020}
+\EventAcronym{SLATE}
+\EventYear{2020}
+\EventDate{December 24--27, 2020}
+\EventLocation{Little Whinging, United Kingdom}
+\EventLogo{}
+\SeriesVolume{42}
+\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  In this paper, we'll discuss a simple approach to integrating musical events, such as notes or chords, into a programming language. First we'll analyze the problem and it's particular requirements. Then we will discuss the solution we developed to meet those requirements. Finally we'll analyze the result and discuss possible alternative routes we could've taken.
+\end{abstract}
+
+
+
+\section{Introduction}
+Programming languages are sometimes described as data plus code. However, it is a known fact there is some overlap between the two. While a big chunk of data most programs consume is ingested through some sort of \textit{IO} operation (like reading from a keyboard, a file or a socket), and another chunk is generated dynamically by algorithms at runtime, there is a third chunk: smaller is amount but maybe just as important: constants (or literals) inserted into the code by the programmer.
+
+Virtually every popular language nowadays has custom syntax to allow the programmer to describe some very common (and primitive) data types, such as numbers, booleans or strings. Many modern languages even have syntax for more advanced data structures, such as arrays and dictionaries (or hash tables).
+
+When we cross into the territory of DSLs \textit{(Domain Specific Languages)}, there is a multitude of custom syntax for the most varied data types. In this paper we will discuss a proposed solution to the problem of describind musical notes, and more important, musical arrangements and melodies as data values that can be integrated into a programming language.
+
+Such problem can be divided into two parts: the syntax used for describing the notes and the operators the compose them; and the semantics of the generated events, how they are stored in memory, and how their temporal properties are handled without forcing the programmer/user to manually type them. The former is a relatively easy problem, and to minimize the learning curve for new users, we adopted the very popular note declaration syntax from the ABC Notation project, with some minor changes. The latter is the one we'll be discussing in greater detail.
+
+The most straightforward way for generating such timed events is to let the user control the timing manually: setting both properties (start and duration) explicitly for each event, and maybe doing so with regular function calls, thus avoiding the need for extra syntax even. This is the approach used by some of the existing languages in this space, such as \textit{SonicPi}. But this approach is also cumbersome and prone to mistakes though, as one could guess from the following usecase: if the user wants to change one of the earlier events' timing, he would have to manually update the timings of all of the following events.
+
+Instead, we'll take a look at an alternative approach based on custom operators and syntax, each with their own semantic and syntax that enable an expressive way to define those events. We can look at this the same way languages implement other primitive values: most often we can declare static strings, not by manually setting each character in memory, but by writing the string wrapped in special characters. For musical events, we will be doing the same, exploring a way to define them in code, as \textit{musical literals}.
+
+But more that just being able to define those events, we will also be interested in exploring how well they integrate with existing and common programming language constructs, like variables, functions, loops and other control structures.
+
+\section{The Problem and its Requirements}
+There are two important requirements we need to consider when evaluating possible solutions to this problem: the ability to produce music interactively, and to produce music lazily.
+
+The first requirement, \textbf{interactivity}, relates to our goal of not only being able to generate music offline, but also in a live environment: give the user the ability to program several snippets of musical events, and then control them through a virtual keyboard or through other interactive means.
+
+The second requirement, \textbf{laziness}, refers to a concept that is familiar in functional programming languages: values are generated when we need them, not earlier. In our case, this implies that a musical sequence could be potentially infinite (like an infinite repetition of some arrangement). If playing this music live, the musician could determine when to stop this arrangement sooner or later.
+
+Given these two requirements, we can conclude we cannot generate all music events at the start and then play them in order. 
+
+\begin{lemma}[Total Order]
+\label{lemma:total-order} All operators must return a sequence of events in respecting our time unit's total order.
+\end{lemma}
+
+\paragraph*{Data Model}
+The basic premise is that expressions can generate a special data type: \textbf{Music}. Music is simply a sequence of ordered musical events.
+
+A musical \textbf{Event} can be one of many things, such as a \textit{note}, a \textit{chord}, or even more implementation-specific events like MIDI messages. While all events must have a start time, some events can be instantaneous (events with a duration of zero).
+
+The time unit used does not need to be a common time measure, like seconds or milliseconds, and can be really anything so long as it has a \textbf{total order}.
+
+\paragraph*{Operators}
+Operators are special operations defined at the syntactic level that allow \textit{music} to be composed in different ways, such as concatenated, parallelized or repeated.
+
+\begin{description}
+    \item[Concatenation] \verb|Music1 Music2 ... MusicN|
+    \item[Parallel] \verb'Music1 | Music2 | ... | MusicN'
+    \item[Repetition] \verb'Music * Integer'
+\end{description}
+
+It is also useful to estabilish that while most operators work on sequences of musical events, they can also accept a singular event as their argument: one event can be trivially converted into a sequence of one element. Such ocorrence is so common and trivial that the conversion should therefore be implicit.
+
+\section{Implementation}
+The reference implementation for this system is written in Python, although the approach here should be language agnostic.
+
+One of the features that Python boasts (but are certainl not exclusive to it) that have eased our implementation are generators. They integrate very nicely into both our concept of emitting musical events, as well as our concept of laziness where events that are not used are not generated either.
+
+\paragraph*{Context State}
+To keep track of the \textit{cursor} (the current timestamp where the next event should start) each operator in our language is implemented as a function call that receives an implicit \texttt{Context} object. While here we'll mostly focus just on the methods related to time management provided by the context, it can be used to store other types of information, like the default length of a musical note, to avoid forcing the user to type it out all the time.
+
+Let's describe what kinds of functionality our context should provide.
+
+\begin{description}
+    \item[cursor(ctx)] Return the current cursor position
+    \item[seek(ctx, time)] Advance the cursor to the given position
+    \item[fork(ctx)] Clone the parent context and return the new one. Allows multiple concurrent contexts to be used
+    \item[join(parent, child)] If the child's cursor is ahead, make the parent context catch up
+\end{description}
+
+\subsection{Operators}
+
+\paragraph*{Note Events}
+The basic building block of our system is going to be a \textbf{Note Event}. We can then add even more events, like chords and rests, while the type of the event might change, the semantics are equivalent.
+
+The function that emits the event receives the current context as an argument, and is then responsible for creating the event, with it's timestamp matching the context's cursor. After the event is created, it also must move the context's cursor forward through the \texttt{seek} method.
+\begin{lstlisting}[caption={Creating a Note Event},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
+function note (ctx) {
+    event = create_note(cursor(ctx));
+    
+    seek(ctx, event.duration);
+    
+    yield event;
+}
+\end{lstlisting}
+
+\paragraph*{Concatenation}
+We've seen how single events' creation is handled. Now it is important for us to see how we can combine those events together. And probably the most straightforward operator of all, concatenation, it simply consumes each event. Each event, as we've seen before, is responsible for seeking the context depending on the event's duration.
+\begin{lstlisting}[caption={Algorithm to concatenate musical events},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
+function concatenate (ctx, ...operands) {
+    for (music in operands) {
+        for (event in music(ctx)) {
+            yield event;
+        }
+    }
+}
+\end{lstlisting}
+
+\paragraph*{Parallel}
+The parallel operator enables playing music simultaneously. However our events are emitted as a single sequence of ordered events. The operator assumes that each of it's operands already follows the convention of emitting a ordered sequence of events. With this in mind, relies on a \textit{merge sorted} algorithm.
+
+\begin{lstlisting}[caption={Algorithm to merge parallel musical events},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
+function parallel (ctx, ...operands) {
+    for (child_ctx, event in merge_sorted(ctx, ...operands)) {
+        join(ctx, child_ctx);
+        
+        yield event;
+    }
+}
+\end{lstlisting}
+
+The merge sorted function creates a buffer with the same size as the amount of operands given. For each operand it forks the context so that they can execute concurrently. It then requests one single event for each operand.
+
+After the buffer is prefilled, the algorithm emits the earliest event stored in the buffer, and requests the next event from that same operand. It then repeats this step until all operands have been drained.
+
+\paragraph*{Repetition}
+The repetition operand is in a way very similar to the concatenation operator. It makes sense, since repeating any kind of music pattern $N$ times could be thought as a particular case of as concatenation where there are $N$ operands, all representing the same musical pattern.
+
+\begin{lstlisting}[caption={Algorithm for repetition},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
+function repeat (ctx, music, count) {
+    for (i = 0; i < count; i++) {
+        for (event in music(ctx)) {
+            yield event;
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{Integration in a Programming Environment}
+Apart from generating musical events from static instructions, our goal is to have those events integrate into a programming language in the same way integers, floats, strings and booleans do: as data that can be stored, passed around and manipulated. This, of course, while still retaining all the properties we've laid out for our sequences of events: being lazy and always being ordered.
+
+\paragraph*{Variables}
+
+
+\paragraph*{Functions}
+
+\section{Results Discussion}
+\label{sec:conclusions}
+
+As previously referred, this is the kick-off for a project on the
+creation of tools and resources for the Angolan indigenous
+languages. Although we intend to collaborate with institutions and
+researchers from Angola, this first proof of concept was developed to
+understand these languages characteristics.
+
+The current morphological analyzer coverage is quite limited. When
+processing a corpus with XXX different forms, only YYY   forms are
+recognized as derivatives generated by the morphological rules. The
+other words are recognized either because they are lemmas, or because
+our current derivation includes word forms directly in the dictionary
+(instead of proper derivation rules).
+
+While in an early stage of development, we foresee to have a free and
+publicly available dictionary for the Umbundu language available very
+soon.
+
+
+\bibliography{references}
+
+\end{document}
