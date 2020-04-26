@@ -7,3 +7,4 @@ from .voice import Voice
 from .value import Value, CallableValue
 from .music import Music, TemplateMusic, MusicBuffer
 from .clock import Clock
+from .scheduler import Scheduler

@@ -18,6 +18,7 @@ nav:
       - 'Custom Keyboards': 'cookbook/keyboards/custom-keyboard.md'
       - 'Piano Keyboards': 'cookbook/keyboards/paino-keyboard.md'
       - 'MIDI Keyboards': 'cookbook/keyboards/midi-keyboard.md'
+    - 'Recording to Traktion Waveform': 'cookbook/midi-output-waveform.md'
   - API:
     - std: 'api/std.md'
     - keyboard: 'api/keyboard.md'
