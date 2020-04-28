@@ -19,8 +19,8 @@
        {https://orcid.org/0000-0002-0722-2031}
        {}
        
-\authorrunning{A. Simões, B. Sacanene, Á. Iriarte, J.\,J. Almeida and J. Macedo}
-\Copyright{Alberto Simões, Bernardo Sacanene, Álvaro Iriarte, José João Almeida and Joaquim Macedo}
+\authorrunning{Pedro M. Silva and J.\,J. Almeida}
+\Copyright{Pedro Miguel Silva, José João Almeida}
 
 \begin{CCSXML}
 <ccs2012>
@@ -64,7 +64,7 @@ de Bolsas de Estudos).}
 \maketitle
 
 \begin{abstract}
-  In this paper, we'll discuss a simple approach to integrating musical events, such as notes or chords, into a programming language. First we'll analyze the problem and it's particular requirements. Then we will discuss the solution we developed to meet those requirements. Finally we'll analyze the result and discuss possible alternative routes we could've taken.
+  In this paper, we'll discuss a simple approach to integrating musical events, such as notes or chords, into a programming language. First we'll analyze the problem and its particular requirements. Then we will discuss the solution we developed to meet those requirements. Finally we'll analyze the result and discuss possible alternative routes we could've taken.
 \end{abstract}
 
 
@@ -76,11 +76,21 @@ Virtually every popular language nowadays has custom syntax to allow the program
 
 When we cross into the territory of DSLs \textit{(Domain Specific Languages)}, there is a multitude of custom syntax for the most varied data types. In this paper we will discuss a proposed solution to the problem of describind musical notes, and more important, musical arrangements and melodies as data values that can be integrated into a programming language.
 
-Such problem can be divided into two parts: the syntax used for describing the notes and the operators the compose them; and the semantics of the generated events, how they are stored in memory, and how their temporal properties are handled without forcing the programmer/user to manually type them. The former is a relatively easy problem, and to minimize the learning curve for new users, we adopted the very popular note declaration syntax from the ABC Notation project, with some minor changes. The latter is the one we'll be discussing in greater detail.
+Such problem can be divided into two parts: the syntax used for describing the notes and the operators the compose them; and the semantics of the generated events, how they are stored in memory, and how their temporal properties are handled without forcing the programmer/user to manually type them. The former is a relatively easy problem, and to minimize the learning curve for new users, we adopted a simplified version of the very popular note declaration syntax from the ABC Notation project\cite{AbcNotation}, with some minor changes. The latter is the one we'll be discussing in greater detail.
 
 The most straightforward way for generating such timed events is to let the user control the timing manually: setting both properties (start and duration) explicitly for each event, and maybe doing so with regular function calls, thus avoiding the need for extra syntax even. This is the approach used by some of the existing languages in this space, such as \textit{SonicPi}. But this approach is also cumbersome and prone to mistakes though, as one could guess from the following usecase: if the user wants to change one of the earlier events' timing, he would have to manually update the timings of all of the following events.
 
+\begin{lstlisting}[caption={Example of a hypothetical imperative API for creating events},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
+play( 0, 100, 'A' );
+play( 100, 50, 'B' );
+play( 150, 200, 'C' );
+\end{lstlisting}
+
 Instead, we'll take a look at an alternative approach based on custom operators and syntax, each with their own semantic and syntax that enable an expressive way to define those events. We can look at this the same way languages implement other primitive values: most often we can declare static strings, not by manually setting each character in memory, but by writing the string wrapped in special characters. For musical events, we will be doing the same, exploring a way to define them in code, as \textit{musical literals}.
+
+\begin{lstlisting}[caption={Our proposed declarative syntax that calculates timings implicitly},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
+play( A B/2 C2 );
+\end{lstlisting}
 
 But more that just being able to define those events, we will also be interested in exploring how well they integrate with existing and common programming language constructs, like variables, functions, loops and other control structures.
 
@@ -118,7 +128,7 @@ It is also useful to estabilish that while most operators work on sequences of m
 \section{Implementation}
 The reference implementation for this system is written in Python, although the approach here should be language agnostic.
 
-One of the features that Python boasts (but are certainl not exclusive to it) that have eased our implementation are generators. They integrate very nicely into both our concept of emitting musical events, as well as our concept of laziness where events that are not used are not generated either.
+One of the features that Python boasts (but are certainl not exclusive to it) that have eased our implementation are generators\cite{PEP255}. They integrate very nicely into both our concept of emitting musical events, as well as our concept of laziness where events that are not used are not generated either.
 
 \paragraph*{Context State}
 To keep track of the \textit{cursor} (the current timestamp where the next event should start) each operator in our language is implemented as a function call that receives an implicit \texttt{Context} object. While here we'll mostly focus just on the methods related to time management provided by the context, it can be used to store other types of information, like the default length of a musical note, to avoid forcing the user to type it out all the time.
@@ -137,7 +147,7 @@ Let's describe what kinds of functionality our context should provide.
 \paragraph*{Note Events}
 The basic building block of our system is going to be a \textbf{Note Event}. We can then add even more events, like chords and rests, while the type of the event might change, the semantics are equivalent.
 
-The function that emits the event receives the current context as an argument, and is then responsible for creating the event, with it's timestamp matching the context's cursor. After the event is created, it also must move the context's cursor forward through the \texttt{seek} method.
+The function that emits the event receives the current context as an argument, and is then responsible for creating the event, with its timestamp matching the context's cursor. After the event is created, it also must move the context's cursor forward through the \texttt{seek} method.
 \begin{lstlisting}[caption={Creating a Note Event},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
 function note (ctx) {
     event = create_note(cursor(ctx));
@@ -159,24 +169,6 @@ function concatenate (ctx, ...operands) {
     }
 }
 \end{lstlisting}
-
-\paragraph*{Parallel}
-The parallel operator enables playing music simultaneously. However our events are emitted as a single sequence of ordered events. The operator assumes that each of it's operands already follows the convention of emitting a ordered sequence of events. With this in mind, relies on a \textit{merge sorted} algorithm.
-
-\begin{lstlisting}[caption={Algorithm to merge parallel musical events},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
-function parallel (ctx, ...operands) {
-    for (child_ctx, event in merge_sorted(ctx, ...operands)) {
-        join(ctx, child_ctx);
-        
-        yield event;
-    }
-}
-\end{lstlisting}
-
-The merge sorted function creates a buffer with the same size as the amount of operands given. For each operand it forks the context so that they can execute concurrently. It then requests one single event for each operand.
-
-After the buffer is prefilled, the algorithm emits the earliest event stored in the buffer, and requests the next event from that same operand. It then repeats this step until all operands have been drained.
-
 \paragraph*{Repetition}
 The repetition operand is in a way very similar to the concatenation operator. It makes sense, since repeating any kind of music pattern $N$ times could be thought as a particular case of as concatenation where there are $N$ operands, all representing the same musical pattern.
 
@@ -190,33 +182,59 @@ function repeat (ctx, music, count) {
 }
 \end{lstlisting}
 
+
+\paragraph*{Parallel}
+The parallel operator enables playing multiple sequences of musical events simultaneously. However our events are emitted as a single sequence of ordered events, thus requiring merging the multiple sequences into a single one, while maintaining the properties of laziness and order. The operator assumes that each of its operands already maintains those properties on their own, and so is only in charge of making sure the merged sequence does so as well. With this in mind, it relies on a custom \textit{merge sorted} algorithm for iterables (not related to the most common merge sort algorithm by John von Neumann).
+
+\begin{lstlisting}[caption={Algorithm to merge parallel musical events},label=list:8-6,captionpos=t,abovecaptionskip=-\medskipamount]
+function parallel (ctx, ...operands) {
+    for (child_ctx, event in merge_sorted(ctx, ...operands)) {
+        join(ctx, child_ctx);
+        
+        yield event;
+    }
+}
+\end{lstlisting}
+
+The merge sorted function receives $N$ operands and creates a buffer with the size $N$. For each operand it \textit{forks} the context, so that they can execute concurrently and each will mutate their own context only. It then requests one single event for each operand.
+
+After the buffer is prefilled (meaning it has at least one event for all non-empty operands), the algorithm finds the earliest event stored in the it. Let's assume it is stored in the $K$ index of the buffer, with $K < N$. The method emits the value stored in \texttt{buffer[K]} and then fills requests the next event from the $K$ operand (storing \texttt{null} if the operand has no more events to emit). It then repeats this step until all operands have been drained.
+
 \subsection{Integration in a Programming Environment}
 Apart from generating musical events from static instructions, our goal is to have those events integrate into a programming language in the same way integers, floats, strings and booleans do: as data that can be stored, passed around and manipulated. This, of course, while still retaining all the properties we've laid out for our sequences of events: being lazy and always being ordered.
 
 \paragraph*{Variables}
+Up until now we've analyzed situations where the timing of the events is known at the moment of their creation (through inspection of the context passed onto them). However, there can be situations where the events have to be created before their time location is known.
 
+We decided to take an approach to integrate this type of functionality that does not require different semantics for creating events \textit{"live"} and for storing events in all operators. Instead, the only changes occur in variable declarations and when inserting variables in the middle of other expressions.
+
+When declaring a variable, its expression is evaluated with custom context, forked from the main context, with the cursor reset back to zero. An important thing to note is that even though we are storing the music in a variable, we still take care to respect the principle of laziness present throughout our language: when the variable is declared, no actual events are created. Later, whenever the variable is used, and an event is requested of the variable, it relays that request to the expression responsible for providing the event.
+
+However, one important caveat is that the variable cannot simply emit the events as they are created, because as we mentioned before, their context is a different one from the main context (with its cursor set to zero at the start of the expression).
+
+Let's assume that a variable $C$ holds the value of the \texttt{cursor(ctx)}, it \texttt{ctx} is the context where the variable is being evaluated (not declared). Then, each event would be cloned and its starting time would have the constant $C$ added to it.
+
+This raises an important detail that we must not forget: many of the musical events are created and then emitted directly. However, as we've seen, some can be stored in variables. And variables can be used in many ways, and the same variable can be used multiple times. This means that if one were to mutate an event (by change its start time or its duration, for instance), we would be changing the the contents of the variable. This could be an acceptable approach. But we have opted instead for a more functional approach, treating those musical events as more akin to primitive values (as we would treat numbers or event strings in modern languages). This means that when we change the start time of an event, we are actually cloning it.
+
+This works well enough because those events are very lightweight objects, and the benefits of not having their values mysteriously changed outweight the small cost of a possible unnecessary allocation, in case that event was actually only used once.
 
 \paragraph*{Functions}
+When designing functions into our language, we decided to keep the semantics simple. Emitting events inside a function is similar to its return value being an iterator that gives out the emitted events on demand. This means that a value cannot both emit musical events, while also returning other values manually through a return statement.
+
+There is no syntactic marker to distinguish regular functions from musical-emitting ones. Instead, the language runtime starts executing each function as a regular one, and automatically switches its execution mode into a generator-like implementation once the first event is emitted. Any return statements that are evaluated after this point must have no value (thus preserving the feature to early-stop a function). If they do try to return a custom value, a runtime exception is triggered.
+
+In terms of managing the implicit context, functions are treated in very similar ways to the regular operators. They receive the context that was active at their call site and are evaluated with it. This means that any events emitted will have begin at whatever time the context's cursor marks.
+
+Their arguments, however, are treated the same way as variable declarations (which is what they really are), meaning that each argument gets a custom fork of the call site's context with its \texttt{cursor} set to zero.
 
 \section{Results Discussion}
 \label{sec:conclusions}
 
-As previously referred, this is the kick-off for a project on the
-creation of tools and resources for the Angolan indigenous
-languages. Although we intend to collaborate with institutions and
-researchers from Angola, this first proof of concept was developed to
-understand these languages characteristics.
+To solve our problem of keeping track of the timing implicitly for each event created, we decided to pass around a context variable. There were other possible solutions, like keeping this data in some sort of global variable. Our approach does give us some advantages, such as beeing able to have multiple contexts in play at the same time. It does have drawbacks, too. Every function defined in our language must receive this context to be able to create events at the appropriate time. However, functions defined in Python do not expect this parameter. Therefore, special conversions must be made when exchanging values between both languages.
 
-The current morphological analyzer coverage is quite limited. When
-processing a corpus with XXX different forms, only YYY   forms are
-recognized as derivatives generated by the morphological rules. The
-other words are recognized either because they are lemmas, or because
-our current derivation includes word forms directly in the dictionary
-(instead of proper derivation rules).
+Also, our solution to have variables just offset the timings of each event they contain every time those variables are used simplifies the process of integrating variables into our existing semantics of music generation. This solution, however, does not answer other questions unrelated to the timing, such as: should events stored in variables use the musical instrument set when they were declared, or when the variable was used?
 
-While in an early stage of development, we foresee to have a free and
-publicly available dictionary for the Umbundu language available very
-soon.
+However, this early work already provides a solid foundation for a musical \textit{DSL} that while dynamic (with variables, functions and control structures) integrates very well with established musical standards such as the MIDI protocol and others.
 
 
 \bibliography{references}
