@@ -1,8 +1,7 @@
-from argparse import ArgumentParser
 from musikla.core import Clock, Scheduler
 from musikla.core.events import MusicEvent, VoiceEvent, ControlChangeEvent, ProgramChangeEvent, NoteOnEvent, NoteOffEvent
 from musikla.core.events.transformers import DecomposeChordsTransformer, DecomposeNotesTransformer
-from .sequencer import Sequencer, SequencerFactory
+from .sequencer import Sequencer, SequencerFactory, ArgumentParser
 from typing import List, Optional, Tuple
 from pathlib import Path
 import mido 
@@ -146,7 +145,7 @@ class MidiSequencerFactory( SequencerFactory ):
             else:
                 voices.append( ( voice_name, 0 ) )
 
-        if suffix == '.midi' and not is_port:
+        if ( suffix == '.midi' or suffix == '.mid' ) and not is_port:
             return MidiSequencer( filename = uri, filter_voices = voices )
         elif uri.startswith( 'midi://' ):
             return MidiSequencer( port = uri[ len( 'midi://' ): ], virtual = args.virtual, filter_voices = voices )

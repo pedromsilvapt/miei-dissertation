@@ -4,12 +4,16 @@ import pyfluidsynth
 from musikla.core import Clock
 from musikla.core.events import MusicEvent, VoiceEvent, NoteEvent, NoteOnEvent, NoteOffEvent, SoundEvent, ProgramChangeEvent, ControlChangeEvent, CallbackEvent
 from musikla.core.events.transformers import DecomposeChordsTransformer
-from .sequencer import Sequencer, SequencerFactory
+from .sequencer import Sequencer, SequencerFactory, ArgumentParser
 from ctypes import c_void_p, c_int
 from threading import Semaphore
 from typing import Dict, List, Mapping, Tuple, Any, Optional
 from time import sleep
 from collections import defaultdict
+import re
+
+INT_PATTERN = re.compile("^([0-9]+)$")
+FLOAT_PATTERN = re.compile("^([0-9]*\.[0-9]+)$")
 
 fluid_synth_get_active_voice_count = pyfluidsynth.cfunc('fluid_synth_get_active_voice_count', c_int,
                                     ('synth', c_void_p, 1))
@@ -236,10 +240,10 @@ class FluidSynthSequencer ( Sequencer ):
     def start ( self ):
         self.synth = pyfluidsynth.Synth()
 
-        self.synth.setting( 'audio.period-size', 1024 )
+        # self.synth.setting( 'audio.period-size', 1024 )
         self.synth.setting( 'synth.verbose', 0 )
 
-        for key, value in self.settings:
+        for key, value in self.settings.items():
             self.synth.setting( key, value )
 
         if self.is_output_file:
@@ -271,8 +275,54 @@ class FluidSynthSequencerFactory( SequencerFactory ):
 
     def init ( self ):
         self.name = 'fluidsynth'
+        self.argparser = ArgumentParser( description = 'Synthesize notes throught the FluidSynthesizer library' )
+        self.argparser.add_argument( '-s', '--setting', dest = 'settings', type = str, action='append', help = 'Pass a setting down to fluidsynth with the format <key>=<value>' )
+        self.argparser.add_argument( '-c', '--audio-bufcount', dest = 'audio_buffcount', type = int, action='store', help = 'Number of audio buffers (equivalent to `audio.periods`)' )
+        self.argparser.add_argument( '-g', '--gain', dest = 'gain', type = float, action='store', help = 'Set the master gain [0 < gain < 10, default = 0.2] (equivalent to `synth.gain`)' )
+        self.argparser.add_argument( '-K', '--midi-channels', dest = 'midi_channels', type = int, action='store', help = 'The number of midi channels [default = 16] (equivalent to `synth.midi-channels`)' )
+        self.argparser.add_argument( '-L', '--audio-channels', dest = 'audio_channels', type = int, action='store', help = 'The number of stereo audio channels [default = 1] (equivalent to `synth.audio-channels`)' )
+        self.argparser.add_argument( '-r', '--sample-rate', dest = 'sample_rate', type = float, action='store', help = 'Set the sample rate (equivalent to `synth.sample-rate`)' )
+        self.argparser.add_argument( '-z', '--audio-buffsize', dest = 'audio_buffsize', type = float, action='store', help = 'Size of each audio buffer (equivalent to `audio.period-size`)' )
+
+    def _args_settings_dictionary ( self, args ):
+        settings_dict = {}
+
+        for arg in args.settings or []:
+            if '=' not in arg:
+                settings_dict[ arg ] = True
+            else:
+                key, value = arg.split( '=' )
+
+                if value == 'true':
+                    settings_dict[ arg ] = True
+                elif value == 'false':
+                    settings_dict[ arg ] = False
+                elif FLOAT_PATTERN.match( value ):
+                    settings_dict[ arg ] = float( value )
+                elif INT_PATTERN.match( value ):
+                    settings_dict[ arg ] = int( value )
+                else:
+                    settings_dict[ arg ] = value
+
+        if args.audio_buffcount is not None:
+            settings_dict[ 'audio.periods' ] = args.audio_buffcount
+        if args.gain is not None:
+            settings_dict[ 'synth.gain' ] = args.gain
+        if args.midi_channels is not None:
+            settings_dict[ 'synth.midi-channels' ] = args.midi_channels
+        if args.audio_channels is not None:
+            settings_dict[ 'synth.audio-channels' ] = args.audio_channels
+        if args.sample_rate is not None:
+            settings_dict[ 'synth.sample-rate' ] = args.sample_rate
+        if args.audio_buffsize is not None:
+            settings_dict[ 'audio.period-size' ] = args.audio_buffsize
+
+        return settings_dict
 
     def from_str ( self, uri : str, args ) -> FluidSynthSequencer:
         soundfont = self.config.get( 'Musikla', 'soundfont', fallback = None )
 
-        return FluidSynthSequencer( uri, soundfont, self.config[ 'FluidSynth.Settings' ] if 'FluidSynth.Settings' in self.config else {} )
+        cli_settings = self._args_settings_dictionary( args )
+        ini_settings = self.config[ 'FluidSynth.Settings' ] if 'FluidSynth.Settings' in self.config else {}
+
+        return FluidSynthSequencer( uri, soundfont, { **cli_settings, **ini_settings } )

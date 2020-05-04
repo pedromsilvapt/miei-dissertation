@@ -5,7 +5,7 @@ import asyncio
 
 if __name__ == "__main__":
     try:
-        if '--gui' in argv or '-g' in argv:
+        if '--gui' in argv:
             from musikla.gui_application import GuiApplication
 
             GuiApplication().run()

@@ -1,5 +1,6 @@
+import sys
 import time
-from .sequencers import Sequencer, SequencerFactory
+from .sequencers import Sequencer, SequencerFactory, ArgumentParser, ArgumentParserError
 from musikla.core import Context
 from configparser import ConfigParser
 from argparse import Namespace
@@ -49,6 +50,8 @@ class Player():
         
         sequencer : Optional[Sequencer] = None
 
+        args_errors = []
+
         for factory in self.sequencer_factories:
             if factory.default:
                 if default is not None:
@@ -56,25 +59,37 @@ class Player():
                     
                 default = factory
             else:
-                if factory.argparser is not None:
-                    arguments = factory.argparser.parse_args( args )
-                else:
-                    arguments = args
-
+                try:
+                    if factory.argparser is not None:
+                        arguments = factory.argparser.parse_args( args )
+                    else:
+                        arguments = args
+                except ArgumentParserError as e:
+                    args_errors.append( ( factory.name, str( e ) ) )
+                    continue
+                
                 sequencer = factory.from_str( uri, arguments )
 
             if sequencer != None: break
 
         if sequencer is None and default is not None:
-            if default.argparser is not None:
-                arguments = default.argparser.parse_args( args )
+            try:
+                if default.argparser is not None:
+                    arguments = default.argparser.parse_args( args )
+                else:
+                    arguments = args
+            except ArgumentParserError as e:
+                args_errors.append( ( default.name, str( e ) ) )
             else:
-                arguments = args
-
-            sequencer = default.from_str( uri, arguments )
+                sequencer = default.from_str( uri, arguments )
         
         if sequencer is None:
-            raise Exception( f"Could not create a sequencer for { uri }" )
+            if args_errors:
+                sys.stderr.write( f"Could not create a sequencer for { uri }\n" )
+                sys.stderr.write( ''.join( [ n + ':\n' + m + '\n' for n, m in args_errors ] ) )
+                raise SystemExit( 2 )
+            else:
+                raise Exception( f"Could not create a sequencer for { uri }" )
 
         return sequencer
 

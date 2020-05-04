@@ -3,7 +3,13 @@ from musikla.core.events import MusicEvent
 from musikla.core.events.transformers import Transformer
 from typing import Any, Iterable, Optional
 from configparser import ConfigParser
-from argparse import ArgumentParser
+import argparse
+
+class ArgumentParserError(Exception): pass
+
+class ArgumentParser( argparse.ArgumentParser ):
+    def error( self, message ):
+        raise ArgumentParserError( message )
 
 class Sequencer:
     def __init__ ( self ):
