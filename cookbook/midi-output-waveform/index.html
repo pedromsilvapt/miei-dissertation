@@ -391,10 +391,79 @@
       
     
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Recording to Traktion Waveform
+      </label>
+    
     <a href="./" title="Recording to Traktion Waveform" class="md-nav__link md-nav__link--active">
       Recording to Traktion Waveform
     </a>
     
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-the-code" class="md-nav__link">
+    Step 1: The Code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-configuring-waveform-midi" class="md-nav__link">
+    Step 2: Configuring WaveForm MIDI
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-configuring-waveform-tracks" class="md-nav__link">
+    Step 3: Configuring WaveForm Tracks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-running-musikla" class="md-nav__link">
+    Step 4: Running Musikla
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../multiple-outputs/" title="Multiple Outputs" class="md-nav__link">
+      Multiple Outputs
+    </a>
   </li>
 
         
@@ -480,6 +549,50 @@
     
   
   
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-the-code" class="md-nav__link">
+    Step 1: The Code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-configuring-waveform-midi" class="md-nav__link">
+    Step 2: Configuring WaveForm MIDI
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-configuring-waveform-tracks" class="md-nav__link">
+    Step 3: Configuring WaveForm Tracks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-running-musikla" class="md-nav__link">
+    Step 4: Running Musikla
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -492,6 +605,41 @@
                 
                 
                 <h1 id="recording-to-traktion-waveform">Recording to Traktion Waveform</h1>
+<p>The default way of playing sounds in Musikla is through the embedded fluidsynth library and a soundfont file. However, other ways of playing the audio are supported.</p>
+<p>One of those ways is emitting MIDI data to an open port that can then be played by any supporting device or application.</p>
+<p>In this tutorial, we'll explore how to connect the musikla MIDI events to the <a href="https://www.tracktion.com/products/waveform-free">Traktion Waveform FREE</a> software.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Other than having both musikla and Traktion WaveForm installed, the user may need some additional software installed.</p>
+<ul>
+<li><a href="https://www.tobias-erichsen.de/software/loopmidi.html">loopMIDI</a> Musikla does not suport virtual MIDI ports out of the box for some platforms (like Windows). This application can be used to easily create multiple virtual ports.</li>
+<li><a href="https://github.com/Birch-san/juicysfplugin">Juicy SF</a> A good easy-to-use SoundFont VST plugin that supports both 32bit and 64bit.</li>
+<li><a href="http://www.schristiancollins.com/generaluser.php">GeneralUser GS</a> A good and free soundfont to use</li>
+</ul>
+<h2 id="step-1-the-code">Step 1: The Code</h2>
+<p>Any valid musikla file should work, but if you want to try this out and don't have any, you can just use this small sample.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">:piano</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">I1</span><span class="s"> </span><span class="l">S6/8</span><span class="s"> </span><span class="l">T140</span><span class="s"> </span><span class="l">L/8</span><span class="s"> </span><span class="l">V120</span><span class="p">;</span><span class="s"></span>
+<span class="nv">:violin</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nv">:piano</span><span class="p">(</span><span class="gr">I41</span><span class="p">);</span><span class="s"></span>
+
+<span class="nv">$chorus</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nv">:piano</span><span class="s"> </span><span class="p">(</span><span class="l">A</span><span class="kp">*</span><span class="m">11</span><span class="s"> </span><span class="l">G</span><span class="s"> </span><span class="l">F</span><span class="kp">*</span><span class="m">12</span><span class="s"> </span><span class="kp">|</span><span class="s"> </span><span class="l">A,6</span><span class="s"> </span><span class="l">A,5</span><span class="s"> </span><span class="l">G,</span><span class="s"> </span><span class="l">F,6</span><span class="kp">*</span><span class="m">2</span><span class="p">)</span><span class="kp">*</span><span class="m">3</span><span class="p">;</span><span class="s"></span>
+
+<span class="nv">$melody</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nv">:piano</span><span class="s"> </span><span class="p">(</span><span class="l">r24</span><span class="s">   </span><span class="p">(</span><span class="nv">:violin</span><span class="s"> </span><span class="l">a3</span><span class="s"> </span><span class="l">c&#39;3</span><span class="s"> </span><span class="l">d&#39;3</span><span class="s"> </span><span class="l">e&#39;9</span><span class="p">)</span><span class="s"> </span><span class="l">r9</span><span class="s"> </span><span class="l">e&#39;3</span><span class="s"> </span><span class="l">d&#39;3</span><span class="s"> </span><span class="l">c&#39;3</span><span class="s"> </span><span class="l">a9</span><span class="p">);</span><span class="s"></span>
+
+<span class="nf">play</span><span class="p">(</span><span class="s"> </span><span class="nv">$chorus</span><span class="s"> </span><span class="kp">|</span><span class="s"> </span><span class="nv">$melody</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h2 id="step-2-configuring-waveform-midi">Step 2: Configuring WaveForm MIDI</h2>
+<p>After you've created at least one virtual MIDI port in loopMIDI, you can also create additional virtual ports inside WaveForm and filter what channels each port gets.
+<img alt="Screenshot" src="../../assets/midi-waveform-settings.png" /></p>
+<h2 id="step-3-configuring-waveform-tracks">Step 3: Configuring WaveForm Tracks</h2>
+<h2 id="step-4-running-musikla">Step 4: Running Musikla</h2>
 <p><img alt="Screenshot" src="../../assets/midi-waveform-record.png" /></p>
                 
                   
@@ -529,13 +677,13 @@
           </a>
         
         
-          <a href="../../api/std/" title="std" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../multiple-outputs/" title="Multiple Outputs" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                std
+                Multiple Outputs
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">
