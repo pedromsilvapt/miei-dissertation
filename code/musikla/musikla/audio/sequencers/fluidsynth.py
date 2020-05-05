@@ -282,7 +282,7 @@ class FluidSynthSequencerFactory( SequencerFactory ):
         self.argparser.add_argument( '-K', '--midi-channels', dest = 'midi_channels', type = int, action='store', help = 'The number of midi channels [default = 16] (equivalent to `synth.midi-channels`)' )
         self.argparser.add_argument( '-L', '--audio-channels', dest = 'audio_channels', type = int, action='store', help = 'The number of stereo audio channels [default = 1] (equivalent to `synth.audio-channels`)' )
         self.argparser.add_argument( '-r', '--sample-rate', dest = 'sample_rate', type = float, action='store', help = 'Set the sample rate (equivalent to `synth.sample-rate`)' )
-        self.argparser.add_argument( '-z', '--audio-buffsize', dest = 'audio_buffsize', type = float, action='store', help = 'Size of each audio buffer (equivalent to `audio.period-size`)' )
+        self.argparser.add_argument( '-z', '--audio-bufsize', dest = 'audio_buffsize', type = float, action='store', help = 'Size of each audio buffer (equivalent to `audio.period-size`)' )
 
     def _args_settings_dictionary ( self, args ):
         settings_dict = {}

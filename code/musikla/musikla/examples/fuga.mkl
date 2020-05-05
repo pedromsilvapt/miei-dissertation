@@ -1,0 +1,5 @@
+L1/8
+
+fun fuga ( $m, $resp ) => ( $m $resp | stretch( r, $m ) ( $m + 7 ) );
+
+fuga( C E; C G );

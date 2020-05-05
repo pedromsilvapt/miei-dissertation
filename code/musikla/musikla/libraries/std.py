@@ -1,3 +1,4 @@
+from musikla.core.events.event import MusicEvent
 from musikla.core import Context, Library, CallableValue, Voice, Instrument, Music, Value, Ref
 from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core.events import ControlChangeEvent
@@ -5,7 +6,8 @@ from musikla.core.theory import Interval, Scale
 from musikla.parser import Parser
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
 from musikla.parser.abstract_syntax_tree.expressions import VariableExpressionNode
-from typing import Any
+from typing import Any, Union
+from fractions import Fraction
 
 def function_using ( context : Context, var ):
     if not isinstance( var, VariableExpressionNode ):
@@ -136,6 +138,43 @@ def function_voices_create ( context : Context, name : str, modifiers : Node = N
 
     return voice
 
+
+def function_len ( context : Context, obj : Any ):
+    if isinstance( obj, Music ):
+        return obj.len( context )
+    else:
+        return len( obj )
+
+def function_stretch ( context : Context, music : Music, length_or_music : Union[Music, float, Fraction] ):
+    new_length : Fraction = Fraction( 0 )
+
+    if type( length_or_music ) is float:
+        new_length = Fraction( length_or_music )
+    elif isinstance( length_or_music, Music ):
+        new_length = length_or_music.len( context )
+    else:
+        new_length = length_or_music
+    
+    music = music.shared()
+
+    old_length = music.len( context )
+
+    factor = new_length / old_length
+
+    def _stretch ( event : MusicEvent, index : int, start_time : int ):
+        nonlocal factor
+
+        timestamp = int( ( event.timestamp - start_time ) * factor )
+
+
+        return event.clone(
+            timestamp = timestamp,
+            value = event.value * factor,
+            duration = context.voice.get_duration_absolute( event.value * factor )
+        )
+
+    return music.map( _stretch )
+
 class StandardLibrary(Library):
     def on_link ( self, script ):
         context : Context = self.context
@@ -169,9 +208,12 @@ class StandardLibrary(Library):
         context.symbols.assign( "setattr", CallablePythonValue( function_setattr ) )
         context.symbols.assign( "gettime", CallablePythonValue( function_gettime ) )
         context.symbols.assign( "settime", CallablePythonValue( function_settime ) )
+        context.symbols.assign( "cc", CallablePythonValue( function_cc ) )
         context.symbols.assign( "setvoice", CallablePythonValue( function_setvoice ) )
         context.symbols.assign( "setinstrument", CallablePythonValue( function_setinstrument ) )
         context.symbols.assign( "interval", Interval )
         context.symbols.assign( "scale", Scale )
+
+        context.symbols.assign( "stretch", CallablePythonValue( function_stretch ) )
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )

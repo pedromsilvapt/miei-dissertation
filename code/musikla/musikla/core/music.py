@@ -2,8 +2,9 @@ from .context import Context
 from .voice import Voice
 from .events import NoteEvent, MusicEvent
 from .enumerable import merge_sorted
-from typing import Any, Optional, List, Iterable
+from typing import Any, Optional, List, Iterable, Tuple
 from itertools import islice
+from fractions import Fraction
 
 class MusicBuffer:
     def __init__ ( self ):
@@ -43,6 +44,22 @@ class Music:
 
     def __init__ ( self, notes = [] ):
         self.notes = notes
+
+    def len ( self, context : Context ) -> Fraction:
+        range : Optional[Tuple[int, int]] = None
+        
+        for ev in self.expand( context ):
+            if range is None:
+                range = ( ev.timestamp, ev.end_timestamp )
+            else:
+                range = ( range[ 0 ], max( range[ 1 ], ev.end_timestamp ) )
+
+        if range is None:
+            return Fraction(0)
+            
+        start, end = range
+
+        return context.voice.from_duration_absolute( end ) - context.voice.from_duration_absolute( start )
 
     def shared ( self ) -> 'SharedMusic':
         return SharedMusic( self )

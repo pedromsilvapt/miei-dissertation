@@ -61,7 +61,7 @@ class Player():
             else:
                 try:
                     if factory.argparser is not None:
-                        arguments = factory.argparser.parse_args( args )
+                        arguments, _ = factory.argparser.parse_known_args( args )
                     else:
                         arguments = args
                 except ArgumentParserError as e:
@@ -75,7 +75,7 @@ class Player():
         if sequencer is None and default is not None:
             try:
                 if default.argparser is not None:
-                    arguments = default.argparser.parse_args( args )
+                    arguments, _ = default.argparser.parse_known_args( args )
                 else:
                     arguments = args
             except ArgumentParserError as e:

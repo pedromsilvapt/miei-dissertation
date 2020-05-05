@@ -1,3 +1,4 @@
+from typing import Tuple, Union
 from .instrument import Instrument
 from fractions import Fraction
 from copy import copy
@@ -8,7 +9,7 @@ class Voice:
     def __init__ ( self, 
                    name : str, 
                    instrument : Instrument,
-                   time_signature : (int, int) = (4, 4),
+                   time_signature : Tuple[int, int] = (4, 4),
                    velocity : int = 127,
                    octave : int = 4,
                    value : float = 1,
@@ -17,7 +18,7 @@ class Voice:
         self.id : int = id( self )
         self.name : str = name
         self.instrument : Instrument = instrument
-        self.time_signature : (int, int) = time_signature
+        self.time_signature : Tuple[int, int] = time_signature
         self.velocity : int = velocity
         self.octave : int = octave
         self.value : float = value
@@ -26,7 +27,7 @@ class Voice:
     def clone ( self,
                 name : str = None, 
                 instrument : Instrument = None,
-                time_signature : (int, int) = None,
+                time_signature : Tuple[int, int] = None,
                 velocity : int = None,
                 octave : int = None,
                 value : float = None,
@@ -63,7 +64,10 @@ class Voice:
         else:
             return self.value * value
 
-    def get_relative_value ( self, value : float ) -> float:
+    def get_relative_value ( self, value : Union[float, Fraction] ) -> Fraction:
+        if not isinstance( value, Fraction ):
+            value = Fraction( value )
+
         return value / self.value
 
     def get_duration_ratio ( self ) -> float:
@@ -86,7 +90,7 @@ class Voice:
         return int( whole_note_duration * value )
 
     def from_duration ( self, milliseconds : int, max_denominator : int = 32 ) -> Fraction:
-        """Transform a duration in milliseconds to an approximated note value relative to the tempo and time signature"""
+        """Transform a duration in milliseconds to an approximated note value relative to the tempo and time signature and default not length"""
         return self.get_relative_value( self.from_duration_absolute( milliseconds, max_denominator ) )
         
     def from_duration_absolute ( self, milliseconds : int, max_denominator : int = 32 ) -> Fraction:
