@@ -30,6 +30,8 @@ class Script:
         self.tasks : Set[asyncio.Task] = set()
         self.soundfont : Optional[str] = None
         
+        self.context.symbols.assign( 'script', self, local = True )
+        
         self.libraries : Dict[str, Any] = {}
         
         self.add_sequencer_factory( ABCSequencerFactory )

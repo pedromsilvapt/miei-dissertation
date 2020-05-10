@@ -93,9 +93,12 @@ class Player():
 
         return sequencer
 
-    def add_sequencer ( self, sequencer : Union[Sequencer, str] ):
+    def add_sequencer ( self, sequencer : Union[Sequencer, str], format = None, args = None ):
         if type( sequencer ) is str:
-            sequencer = self.make_sequencer_from_uri( sequencer )
+            if format is None:
+                sequencer = self.make_sequencer_from_uri( sequencer, args or [] )
+            else:
+                sequencer = self.make_sequencer_from_format( format, sequencer, args or [] )
 
         self.sequencers.append( sequencer )
 
