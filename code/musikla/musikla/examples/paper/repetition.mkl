@@ -1,0 +1,6 @@
+#!musikla
+$script::player::add_sequencer( $__dir__ + "/repetition.wav" )
+# $script::player::add_sequencer( $__dir__ + "/repetition.html" )
+
+I1 S6/8 T140 L/8 V120;
+A*11 G F*12;

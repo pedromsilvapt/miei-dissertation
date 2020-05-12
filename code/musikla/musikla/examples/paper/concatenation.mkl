@@ -1,0 +1,8 @@
+#!musikla
+$script::player::add_sequencer( $__dir__ + "/concatenation.wav" );
+# $script::player::add_sequencer( $__dir__ + "/concatenation.html" );
+
+I1 S4/4 T74 L/8 V90;
+A, E A B ^c B A E D ^F ^c e ^c A3;
+
+
