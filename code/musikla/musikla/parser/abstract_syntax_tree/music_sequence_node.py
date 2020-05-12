@@ -22,6 +22,9 @@ class MusicSequenceNode( MusicNode ):
             if isinstance( value, Music ):
                 for event in value.expand( context ):
                     yield event
+
+                    if event.end_timestamp > context.cursor:
+                        context.cursor = event.end_timestamp
     
     def __iter__ ( self ):
         return iter( self.expressions )

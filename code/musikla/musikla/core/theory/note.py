@@ -13,7 +13,7 @@ def keysToIndexes (d : Dict) -> Dict:
 
 class NoteAccidental():
     DOUBLEFLAT = -2
-    FLAT = 2
+    FLAT = -1
     NONE = 0
     SHARP = 1
     DOUBLESHARP = 2
@@ -127,22 +127,8 @@ class Note:
         elif self.accidental == NoteAccidental.SHARP:
             note = '^' + note
         elif self.accidental == NoteAccidental.FLAT:
-            note = '~' + note
+            note = '_' + note
         elif self.accidental == NoteAccidental.DOUBLEFLAT:
-            note = '~~' + note
+            note = '__' + note
 
         return note
-
-# TODO Remove
-# class Chord:
-#     def __init__ ( self, root : Note, intervals : List[int] ):
-#         self.root : Note = root
-#         self.intervals : List[int] = intervals
-
-#     def to_notes ( self ) -> List[Note]:
-#         notes : List[Note] = []
-
-#         for semitones in self.intervals:
-#             notes.append( self.root.clone().transpose( semitones ) )
-
-#         return notes

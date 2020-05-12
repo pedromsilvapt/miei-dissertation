@@ -70,7 +70,7 @@ class ParserVisitor(PTNodeVisitor):
     def visit_voice_declaration ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        name = children.identifier[ 0 ]
+        name = children.namespaced[ 0 ]
         args = children.voice_declaration_body[ 0 ]
         
         return VoiceDeclarationMacroNode( 
@@ -90,8 +90,8 @@ class ParserVisitor(PTNodeVisitor):
         #     if len( params ) > 1:
         #         modifiers = params[ 1 ]
 
-        if children.identifier:
-            parent = VariableExpressionNode( children.identifier[ 0 ] ) 
+        if children.namespaced:
+            parent = VariableExpressionNode( children.namespaced[ 0 ] ) 
 
         # if children.integer:
         #     instrument = NumberLiteralNode( children.integer[ 0 ] )

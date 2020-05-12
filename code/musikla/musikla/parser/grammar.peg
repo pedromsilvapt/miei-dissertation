@@ -11,9 +11,9 @@ var_declaration <- "$" namespaced _ var_declaration_infix? "=" _ expression;
 
 var_declaration_infix <- "+" / "-" / "/" / "*" / "|" / "&";
 
-voice_declaration <- !"::" ":" identifier _ "=" _ voice_declaration_body;
+voice_declaration <- !"::" ":" namespaced _ "=" _ voice_declaration_body;
 
-voice_declaration_body <- !"::" ":" identifier _ "(" _ expression _ ")"
+voice_declaration_body <- !"::" ":" namespaced _ "(" _ expression _ ")"
                         / expression
                         ;
 
@@ -165,7 +165,7 @@ modifier
      / r"[oO]" _ integer
      ;
 
-instrument_modifier <- !"::" ":" ( identifier / "?" ) _ sequence;
+instrument_modifier <- !"::" ":" ( namespaced / "?" ) _ sequence;
 
 value_expression <- e binary_logic_operator_expression;
 
