@@ -1,3 +1,4 @@
+from typing import Optional
 from .event import MusicEvent, VoiceEvent
 from ..voice import Voice
 
@@ -6,6 +7,9 @@ class ProgramChangeEvent ( VoiceEvent ):
         super().__init__( timestamp, voice )
 
         self.program : int = program
+        
+    def __str__ ( self ) -> str:
+        return f"[pc=({self.program})]"
 
 class ControlChangeEvent ( VoiceEvent ):
     def __init__ ( self, timestamp : int, voice : Voice, control : int, value : int ):
@@ -14,9 +18,12 @@ class ControlChangeEvent ( VoiceEvent ):
         self.control : int = control
         self.value : int = value
 
-class ContextChangeEvent( MusicEvent ):
-    def __init__ ( self, timestamp : int, property : str, value ):
-        super().__init__( timestamp )
+    def __str__ ( self ) -> str:
+        return f"[cc=({self.control}, {self.value})]"
+
+class ContextChangeEvent( VoiceEvent ):
+    def __init__ ( self, timestamp : int, property : str, value, voice : Voice, staff : Optional[int] = 0 ):
+        super().__init__( timestamp, voice, staff )
 
         self.property : str = property
         self.value = value

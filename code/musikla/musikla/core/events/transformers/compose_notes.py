@@ -4,7 +4,7 @@ from ..note import NoteEvent, NoteOnEvent, NoteOffEvent
 from ..chord import ChordEvent, ChordOnEvent, ChordOffEvent
 from ...music import MusicBuffer
 from collections import defaultdict
-from typing import Callable, Dict, List, Tuple, Any, Union, Optional
+from typing import Callable, Dict, List, Tuple, Any, Union, Optional, cast
 
 class ComposeNotesTransformer( Transformer ):
     def __init__ ( self ):
@@ -22,7 +22,7 @@ class ComposeNotesTransformer( Transformer ):
         self.nec : int = 0
 
     def _get_note_key ( self, event : Union[NoteOnEvent, NoteOffEvent] ):
-        return ( event.voice.name, int( event ) )
+        return ( event.voice.name, event.staff, int( event ) )
 
     def _off_event ( self, timestamp ):
         # If the next event timestamp is the same as the one we just composed
@@ -45,15 +45,15 @@ class ComposeNotesTransformer( Transformer ):
 
     def _on_event ( self, timestamp : int ):
         if self.nec == 0 or self.net > timestamp:
-            net, nec = ( timestamp, 1 )
-        elif net == timestamp:
-            nec = nec + 1
+            self.net, self.nec = ( timestamp, 1 )
+        elif self.net == timestamp:
+            self.nec = self.nec + 1
 
     def _on_note_off ( self, event : NoteOffEvent ):
         key = self._get_note_key( event )
 
         if key in self.on_events:
-            on_event = self.on_events[ key ]
+            on_event = cast( NoteOnEvent, self.on_events[ key ] )
 
             duration = event.timestamp - on_event.timestamp
             value = on_event.voice.from_duration_absolute( duration )
@@ -67,7 +67,8 @@ class ComposeNotesTransformer( Transformer ):
                 voice = on_event.voice,
                 velocity = on_event.velocity,
                 accidental = on_event.accidental,
-                tied = on_event.tied
+                tied = on_event.tied,
+                staff = on_event.staff
             )
 
             self.buffered_events.append( composed_event )
@@ -82,13 +83,13 @@ class ComposeNotesTransformer( Transformer ):
         self._on_event( event.timestamp )
 
     def _get_chord_key ( self, event : Union[ChordOnEvent, ChordOffEvent] ):
-        return ( event.voice.name, tuple( event.pitches ) )
+        return ( event.voice.name, event.staff, tuple( event.pitches ) )
 
     def _on_chord_off ( self, event : ChordOffEvent ):
         key = self._get_chord_key( event )
 
         if key in self.on_events:
-            on_event = self.on_events[ key ]
+            on_event = cast( ChordOnEvent, self.on_events[ key ] )
 
             duration = event.timestamp - on_event.timestamp
             value = on_event.voice.from_duration_absolute( duration )
@@ -101,7 +102,8 @@ class ComposeNotesTransformer( Transformer ):
                 duration = duration,
                 voice = on_event.voice,
                 velocity = on_event.velocity,
-                tied = on_event.tied
+                tied = on_event.tied,
+                staff = on_event.staff
             )
 
             self.buffered_events.append( composed_event )

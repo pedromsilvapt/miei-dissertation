@@ -1,9 +1,10 @@
+from typing import Tuple
 from .context_modifier_node import ContextModifierNode
 from musikla.core.events import ContextChangeEvent
 from musikla.core import Context, Voice
 
 class VelocityModifierNode( ContextModifierNode ):
-    def __init__ ( self, velocity, position : (int, int) = None ):
+    def __init__ ( self, velocity, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.velocity = velocity
@@ -14,4 +15,4 @@ class VelocityModifierNode( ContextModifierNode ):
     def modify ( self, context : Context ):
         context.voice = context.voice.clone( velocity = self.velocity )
 
-        yield ContextChangeEvent( context.cursor, "velocity", context.voice.velocity )
+        yield ContextChangeEvent( context.cursor, "velocity", context.voice.velocity, context.voice, 0 )

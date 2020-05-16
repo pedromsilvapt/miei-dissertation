@@ -19,7 +19,8 @@ class RestNode( MusicNode ):
             duration = context.get_duration( self.value ),
             value = context.get_value( self.value ),
             voice = context.voice,
-            visible = self.visible
+            visible = self.visible,
+            staff = 0
         )
 
         context.cursor += rest.duration

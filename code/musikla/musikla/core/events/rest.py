@@ -1,10 +1,11 @@
+from typing import Optional
 from ..voice import Voice
 from .event import DurationEvent
 from fractions import Fraction
 
 class RestEvent( DurationEvent ):
-    def __init__ ( self, timestamp = 0, duration = 0, value = 0, voice : Voice = None, visible = True ):
-        super().__init__( timestamp, duration, value, voice )
+    def __init__ ( self, timestamp = 0, duration = 0, value = 0, voice : Voice = None, visible = True, staff : Optional[int] = 0 ):
+        super().__init__( timestamp, duration, value, voice, staff )
 
         self.visible = visible
 

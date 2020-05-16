@@ -15,4 +15,4 @@ class InstrumentModifierNode( ContextModifierNode ):
     def modify ( self, context : Context ):
         context.voice = context.voice.clone( instrument = Instrument.from_program( self.instrument ) )
 
-        yield ContextChangeEvent( context.cursor, "instrument", context.voice.instrument.program )
+        yield ContextChangeEvent( context.cursor, "instrument", context.voice.instrument.program, context.voice, 0 )

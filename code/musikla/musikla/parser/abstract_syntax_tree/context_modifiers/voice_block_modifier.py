@@ -1,9 +1,10 @@
+from typing import Tuple
 from .block_context_modifier_node import BlockContextModifierNode
 from musikla.core.events import ProgramChangeEvent
 from musikla.core import Value, Voice, Context, TemplateMusic
 
 class VoiceBlockModifier( BlockContextModifierNode ):
-    def __init__ ( self, body, voice_name : str, position : (int, int) = None ):
+    def __init__ ( self, body, voice_name : str, position : Tuple[int, int] = None ):
         super().__init__( body, position )
 
         self.voice_name : str = voice_name

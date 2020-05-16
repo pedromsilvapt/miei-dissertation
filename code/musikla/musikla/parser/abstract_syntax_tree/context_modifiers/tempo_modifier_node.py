@@ -1,9 +1,10 @@
+from typing import Tuple
 from .context_modifier_node import ContextModifierNode
 from musikla.core.events import ContextChangeEvent
 from musikla.core import Context, Voice
 
 class TempoModifierNode( ContextModifierNode ):
-    def __init__ ( self, tempo, position : (int, int) = None ):
+    def __init__ ( self, tempo, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.tempo = tempo
@@ -14,4 +15,4 @@ class TempoModifierNode( ContextModifierNode ):
     def modify ( self, context : Context ):
         context.voice = context.voice.clone( tempo = self.tempo )
 
-        yield ContextChangeEvent( context.cursor, "tempo", context.voice.tempo )
+        yield ContextChangeEvent( context.cursor, "tempo", context.voice.tempo, context.voice, 0 )

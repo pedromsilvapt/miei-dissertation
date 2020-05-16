@@ -22,7 +22,8 @@ class ChordNode( MusicNode ):
             duration = context.get_duration( self.chord.value ),
             value = context.get_value( self.chord.value ),
             voice = context.voice,
-            velocity = context.voice.velocity
+            velocity = context.voice.velocity,
+            staff = 0
         )
 
         context.cursor += chord.duration

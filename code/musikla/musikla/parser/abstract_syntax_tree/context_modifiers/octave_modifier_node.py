@@ -1,9 +1,10 @@
+from typing import Tuple
 from .context_modifier_node import ContextModifierNode
 from musikla.core.events import ContextChangeEvent
 from musikla.core import Context, Voice
 
 class OctaveModifierNode( ContextModifierNode ):
-    def __init__ ( self, octave, position : (int, int) = None ):
+    def __init__ ( self, octave, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.octave = octave
@@ -14,4 +15,4 @@ class OctaveModifierNode( ContextModifierNode ):
     def modify ( self, context : Context ):
         context.voice = context.voice.clone( octave = self.octave )
 
-        yield ContextChangeEvent( context.cursor, "octave", context.voice.octave )
+        yield ContextChangeEvent( context.cursor, "octave", context.voice.octave, context.voice, 0 )

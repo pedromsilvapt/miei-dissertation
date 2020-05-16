@@ -1,10 +1,12 @@
 from .transformer import Transformer
 from musikla.core import Voice
 from musikla.core.events import MusicEvent, NoteEvent, RestEvent, ChordEvent
-from typing import List
+from typing import List, Optional
 
 class SlidingAverage():
-    def __init__ ( self ):
+    def __init__ ( self, capacity : int = 0 ):
+        self.history : List[float] = []
+        self.capacity = capacity
         self.sum : float = 0
         self.count : int = 0
 
@@ -12,10 +14,20 @@ class SlidingAverage():
         if self.count == 0:
             self.sum = value
             self.count = 1
+
+            if self.capacity > 0:
+                self.history.append( value )
         else:
             #  ( ( self.average / self.count ) + ( value / ( self.count + 1 ) ) )
             self.sum += value
-            self.count += 1
+
+            if self.capacity == 0 or self.count < self.capacity:
+                self.count += 1
+            else:
+                self.sum -= self.history.pop( 0 )
+
+            if self.capacity > 0:
+                self.history.append( value )
 
         return self
 
@@ -32,19 +44,20 @@ class SlidingAverage():
         return float( self.sum / self.count )
 
 class VoiceIdentifierVoice():
-    def __init__ ( self, transformer : 'NotationBuilderTransformer', parent : Voice, index : int ):
-        self.transformer : VoiceIdentifierVoice = transformer
+    def __init__ ( self, transformer : 'VoiceIdentifierTransformer', parent : Voice, index : int, staff : int = None ):
+        self.transformer : VoiceIdentifierTransformer = transformer
         self.parent_name : str = parent.name
+        self.parent_staff : Optional[int] = staff
         self.voice : Voice = parent.clone( parent.name + '/' + str( index ) )
         self.index = index
         self.average_pitch : SlidingAverage = SlidingAverage()
         self.auto_create_rests : bool = True
         self.auto_create_end_rests : bool = True
-        self.last_event : MusicEvent = None
+        self.last_event : Optional[MusicEvent] = None
 
     @property
     def last_timestamp ( self ):
-        if not self.last_event:
+        if self.last_event is None:
             return 0
 
         return self.last_event.timestamp
@@ -75,7 +88,8 @@ class VoiceIdentifierVoice():
             visible = visible,
             duration = duration,
             value = value,
-            voice = self.voice
+            voice = self.voice,
+            staff = self.parent_staff
         )
 
     def append ( self, *events : MusicEvent ):
@@ -90,7 +104,7 @@ class VoiceIdentifierVoice():
 
             self.transformer.add_output( event.clone( voice = self.voice ) )
 
-        self.last_event = event
+            self.last_event = event
 
 class VoiceIdentifierTransformer(Transformer):
     """
@@ -108,7 +122,7 @@ class VoiceIdentifierTransformer(Transformer):
     def create_voice_for ( self, event : NoteEvent ) -> VoiceIdentifierVoice:
         index = max( ( voice.index for voice in self.voices if voice.parent_name == event.voice.name ), default = 0 )
 
-        voice = VoiceIdentifierVoice( self, event.voice, index + 1 )
+        voice = VoiceIdentifierVoice( self, event.voice, index + 1, event.staff )
 
         voice.auto_create_rests = self.auto_create_rests
         voice.auto_create_end_rests = self.auto_create_end_rests
@@ -117,16 +131,19 @@ class VoiceIdentifierTransformer(Transformer):
 
         return voice
 
-    def find_voice_for ( self, event, auto_create : bool = True ) -> VoiceIdentifierVoice:
+    def find_voice_for ( self, event, auto_create : bool = True ) -> Optional[VoiceIdentifierVoice]:
         best_voice, best_voice_dst = None, None
 
         for voice in self.voices:
-            if voice.parent_name != event.voice.name:
+            if voice.parent_name != event.voice.name or voice.parent_staff != event.staff:
                 continue
 
             # If the voice already has a sound playing at this timestamp
             if voice.is_busy_at( event.timestamp ):
                 continue
+
+            if event.staff is not None:
+                return voice
 
             voice_dst = voice.distance( event )
 
@@ -136,12 +153,12 @@ class VoiceIdentifierTransformer(Transformer):
 
         if best_voice is None and auto_create:
             best_voice = self.create_voice_for( event )
-        
+
         return best_voice
     
     def find_voice_for_rest ( self, event, auto_create : bool = True ) -> VoiceIdentifierVoice:
         for voice in self.voices:
-            if voice.parent_name != event.voice.name:
+            if voice.parent_name != event.voice.name or voice.parent_staff != event.staff:
                 continue
 
             # If the voice already has a sound playing at this timestamp
@@ -153,17 +170,20 @@ class VoiceIdentifierTransformer(Transformer):
     def register_rest ( self, event : RestEvent ):
         voice = self.find_voice_for_rest( event )
 
-        voice.append( event )       
+        if voice is not None:
+            voice.append( event )
 
     def register_note ( self, event : NoteEvent ):
         voice = self.find_voice_for( event )
 
-        voice.append( event )
+        if voice is not None:
+            voice.append( event )
     
     def register_chord ( self, event : ChordEvent ):
         voice = self.find_voice_for( event )
 
-        voice.append( event )
+        if voice is not None:
+            voice.append( event )
 
     def transform ( self ):
         """

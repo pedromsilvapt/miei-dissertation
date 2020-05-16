@@ -7,10 +7,10 @@ from fractions import Fraction
 from typing import Dict, List, Optional
 
 class ChordEvent( DurationEvent ):
-    def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, duration = 4, voice : Voice = None, velocity = 127, value = None, tied : bool = False ):
-        super().__init__( timestamp, duration, value, voice )
+    def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, duration = 4, voice : Voice = None, velocity = 127, value = None, tied : bool = False, staff : Optional[int] = 0 ):
+        super().__init__( timestamp, duration, value, voice, staff )
 
-        self.name : str = name
+        self.name : Optional[str] = name
         self.pitches : List[int] = pitches
         self.velocity = velocity
         self.tied : bool = tied
@@ -27,7 +27,8 @@ class ChordEvent( DurationEvent ):
             voice = self.voice,
             velocity = self.velocity,
             value = self.value,
-            tied = self.tied
+            tied = self.tied,
+            staff = self.staff
         )
 
     def music ( self ):
@@ -43,7 +44,8 @@ class ChordEvent( DurationEvent ):
             name = self.name, 
             voice = self.voice, 
             velocity = self.velocity, 
-            tied = self.tied
+            tied = self.tied,
+            staff = self.staff
         )
 
     @property
@@ -53,7 +55,8 @@ class ChordEvent( DurationEvent ):
             pitches = self.pitches, 
             name = self.name, 
             voice = self.voice, 
-            tied = self.tied
+            tied = self.tied,
+            staff = self.staff
         )
 
     def with_root_pitch ( self, pitch : int, **kargs ) -> 'ChordEvent':
@@ -68,7 +71,8 @@ class ChordEvent( DurationEvent ):
             duration = self.duration, 
             voice = self.voice, 
             velocity = self.velocity, 
-            value = self.value
+            value = self.value,
+            staff = self.staff
         )
 
     def with_pitches ( self, pitches : List[int], **kargs ) -> 'ChordEvent':
@@ -81,7 +85,8 @@ class ChordEvent( DurationEvent ):
             duration = self.duration, 
             voice = self.voice, 
             velocity = self.velocity, 
-            value = self.value
+            value = self.value,
+            staff = self.staff
         )
 
     def __eq__ ( self, other ):
@@ -119,8 +124,8 @@ class ChordEvent( DurationEvent ):
         return f'"{ self.name }"[{ notes }]'
 
 class ChordOnEvent( VoiceEvent ):
-    def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, voice : Voice = None, velocity = 127, tied : bool = False ):
-        super().__init__( timestamp, voice )
+    def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, voice : Voice = None, velocity = 127, tied : bool = False, staff : Optional[int] = 0 ):
+        super().__init__( timestamp, voice, staff )
 
         self.name : Optional[str] = name
         self.pitches : List[int] = pitches
@@ -133,20 +138,22 @@ class ChordOnEvent( VoiceEvent ):
             pitches = self.pitches, 
             name = self.name, 
             voice = self.voice, 
-            tied = self.tied
+            tied = self.tied,
+            staff = self.staff
         )
 
     @property
-    def notes ( self ) -> List[NoteEvent]:
+    def notes ( self ) -> List[NoteOnEvent]:
         return [ self.note_at( i ) for i in range( len( self.pitches ) ) ]
 
-    def note_at ( self, index : int ) -> NoteEvent:
+    def note_at ( self, index : int ) -> NoteOnEvent:
         return NoteOnEvent.from_pitch( 
             timestamp = self.timestamp,
             pitch = self.pitches[ index ],
             voice = self.voice,
             velocity = self.velocity,
-            tied = self.tied
+            tied = self.tied,
+            staff = self.staff
         )
 
     def music ( self ):
@@ -164,7 +171,8 @@ class ChordOnEvent( VoiceEvent ):
             pitches = [ pitch + ( p - rp ) for p in self.pitches ],
             name = name,
             voice = self.voice, 
-            velocity = self.velocity, 
+            velocity = self.velocity,
+            staff = self.staff
         )
 
     def with_pitches ( self, pitches : List[int], **kargs ) -> 'ChordOnEvent':
@@ -176,6 +184,7 @@ class ChordOnEvent( VoiceEvent ):
             name = name,
             voice = self.voice, 
             velocity = self.velocity, 
+            staff = self.staff
         )
 
     def __eq__ ( self, other ):
@@ -213,8 +222,8 @@ class ChordOnEvent( VoiceEvent ):
         return f'"{ self.name }"[{ notes }](On)'
 
 class ChordOffEvent( VoiceEvent ):
-    def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, voice : Voice = None, tied : bool = False ):
-        super().__init__( timestamp, voice )
+    def __init__ ( self, timestamp = 0, pitches : List[int] = [], name : str = None, voice : Voice = None, tied : bool = False, staff : Optional[int] = 0 ):
+        super().__init__( timestamp, voice, staff )
 
         self.name : Optional[str] = name
         self.pitches : List[int] = pitches
@@ -229,7 +238,8 @@ class ChordOffEvent( VoiceEvent ):
             timestamp = self.timestamp,
             pitch = self.pitches[ index ],
             voice = self.voice,
-            tied = self.tied
+            tied = self.tied,
+            staff = self.staff
         )
 
     def music ( self ):
@@ -247,6 +257,7 @@ class ChordOffEvent( VoiceEvent ):
             pitches = [ pitch + ( p - rp ) for p in self.pitches ],
             name = name,
             voice = self.voice,
+            staff = self.staff
         )
 
     def with_pitches ( self, pitches : List[int], **kargs ) -> 'ChordOffEvent':
@@ -256,7 +267,8 @@ class ChordOffEvent( VoiceEvent ):
             timestamp = self.timestamp,
             pitches = pitches,
             name = name,
-            voice = self.voice, 
+            voice = self.voice,
+            staff = self.staff
         )
 
     def __eq__ ( self, other ):

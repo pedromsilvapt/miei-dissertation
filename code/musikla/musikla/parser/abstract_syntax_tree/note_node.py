@@ -23,7 +23,8 @@ class NoteNode( MusicNode ):
             octave = context.voice.octave + ( self.note.octave or 0 ),
             voice = context.voice,
             velocity = context.voice.velocity,
-            accidental = self.note.accidental
+            accidental = self.note.accidental,
+            staff = 0
         )
 
         context.cursor += note.duration

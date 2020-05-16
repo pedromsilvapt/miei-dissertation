@@ -1,11 +1,12 @@
-from typing import Callable, Any, cast
+from typing import Callable, Any, Optional, cast
 from ..voice import Voice
 from copy import copy
 
 class MusicEvent():
-    def __init__ ( self, timestamp : int = 0 ):
+    def __init__ ( self, timestamp : int = 0, staff : Optional[int] = 0 ):
         self.timestamp : int = timestamp
-        
+        self.staff : Optional[int] = staff
+
     @property
     def end_timestamp ( self ) -> int:
         if hasattr( self, 'duration' ):
@@ -46,14 +47,14 @@ class MusicEvent():
         return "<%s>(%r)" % (self.__class__.__name__, self.__dict__)
 
 class VoiceEvent(MusicEvent):
-    def __init__ ( self, timestamp : int = 0, voice : Voice = None ):
-        super().__init__( timestamp )
+    def __init__ ( self, timestamp : int = 0, voice : Voice = None, staff : Optional[int] = 0 ):
+        super().__init__( timestamp, staff )
 
         self.voice : Voice = voice or Voice.unknown
 
 class DurationEvent ( VoiceEvent ):
-    def __init__ ( self, timestamp = 0, duration = 0, value = 0, voice : Voice = None ):
-        super().__init__( timestamp, voice )
+    def __init__ ( self, timestamp = 0, duration = 0, value = 0, voice : Voice = None, staff : Optional[int] = 0 ):
+        super().__init__( timestamp, voice, staff )
 
         # Value stores information about the note duration independent of the tempo and time signature
         self.value = value

@@ -6,7 +6,7 @@ from typing import Optional, cast
 
 class NoteOnEvent ( VoiceEvent ):
     @staticmethod
-    def from_pitch ( timestamp = 0, pitch = 0, voice : Voice = None, velocity = 127, tied : bool = False ):
+    def from_pitch ( timestamp = 0, pitch = 0, voice : Voice = None, velocity = 127, tied : bool = False, staff : Optional[int] = 0 ):
         note = Note.from_pitch( pitch )
         
         return NoteOnEvent(
@@ -16,27 +16,27 @@ class NoteOnEvent ( VoiceEvent ):
             pitch_class = note.pitch_class, 
             octave = note.octave, 
             accidental = note.accidental,
-            tied = tied
+            tied = tied,
+            staff = staff
         )
 
-    def __init__ ( self, timestamp = 0, pitch_class = 0, octave = 4, accidental = NoteAccidental.NONE, velocity = 0, voice : Voice = None, tied : bool = False, parent : 'NoteEvent' = None ):
+    def __init__ ( self, timestamp = 0, pitch_class = 0, octave = 4, accidental = NoteAccidental.NONE, velocity = 0, voice : Voice = None, tied : bool = False, staff : Optional[int] = 0 ):
         self.pitch_class : int = pitch_class
         self.octave : int = octave
         self.accidental : int = accidental
         self.velocity : int = velocity
         self.tied : bool = tied
-        self.parent : Optional['NoteEvent'] = parent
 
         self._disabled : bool = False
 
-        super().__init__( timestamp, voice )
+        super().__init__( timestamp, voice, staff )
 
     @property
     def note ( self ) -> Note:
         return Note( self.pitch_class, self.octave, self.accidental )
 
     def note_off ( self, timestamp : int ) -> 'NoteOffEvent':
-        return NoteOffEvent( timestamp, self.pitch_class, self.octave, self.accidental, self.voice, self.tied, self.parent )
+        return NoteOffEvent( timestamp, self.pitch_class, self.octave, self.accidental, self.voice, self.tied, self.staff )
 
     def __int__ ( self ):
         return int( self.note )
@@ -47,7 +47,7 @@ class NoteOnEvent ( VoiceEvent ):
 
 class NoteOffEvent ( VoiceEvent ):
     @staticmethod
-    def from_pitch ( timestamp = 0, pitch = 0, voice : Voice = None, tied : bool = False ):
+    def from_pitch ( timestamp = 0, pitch = 0, voice : Voice = None, tied : bool = False, staff : Optional[int] = 0 ):
         note = Note.from_pitch( pitch )
         
         return NoteOffEvent(
@@ -56,17 +56,17 @@ class NoteOffEvent ( VoiceEvent ):
             pitch_class = note.pitch_class, 
             octave = note.octave, 
             accidental = note.accidental,
-            tied = tied
+            tied = tied,
+            staff = staff
         )
 
-    def __init__ ( self, timestamp = 0, pitch_class = 0, octave = 4, accidental = NoteAccidental.NONE, voice : Voice = None, tied : bool = False, parent : 'NoteEvent' = None ):
+    def __init__ ( self, timestamp = 0, pitch_class = 0, octave = 4, accidental = NoteAccidental.NONE, voice : Voice = None, tied : bool = False, staff : Optional[int] = 0 ):
         self.pitch_class : int = pitch_class
         self.octave : int = octave
         self.accidental : int = accidental
         self.tied : bool = tied
-        self.parent : Optional['NoteEvent'] = parent
 
-        super().__init__( timestamp, voice )
+        super().__init__( timestamp, voice, staff )
 
     @property
     def note ( self ) -> Note:
@@ -80,7 +80,7 @@ class NoteOffEvent ( VoiceEvent ):
 
 class NoteEvent( DurationEvent ):
     @staticmethod
-    def from_pitch ( timestamp = 0, pitch = 0, duration = 4, voice : Voice = None, velocity = 127, value = None, tied : bool = False ):
+    def from_pitch ( timestamp = 0, pitch = 0, duration = 4, voice : Voice = None, velocity = 127, value = None, tied : bool = False, staff : Optional[int] = 0 ):
         note = Note.from_pitch( pitch )
         
         return NoteEvent(
@@ -92,11 +92,12 @@ class NoteEvent( DurationEvent ):
             pitch_class = note.pitch_class, 
             octave = note.octave, 
             accidental = note.accidental,
-            tied = tied
+            tied = tied,
+            staff = staff
         )
 
-    def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, voice : Voice = None, velocity = 127, accidental = NoteAccidental.NONE, value = None, tied : bool = False ):
-        super().__init__( timestamp, duration, value, voice )
+    def __init__ ( self, timestamp = 0, pitch_class = 0, duration = 4, octave = 4, voice : Voice = None, velocity = 127, accidental = NoteAccidental.NONE, value = None, tied : bool = False, staff : Optional[int] = 0 ):
+        super().__init__( timestamp, duration, value, voice, staff )
 
         self.pitch_class = pitch_class
         self.octave = octave
@@ -115,11 +116,11 @@ class NoteEvent( DurationEvent ):
 
     @property
     def note_on ( self ) -> NoteOnEvent:
-        return NoteOnEvent( self.timestamp, self.pitch_class, self.octave, self.accidental, self.velocity, self.voice, self.tied, parent = self )
+        return NoteOnEvent( self.timestamp, self.pitch_class, self.octave, self.accidental, self.velocity, self.voice, self.tied, self.staff )
 
     @property
     def note_off ( self ) -> NoteOffEvent:
-        return NoteOffEvent( self.timestamp + self.duration, self.pitch_class, self.octave, self.accidental, self.voice, self.tied, parent = self )
+        return NoteOffEvent( self.timestamp + self.duration, self.pitch_class, self.octave, self.accidental, self.voice, self.tied, self.staff )
 
     def from_pattern ( self, pattern : 'NoteEvent' ) -> 'NoteEvent':
         return cast( NoteEvent, self.clone( 
@@ -128,7 +129,8 @@ class NoteEvent( DurationEvent ):
              value = pattern.value,
              duration = pattern.duration,
              velocity = pattern.velocity,
-             voice = pattern.voice
+             voice = pattern.voice,
+             staff = pattern.staff
         ) )
 
     def with_pitch ( self, pitch : int ) -> 'NoteEvent':
@@ -139,7 +141,8 @@ class NoteEvent( DurationEvent ):
             voice = self.voice, 
             velocity = self.velocity, 
             value = self.value,
-            tied = self.tied
+            tied = self.tied,
+            staff = self.staff
         )
 
     def __lt__ ( self, other ):

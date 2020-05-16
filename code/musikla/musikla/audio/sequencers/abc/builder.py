@@ -1,12 +1,20 @@
 from musikla.core.events import MusicEvent, VoiceEvent, ContextChangeEvent, NoteEvent, ChordEvent, RestEvent, BarNotationEvent, StaffNotationEvent
 from musikla.core.theory import NotePitchClassesInv
 from fractions import Fraction
-from .file import ABCFile, ABCStaff, ABCVoice, ABCBar, ABCNote, ABCChord, ABCRest
-from typing import Dict
+from .file import ABCFile, ABCStaff, ABCVoice, ABCBar, ABCNote, ABCChord, ABCRest, ABCVoiceGroup, ABCVoiceGroupKind
+from typing import Dict, Optional
+import re
+
+class ABCBuilderConfig:
+    def __init__ ( self, visible_voice_names : bool = True, score_merge_voice_staffs : bool = False ):
+        self.visible_voice_names : bool = visible_voice_names
+        self.score_merge_voice_staffs : bool = score_merge_voice_staffs
 
 class ABCBuilder:
-    def __init__ ( self ):
+    def __init__ ( self, config : ABCBuilderConfig = None ):
         self.file : ABCFile = ABCFile()
+
+        self.config : ABCBuilderConfig = config or ABCBuilderConfig()
 
     def get_current_staff ( self, voice : str ) -> ABCStaff:
         if voice not in self.file.body.staffs:
@@ -41,6 +49,22 @@ class ABCBuilder:
         elif event.property == 'tempo':
             self.file.header.tempo = event.value
 
+    def add_voice_to_score ( self, voice : ABCVoice ):
+        match = re.match( r"^(.+?)_[0-9]+$", voice.name_escaped )
+        existing_voice : Optional[ABCVoice] = None
+
+        if match is not None:
+            existing_voice = next( v for v in self.file.header.voices if v.name_escaped.startswith( match[ 1 ] ) )
+
+        if existing_voice is not None:
+            self.file.header.score.groups.append_with( voice.name_escaped, existing_voice.name_escaped )
+            
+            print( voice.name_escaped, match[ 1 ], existing_voice.name_escaped )
+        else:
+            group = ABCVoiceGroup( ABCVoiceGroupKind.Parentheses, [ voice.name_escaped ] )
+
+            self.file.header.score.groups.append( group )
+
     def add_voice ( self, event : VoiceEvent ):
         if self.file.header.length is None:
             self.file.header.length = Fraction( event.voice.value )
@@ -56,9 +80,14 @@ class ABCBuilder:
 
             voice = ABCVoice()
             voice.name = event.voice.name
-            voice.label = event.voice.name
+
+            if self.config.visible_voice_names:
+                voice.label = event.voice.name
 
             self.file.header.voices.append( voice )
+            
+            if self.config.score_merge_voice_staffs:
+                self.add_voice_to_score( voice )
 
     def build_note ( self, event : NoteEvent, inside_chord : bool = False ) -> ABCNote:
         note = ABCNote()

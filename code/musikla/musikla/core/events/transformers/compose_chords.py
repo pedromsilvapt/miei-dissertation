@@ -4,7 +4,7 @@ from ..note import NoteEvent, NoteOnEvent, NoteOffEvent
 from ..chord import ChordEvent
 from ...music import MusicBuffer
 from collections import defaultdict
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 class ComposeChordsTransformer( Transformer ):
     def __init__ ( self ):
@@ -29,18 +29,18 @@ class ComposeChordsTransformer( Transformer ):
             # to the same voice
             single_voice = all( ( ev.voice.name == first_name for ev in self.buffer if isinstance( ev, NoteEvent ) ) )
 
-            per_voice : Dict[str, List[NoteEvent]] = {}
+            per_voice : Dict[Tuple[str, Optional[int]], List[NoteEvent]] = {}
 
             voiceless : List[MusicEvent] = []
 
             for ev in self.buffer:
-                if isinstance( ev, NoteEvent ):
+                if isinstance( ev, NoteEvent ) and ev.voice is not None:
                     voice_name = ev.voice.name
 
                     if voice_name not in per_voice:
-                        per_voice[ voice_name ] = [ ev ]
+                        per_voice[ ( voice_name, ev.staff ) ] = [ ev ]
                     else:
-                        per_voice[ voice_name ].append( ev )
+                        per_voice[ ( voice_name, ev.staff ) ].append( ev )
                 else:
                     voiceless.append( ev )
 

@@ -1,7 +1,7 @@
 from musikla.core.events import MusicEvent, VoiceEvent, ContextChangeEvent, NoteEvent, ChordEvent, RestEvent, BarNotationEvent, StaffNotationEvent
 from musikla.core import MusicBuffer, Voice
 from .transformer import Transformer
-from typing import Tuple, Dict
+from typing import Optional, Tuple, Dict, cast
 from fractions import Fraction
 
 TimeSignature = Tuple[int, int]
@@ -12,14 +12,14 @@ class VoiceNotationInfo:
         self.time_signature = time_signature
         self.bars_per_staff = bars_per_staff
         self.beats_per_bar = beats_per_bar
-        self._beat_value : Fraction = None
+        self._beat_value : Optional[Fraction] = None
 
         self.beats_count : float = 0
         self.bars_count : int = 0
 
     @property
     def is_staff_full ( self ) -> bool:
-        return self.bars_count >= self.bars_per_staff and self.is_bar_full
+        return self.bars_count >= self.bars_per_staff - 1 and self.is_bar_full
 
     @property
     def is_bar_full ( self ) -> bool:
@@ -51,8 +51,9 @@ class VoiceNotationInfo:
 
         leftovers = self.beats_per_bar - self.beats_count
 
+
         if event_beats <= leftovers:
-            yield value, voice.get_duration_absolute( voice.value ), True
+            yield value, voice.get_duration_absolute( value ), True
 
             self.beats_count += event_beats
         else:
@@ -95,11 +96,11 @@ class VoiceNotationInfo:
                 if self.is_staff_full:
                     self.new_staff()
 
-                    yield StaffNotationEvent( timestamp, event.voice )
+                    yield StaffNotationEvent( timestamp, event.voice, event.staff )
                 elif self.is_bar_full:
                     self.new_bar()
 
-                    yield BarNotationEvent( timestamp, event.voice )
+                    yield BarNotationEvent( timestamp, event.voice, event.staff )
 
                 if sub_value > 0:
                     if isinstance( event, RestEvent ):
@@ -120,27 +121,28 @@ class AnnotateTransformer(Transformer):
     This transformer expects composed notes. Also this transformer expects that note events are either contiguous,
     or separated by rest events for each voice. If that is not the case, yout can use the voice identifier transformer before this one.
     """
-    def __init__ ( self, time_signature : TimeSignature = None, beats_per_staff : int = 12 ):
+    def __init__ ( self, time_signature : TimeSignature = None ):
         super().__init__()
 
-        self.time_signature : TimeSignature = time_signature
-        self.beats_per_staff : int = beats_per_staff
+        self.time_signature : Optional[TimeSignature] = time_signature
         self.voices : Dict[str, VoiceNotationInfo] = {}
         self.buffered_events : MusicBuffer = MusicBuffer()
         
     @property
     def bars_per_staff ( self ) -> int:
-        return 16 / self.time_signature[ 1 ]
+        # TODO Temporary, should be configurable and with a sensible default
+        return 2
+        return 16 // self.time_signature[ 0 ]
 
     @property
     def beats_per_bar ( self ) -> int:
-        return int( self.beats_per_staff / self.bars_per_staff )
+        return self.time_signature[ 0 ]
 
     def get_voice_for ( self, event : VoiceEvent ) -> VoiceNotationInfo:
         name = event.voice.name
         
         if name not in self.voices:
-            self.voices[ name ] = VoiceNotationInfo( name, self.time_signature, self.bars_per_staff, self.beats_per_bar )
+            self.voices[ name ] = VoiceNotationInfo( name, cast( TimeSignature, self.time_signature ), self.bars_per_staff, self.beats_per_bar )
         
         return self.voices[ name ]
 

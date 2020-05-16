@@ -134,7 +134,7 @@ class Player():
         events = list( events )
 
         if self.print_events and events:
-            print( 'playing', events[ 0 ].timestamp, ' '.join( str( e ) for e in events ) )
+            print( 'playing', events[ 0 ].timestamp, ' '.join( str( e ) for e in events ), [ e.staff for e in events ] )
 
         for seq in self.sequencers:
             seq.register_events_many( events )
