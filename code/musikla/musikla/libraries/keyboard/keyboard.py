@@ -1,6 +1,7 @@
 from decimal import InvalidOperation
 from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 from musikla.core import Context, Value, Music
+from musikla.core.theory import Note
 from musikla.core.events import NoteEvent
 from typing import Callable, List, Dict, Optional, Union, Any, cast
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
@@ -16,11 +17,7 @@ class Keyboard:
     def as_event ( key_value : Any ):
         if type( key_value ) == str:
             return KeyStroke.parse( key_value )
-        elif isinstance( key_value, Music ):
-            key_event = key_value.first_note()
-            
-            return PianoKey( key_event )
-        elif isinstance( key_value, NoteEvent ):
+        elif isinstance( key_value, Music ) or isinstance( key_value, NoteEvent )  or isinstance( key_value, Note ):
             return PianoKey( key_value )
         elif isinstance( key_value, KeyboardEvent ):
             return key_value

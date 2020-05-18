@@ -125,8 +125,8 @@ class Music:
 
         return self
 
-    def first_note ( self, context : Context ) -> Optional[NoteEvent]:
-        it = self.expand( context )
+    def first_note ( self, context : Context = None ) -> Optional[NoteEvent]:
+        it = self.expand( context or Context() )
 
         try:
             value = next( it )
