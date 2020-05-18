@@ -1,0 +1,24 @@
+graph LR
+    subgraph Inputs
+        INull["Script"]
+        IKeyboard[Computer Keyboard]
+        IMidi["MIDI <br/> (File/Device)"]
+        IPerfFile["Performance File"]
+        IOthers["..."]
+    end
+
+    INull --> E; IKeyboard --> E; IMidi --> E; IPerfFile --> E; IOthers --> E;
+
+    E(("Interpreter")) --"Music Events Stream m" --> EV[Player]
+
+    EV --> OAudioDevice; EV --> OWavFile; EV --> OMIDIFile; EV --> OAbcFile; EV --> OMusicSheet; EV --> OOthers
+
+    subgraph Outputs
+        OAudioDevice["Audio Device"]
+        OWavFile["WAV File"]
+        OMIDIFile["MIDI File"]
+        OAbcFile["ABC File"]
+        OMusicSheet["Music Sheet"]
+        OOthers["..."]
+    end
+

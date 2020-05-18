@@ -1,9 +1,8 @@
 #!musikla
 $script::player::add_sequencer( $__dir__ + "/parallel.wav" );
-$script::player::add_sequencer( $__dir__ + "/parallel.html" );
+# $script::player::add_sequencer( $__dir__ + "/parallel.html" );
 
 :melody = V110 L1 T120;
 :accomp = :melody(V80);
 
-:accomp [^Cm] [BM] | :melody r/4 ^g/4 ^g/4 ^f/2 e/8 ^d3/8 ^c;
-
+:accomp [^Cm] [BM] [AM] [BM]  | :melody r/4 ^g/4 ^g/4 ^g/4  ^f/2 e/8 ^d3/8  ^c2;
