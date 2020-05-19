@@ -68,9 +68,9 @@
 \end{abstract}
 
 \section{Introduction}
-Musikla stands for Music and Keyboard Language. Our goal is to develop a DSL (\textit{Domain Specific Language}) that allows treating musical events as regular data in a programming language. More than generating these musical events offline, we want to be able to easily declare keyboards that map keys and expressions to mutate the state or play musical events (or both).
+Musikla stands for Music and Keyboard Language. Our goal is to develop a DSL (\textit{Domain Specific Language}) that allows treating musical events as regular data in a programming language. More than generating these musical events offline, we want to be able to easily declare keyboards that map keys to expressions that either mutate the state or play musical events (or even both).
 
-The project can be sectioned in three different, modular layers: inputs, the language, and outputs. While music events can be described as code literals in our language, they can also originate from many other sources. After being processed by our language, it then emits a stream of musical events to the \textbf{Player}, which then multiplexes those events into however many outputs the user defined.
+The project can be partitioned in three different, modular layers: inputs, the language, and outputs. While music events can be described as code literals inside our language, they can also originate from many other sources (such as files or physical devices such as pianos). After being processed by our language, they are then emitted as a stream of musical events to the \textbf{Player} component, which then multiplexes those events into however many outputs the user defined.
 
 % TODO Translate diagram to english
 
@@ -85,16 +85,16 @@ The project can be sectioned in three different, modular layers: inputs, the lan
   \label{fig:architecture}
 \end{figure}
 
-While the development of both the input and output layers, as well as their many respective components presents by itself many interesting challenges that could be discussed, we will instead focus this paper on the aspects of the middle layer: the \textit{interpreter}, while ackowledging the existence (and their effects) of the layers that wrap around it.
+While the development of both the input and output layers, as well as their many respective components, presents by itself many interesting challenges that could be discussed, we will instead focus this paper on the aspects of the middle layer: the \textit{interpreter}, while ackowledging the existence (and their effects) of the layers that wrap around it.
 
-As such, the problem of developing the interpreter can be divided into two parts: the syntax used for describing the notes and the operators the compose them inside the language; and the semantics of the generated events, how they are stored in memory, and how their temporal properties are handled without forcing the programmer/user to manually type them. 
+As such, the problem of developing the interpreter can be divided into two parts: the syntax used for describing the notes and the operators that compose them inside the language; and the semantics of the generated events, how they are stored in memory, and how their temporal properties (start time and duration) are handled without forcing the programmer/user to always manually type them. 
 
-Designing the syntax for describing those musical expressions, especially given our strong desire to make those musical expressions first class citizens, like other primitive data types in most programming languages (such as numbers, strings or arrays are), did unearth some challenges. To minimize the learning curve for new users, and avoid reinventing the wheel, we decided to adopt a subset of the very popular note declaration syntax from the ABC Notation project\cite{AbcNotation} and integrate it with our language.
+Designing the syntax for describing those musical expressions, especially given our strong desire to make those musical expressions first class citizens like other primitive data types in most programming languages (such as numbers, strings or arrays are), did unearth some challenges. To minimize the learning curve for new users, and avoid reinventing the wheel, we decided to adopt a subset of the very popular note declaration syntax from the ABC Notation project\cite{AbcNotation} and integrate it with our language.
 
 As for the execution model, we decided to go with a tree-walker interpreter\cite{CraftingInterpreters}. Altough computationally slower than other alternatives (such as a bytecode virtual machine), the ease of implementation allowed us to prototype and develop features extremely fast. And with a more mature and stable language in the future, there is always the potential to rewrite the interpreter if performance or latency ever reveal themselves as potential problems.
 
 
-The simplest way of generating such musical events in a programming language is to use already common, \textit{low-level}, programming mechanisms, such as using a procedural approach where the user creates each event manually by calling a function and providing as parameters all the events' information, such as it's timestamp and duration. This is the approach used by some of the existing languages in this space, such as \textit{SonicPi}.
+The simplest way of generating such musical events in a programming language is to use already common, \textit{low-level}, programming mechanisms, such as using a procedural approach where the user creates each event manually by calling a function and providing as parameters all the events' information, such as it's timestamp and duration. This is the approach used by some of the existing languages in this space, such as \textit{SonicPi}\cite{Aaron2014TemporalSF}.
 
 \begin{lstlisting}[caption={Example of a hypothetical imperative API for creating events},label=list:1,captionpos=t,abovecaptionskip=-\medskipamount]
 play_note( 0, 100, 'A' );
@@ -124,14 +124,7 @@ Given these two requirements, we can conclude we \textbf{cannot} generate all mu
 \paragraph*{Data Model}
 The basic premise is that expressions can generate a special data type: \textbf{Music}. Music is simply a sequence (or stream) of ordered musical events.
 
-A musical \textbf{Event} can be one of many things, such as a \textit{note}, a \textit{chord}, or even more implementation-specific events like MIDI messages. While all events must have a start time, some events can be instantaneous (events with a duration of zero time units).
-
-%\begin{itemize}
-% \item \textbf{NoteEvent} Describes a single note
-% \item \textbf{ChordEvent} Describes a chord (group of notes to play in parallel). Is equivalent to having multiple separate \textbf{NoteEvent}'s with the same timestamp, but conveys a more specific semantic value.
-% \item \textbf{ControlChangeEvent}
-% \end{itemize}
-
+A musical \textbf{Event} can be one of many things, such as a \textit{note}, a \textit{chord}, or even more implementation-specific events like MIDI messages\cite{Loy1985MusiciansMA}. While all events must have a start time, some events can be instantaneous (events with a duration of zero time units).
 
 The time unit used does not need to be a common time measure, like seconds or milliseconds, and can be really anything so long as it has a \textbf{total order}.
 
@@ -206,10 +199,10 @@ Some of the operations we want to be able to perform with keyboards are as follo
 \section{Implementation}
 The reference implementation for this system is written in Python, although the approach here should be language agnostic.
 
-One of the features that Python boasts (but are certainl not exclusive to it) that have eased our implementation are generators\cite{PEP255}. They integrate very nicely into both our concept of emitting musical events as sequences (or iterators, as they are called in Python), as well as into our concept of laziness, where events are generated on demand when needed, and thus infinite musical sequences can be handled easily.
+One of the features that Python boasts (but are certainly not exclusive to it) that have eased our implementation of the language are generators\cite{PEP255}. They integrate very nicely into both our concept of emitting musical events as sequences (or iterators, as they are called in Python and other languages), as well as into our concept of laziness, where events are generated on demand when needed, and thus infinite musical sequences can be handled easily.
 
 \paragraph*{Context State}
-To keep track of the \textit{cursor} (the current timestamp where the next event should start) each operator in our language is implemented as a function call that receives an implicit \texttt{Context} object. While here we'll mostly focus just on the methods related to time management provided by the context, it can be used to store other types of information, like the default length of a musical note, for instance, to avoid forcing the user to type it out all the time.
+To keep track of the \textit{cursor} (the current timestamp where the next event should start) each operator in our language is implemented as a function call that receives an implicit \texttt{Context} object. While here we'll mostly focus just on the methods related to time management provided by the context, it can be used to store other types of information, like the default length of a musical note, for instance, to avoid forcing the user to type it out all the time, or the tempo at which it is to be played.
 
 It is important to keep in mind that there might be more than one context in execution at the same time. This can be most obvious with the use of the parallel operator, where each operand must run concurrently (and thus could not share the same context).
 
@@ -233,7 +226,7 @@ c'1/4
 
 \paragraph*{Concatenation}
 We've seen how single events' creation is handled. Now it is important for us to see how we can combine those events together. And probably the most straightforward operator of all, concatenation, it simply consumes each event. Each event, as we've seen before, is responsible for seeking the context depending on the event's duration.
-\begin{lstlisting}[caption={Snippet of Wet Hands by C418},label=list:4,captionpos=t,abovecaptionskip=-\medskipamount]
+\begin{lstlisting}[caption={Snippet of the song \textit{Wet Hands} by C418},label=list:4,captionpos=t,abovecaptionskip=-\medskipamount]
 S4/4 T74 L/8 V90;
 A, E A B ^c B A E D ^F ^c e ^c A3;
 \end{lstlisting}
@@ -245,7 +238,7 @@ A, E A B ^c B A E D ^F ^c e ^c A3;
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/concatenation2.png}}%
   }%
-  \caption{Generated music sheet for concatenation\protect\footnotemark.}
+  \caption{Generated music sheet for concatenation\protect\footnotemark, audio version available \href{https://drive.google.com/open?id=1TP4lcul81s8iMCUFmD3HKnSpeftCzKT0}{\underline{here}}.}
   \label{fig:concatenation}
 \end{figure}
 
@@ -267,14 +260,14 @@ A*11 G F*12
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/repetition2.png}}%
   }%
-  \caption{Generated music sheet for repetition.}
+  \caption{Generated music sheet for repetition, audio version available \href{https://drive.google.com/open?id=1IIm8PQkLsNFMK9MNSVubJSG6SP6KwhPL}{\underline{here}}.}
   \label{fig:repetition}
 \end{figure}
 
 \paragraph*{Parallel}
 The parallel operator enables playing multiple sequences of musical events simultaneously. However our events are emitted as a single sequence of ordered events, thus requiring merging the multiple sequences into a single one, while maintaining the properties of laziness and order. The operator assumes that each of its operands already maintains those properties on their own, and so is only in charge of making sure the merged sequence does so as well. With this in mind, it relies on a custom \textit{merge sorted} algorithm for iterables (not related to the most common merge sort algorithm by John von Neumann).
 
-\begin{lstlisting}[caption={Snippet of Soft to Be Strong by Marina},label=list:6,captionpos=t,abovecaptionskip=-\medskipamount]
+\begin{lstlisting}[caption={Snippet of the song \textit{Soft to Be Strong} by Marina},label=list:6,captionpos=t,abovecaptionskip=-\medskipamount]
 T120 V70 L1;
 r/4 ^g/4 ^g/4 ^g/4   ^f/2 e/8 ^d3/8   ^c2 | [^Cm] [BM]  [AM] [BM] 
 \end{lstlisting}
@@ -286,7 +279,7 @@ r/4 ^g/4 ^g/4 ^g/4   ^f/2 e/8 ^d3/8   ^c2 | [^Cm] [BM]  [AM] [BM]
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/parallel2.png}}%
   }%
-  \caption{Generated music sheet for parallel}
+  \caption{Generated music sheet for parallel, audio version available \href{https://drive.google.com/open?id=1ENTm3hZonYHyQIOgRZ8TQ1Qz-AfRLt2I}{\underline{here}}.}
   \label{fig:parallel}
 \end{figure}
 
@@ -336,13 +329,13 @@ play( fugue( $subj, $resp ) );
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/fugue.png}}%
   }%
-  \caption{Generated music sheet for fugue example}
+  \caption{Generated music sheet for fugue example, audio version available \href{https://drive.google.com/open?id=1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF}{\underline{here}}.}
   \label{fig:fugue}
 \end{figure}
 % https://drive.google.com/open?id=1-igVwdhXMxOSE1cMg_8HimDOXMhsY9US
 
 \paragraph*{Grids}
-To define a grid there is only one parameter required: the length of it's cells. When aligning musical events, anything inside each cell will be pushed to the closest edge of the cell.
+To define a grid there is only one parameter required: the length of it's cells. When aligning musical events, anything that falls inside each cell will be pushed to the closest edge of the cell.
 
 Grids are highly customizable too, however. They have multiple parameters, such as \texttt{forgiveness} and \texttt{range}, that determine when an event is affected by the grid (depending on how close it's start time is to the edge of the cell). Each parameter can even be customized separately for the left and right sides of the cell's edge.
 
