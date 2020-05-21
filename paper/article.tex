@@ -64,7 +64,7 @@
 \maketitle
 
 \begin{abstract}
-  In this paper, we'll discuss a simple approach to integrating musical events, such as notes or chords, into a programming language. First we'll analyze the problem and its particular requirements. Then we will discuss the solution we developed to meet those requirements. Finally we'll analyze the result and discuss possible alternative routes we could've taken.
+  In this paper, we'll discuss a simple approach to integrating musical events, such as notes or chords, into a programming language. This means treating music sequences as a first class citizen. It will be possible to save those sequences into variables or play them right away, pass them into functions or apply operators on them (like transposing or repeating the sequence). Furthermore, instead of just allowing static sequences to be generated, we'll integrate a music keyboard system that easily allows the user to bind keys (or other kinds of events) to expressions. Finally, it is important to provide the user with multiple and extensible ways of outputing their music, such as synthesizing it into a file or directly into the speakers, or writing a MIDI or music sheet file. We'll structure this paper first with an analysis of the problem and its particular requirements. Then we will discuss the solution we developed to meet those requirements. Finally we'll analyze the result and discuss possible alternative routes we could've taken.
 \end{abstract}
 
 \section{Introduction}
@@ -89,7 +89,7 @@ While the development of both the input and output layers, as well as their many
 
 As such, the problem of developing the interpreter can be divided into two parts: the syntax used for describing the notes and the operators that compose them inside the language; and the semantics of the generated events, how they are stored in memory, and how their temporal properties (start time and duration) are handled without forcing the programmer/user to always manually type them. 
 
-Designing the syntax for describing those musical expressions, especially given our strong desire to make those musical expressions first class citizens like other primitive data types in most programming languages (such as numbers, strings or arrays are), did unearth some challenges. To minimize the learning curve for new users, and avoid reinventing the wheel, we decided to adopt a subset of the very popular note declaration syntax from the ABC Notation project\cite{AbcNotation} and integrate it with our language.
+Designing the syntax for describing those musical expressions, especially given our strong desire to make those musical expressions first class citizens like other primitive data types in most programming languages (such as numbers, strings or arrays are), did unearth some challenges. To minimize the learning curve for new users, and avoid reinventing the wheel, we decided to adopt a subset of the very popular note declaration syntax from the ABC Notation project\cite{AbcNotation, AbcPlus} and integrate it with our language.
 
 As for the execution model, we decided to go with a tree-walker interpreter\cite{CraftingInterpreters}. Altough computationally slower than other alternatives (such as a bytecode virtual machine), the ease of implementation allowed us to prototype and develop features extremely fast. And with a more mature and stable language in the future, there is always the potential to rewrite the interpreter if performance or latency ever reveal themselves as potential problems.
 
@@ -120,6 +120,19 @@ Given these two requirements, we can conclude we \textbf{cannot} generate all mu
 \begin{lemma}[Total Order]
 \label{lemma:total-order} All operators must return a sequence of events that respects our time unit's total order.
 \end{lemma}
+
+\paragraph*{Goals}
+We can then summarize our main goals for this language as follows:
+\begin{itemize}
+ \item \textbf{Declarative} Music sequences are described in a declarative (rather than imperative) fashion.
+ \item \textbf{Dynamic} Introduce programming or mathematical concepts, like functions and variables, to the music world.
+ \item \textbf{Interactive} Make it possible to create interactive keyboards out-of-the-box that integrate with all features provided by the language.
+ \item \textbf{Lazyness} Make lazyness for musical sequences the default, generating only events as they are need.
+ \item \textbf{Rich events} Music sequences can describe complex musical arrangements, containing simple notes, rest, chords, voices, and more.
+ \item \textbf{Multiple Inputs} Besides allowing musical arrangements to be declared inside our language, also allow for them to be imported and converted from multiple sources, like MIDI files and devices.
+ \item \textbf{Multiple Outputs} Store or write to multiple different outputs the music events generated inside our language.
+ \item \textbf{Extensibility} Make it easy to extend and customize the project, without needing to fork or recompile or hack it's internals.
+\end{itemize}
 
 \paragraph*{Data Model}
 The basic premise is that expressions can generate a special data type: \textbf{Music}. Music is simply a sequence (or stream) of ordered musical events.
@@ -406,11 +419,17 @@ The result is that our keyboards are extremely extensible and allow for a great 
 \section{Results Discussion}
 \label{sec:conclusions}
 
-To solve our problem of keeping track of the timing implicitly for each event created, we decided to pass around a context variable. There were other possible solutions, like keeping this data in some sort of global variable. Our approach does give us some advantages, such as beeing able to have multiple contexts in play at the same time. It does have drawbacks, too. Every function defined in our language must receive this context to be able to create events at the appropriate time. However, functions defined in Python do not expect this parameter. Therefore, special conversions must be made when exchanging values between both languages.
+The scope of this project could have been massive, mainly because implementing a way to fully describe hundreds of years of comulative musical notation would be a gigantic task. We chose instead to build a solid foundation, always with a strong focus on extensibility.
+
+This hability to extend the functionality of our project, thanks to our easy integration with regular Python code, means that new types of musical events, new inputs or outputs can be added with minimal effort by everyone using our application.
+
+Technically, we also took decisions on how to approach many issues, but it doesn't mean there were no alternatives. For example, to solve our problem of keeping track of the timing implicitly for each event created, we decided to pass around a context variable. There were other possible solutions, like keeping this data in some sort of global variable. Our approach does give us some advantages, such as beeing able to have multiple contexts in play at the same time. It does have drawbacks, too. Every function defined in our language must receive this context to be able to create events at the appropriate time. However, functions defined in Python do not expect this parameter. Therefore, special conversions must be made when exchanging functions between both languages.
 
 Also, our solution to have variables just offset the timings of each event they contain every time those variables are used simplifies the process of integrating variables into our existing semantics of music generation. This solution, however, does not answer other questions unrelated to the timing, such as: should events stored in variables use the musical instrument set when they were declared, or when the variable was used?
 
-However, this early work already provides a solid foundation for a musical \textit{DSL} that while dynamic (with variables, functions and control structures) integrates very well with established musical standards such as the MIDI protocol and others.
+When it comes to keyboards, there are many more possibilities to explore too. While we've included many examples of working with key presses, both from computer keyboards as well as pianos (through a MIDI connection), more rich events can be used. Since each event can also carry parameters with it, we can do more than boolean press/release types of events: we can model knobs or scroll wheels or other kinds of spatial events into our keyboards.
+
+However, while not implementing every excrucianting detail needed to match every need that could ever arive, our work already provides a solid foundation for a musical \textit{DSL} that while dynamic (with variables, functions and control structures) integrates very well with established musical standards such as the MIDI protocol and others. And it does this while also being easily extensible to allow anyone to customize it to it's needs.
 
 
 \bibliography{references}
