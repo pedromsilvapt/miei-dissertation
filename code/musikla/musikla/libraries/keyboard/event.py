@@ -4,12 +4,26 @@ from musikla.core.theory import Note
 from typing import List, Dict, Union, Any
 
 class KeyboardEvent:
+    @staticmethod
+    def deserialize ( data : str, parameters : Dict[str, Any] ) -> 'KeyboardEvent':
+        raise Exception( "Deserialize not implemented" )
+
     binary : bool = True
     
+    def serialize ( self ) -> str:
+        raise Exception( "Serialize not implemented" )
+
     def get_parameters ( self ) -> Dict[str, Any]:
         return {}
 
 class PianoKey(KeyboardEvent):
+    @staticmethod
+    def deserialize ( data : str, parameters : Dict[str, Any] ) -> 'PianoKey':
+        return PianoKey( Note.from_pitch( int( data ) ) )
+
+    def serialize ( self ) -> str:
+        return str( int( self.note ) )
+
     def __init__ ( self, event : Union[Music, NoteEvent, Note, None] ):
         super().__init__()
 
@@ -39,6 +53,13 @@ class PianoKey(KeyboardEvent):
         return str( self.note )
 
 class KeyStroke(KeyboardEvent):
+    @staticmethod
+    def deserialize ( data : str, parameters : Dict[str, Any] ) -> 'KeyStroke':
+        return KeyStroke.parse( data )
+
+    def serialize ( self ) -> str:
+        return str( self )
+
     @staticmethod
     def parse ( s ):
         parts = s.strip().split( "+" )
@@ -88,6 +109,13 @@ class KeyStroke(KeyboardEvent):
         return '+'.join( [ str(m) for m in mods ] )
 
 class MouseMove( KeyboardEvent ):
+    @staticmethod
+    def deserialize ( data : str, parameters : Dict[str, Any] ) -> 'MouseMove':
+        return MouseMove( parameters[ 'x' ], parameters[ 'y' ] )
+    
+    def serialize ( self ) -> str:
+        return ""
+
     binary : bool = False
 
     def __init__ ( self, x : int = 0, y : int = 0 ):
@@ -107,6 +135,18 @@ class MouseMove( KeyboardEvent ):
         return isinstance( other, MouseMove )
 
 class MouseClick( KeyboardEvent ):
+    @staticmethod
+    def deserialize ( data : str, parameters : Dict[str, Any] ) -> 'MouseClick':
+        return MouseClick(
+            parameters[ 'x' ],
+            parameters[ 'y' ],
+            parameters[ 'button' ],
+            parameters[ 'pressed' ]
+        )
+
+    def serialize ( self ) -> str:
+        return ""
+
     binary : bool = False
 
     def __init__ ( self, x : int = 0, y : int = 0, button : int = 0, pressed : bool = False ):
@@ -128,6 +168,18 @@ class MouseClick( KeyboardEvent ):
         return isinstance( other, MouseClick )
 
 class MouseScroll( KeyboardEvent ):
+    @staticmethod
+    def deserialize ( data : str, parameters : Dict[str, Any] ) -> 'MouseScroll':
+        return MouseScroll(
+            parameters[ 'x' ],
+            parameters[ 'y' ],
+            parameters[ 'dx' ],
+            parameters[ 'dy' ]
+        )
+    
+    def serialize ( self ) -> str:
+        return ""
+
     binary : bool = False
 
     def __init__ ( self, x : int = 0, y : int = 0, dx : int = 0, dy : int = 0 ):

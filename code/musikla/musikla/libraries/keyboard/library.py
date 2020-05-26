@@ -1,26 +1,16 @@
+from typing import ClassVar
 from musikla.core import Context, Library, Music
 from musikla.audio import Player
 from musikla.core.callable_python_value import CallablePythonValue
-from typing import List, Set, Union, Optional, Iterator, Tuple, Any, cast
+from typing import Dict, List, Set, Type, Union, Optional, Iterator, Tuple, Any, cast
 from musikla.parser.abstract_syntax_tree import Node
 from asyncio import Future, sleep, create_task
 from io import FileIO
 from pathlib import Path
 from .grid import Grid
 from .keyboard import Keyboard
-from .event import EventSource, KeyboardEvent, MouseClick, MouseMove, MouseScroll
+from .event import EventSource, KeyStroke, KeyboardEvent, MouseClick, MouseMove, MouseScroll, PianoKey
 from .action import KeyAction
-
-# def grid_create ( keyboard : Keyboard, num : int = 1, den : int = 1 ) -> Grid:
-#     return Grid( keyboard, num, den )
-
-# def grid_reset ( grid : Grid ) -> Grid:
-#     grid.reset()
-
-#     return grid
-
-# def grid_align ( context : Context, grid : Grid, music : Music ) -> Music:
-#     return grid.align( context, music )
 
 def register_key ( context : Context, keyboard : Keyboard, key : Node, expression : Node, args : List[str] = [], toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
     return keyboard.register_key( context, key, expression, args, toggle, hold, repeat, extend )
@@ -93,6 +83,7 @@ class KeyboardLibrary(Library):
     def on_link ( self, script ):
         self.assign_internal( "keyboards", list() )
         self.assign_internal( "event_sources", list() )
+        self.assign_internal( "event_types", dict() )
 
         self.assign( "create", CallablePythonValue( keyboard_create ) )
         self.assign( "push_flags", CallablePythonValue( push_flags ) )
@@ -117,8 +108,16 @@ class KeyboardLibrary(Library):
         self.assign( "MouseMove", MouseMove )
         self.assign( "MouseScroll", MouseScroll )
 
+        self.register_event_type(
+            PianoKey, KeyStroke, MouseClick, MouseMove, MouseScroll
+        )
+
         self.eval_file( script, Path( __file__ ).parent / "library.mkl" )
     
+    def register_event_type ( self, *events : Type[KeyboardEvent] ):
+        for event in events:
+            self.event_types[ event.__name__ ] = event
+
     @property
     def keyboards ( self ) -> List[Keyboard]:
         return self.lookup_internal( "keyboards" )
@@ -138,6 +137,10 @@ class KeyboardLibrary(Library):
     @property
     def event_sources ( self ) -> List[EventSource]:
         return self.lookup_internal( 'event_sources' )
+
+    @property
+    def event_types ( self ) -> Dict[str, Type[KeyboardEvent]]:
+        return self.lookup_internal( 'event_types' )
 
     @property
     def keys ( self ) -> Iterator[Tuple[KeyboardEvent, KeyAction]]:
@@ -214,12 +217,14 @@ class KeyboardLibrary(Library):
             kb.stop_all()
 
     def on_press ( self, key : KeyboardEvent ):
+        if any( key in kb for kb in self.keyboards ):
         self._record_key( 'press', key )
 
         for kb in self.keyboards:
             kb.on_press( key )
 
     def on_release ( self, key : KeyboardEvent ):
+        if any( key in kb for kb in self.keyboards ):
         self._record_key( 'release', key )
         
         for kb in self.keyboards:
@@ -237,6 +242,21 @@ class KeyboardLibrary(Library):
         finally:
             for source in self.event_sources:
                 source.close()
+
+    def _serialize_event ( self, key : KeyboardEvent ):
+        import json
+
+        parameters = key.get_parameters()
+
+        return ( key.__class__.__name__, key.serialize(), json.dumps( parameters, separators=(',', ':') ) if parameters else "" )
+
+    def _deserialize_event ( self, class_name : str, event : str, parameters : str ) -> KeyboardEvent:
+        import json
+
+        if class_name in self.event_types:
+            return self.event_types[ class_name ].deserialize( event, json.loads( parameters ) if parameters else {} )
+        else:
+            raise BaseException( f"Could not find event { class_name }" )
 
     def _record_key ( self, kind : str, key : KeyboardEvent ):
         file = self.record_file
@@ -257,7 +277,7 @@ class KeyboardLibrary(Library):
 
             key_str = str( key )
 
-            if kind == 'press' and key_str not in pressed:
+            if kind == 'press' and ( key_str not in pressed or not key.binary ):
                 pressed.add( key_str )
             elif kind == 'release' and key_str in pressed:
                 pressed.remove( key_str )
@@ -266,7 +286,9 @@ class KeyboardLibrary(Library):
             
             time = self.player.get_time() - self.record_start
 
-            fd.write( f'{time},{kind},{str(key)}\n' )
+            class_name, data, parameters = self._serialize_event( key )
+
+            fd.write( f'{time},{kind},{class_name},{data},{parameters}\n' )
 
             fd.flush()
 
@@ -276,25 +298,26 @@ class KeyboardLibrary(Library):
     def replay ( self, file : str, delay : int = 0 ):
         async def _replay ():
             with open( file, 'r' ) as f:
-                entries = [ line.split( ',' ) for line in list( f ) ]
+                entries = [ line.strip().split( ',' ) for line in list( f ) ]
 
             start = self.player.get_time()
 
             if delay > 0:
                 await sleep( delay / 1000.0 )
 
-            for time, type, key in entries:
+            for time, kind, class_name, data, parameters in entries:
                 time = int( time )
                 
+                key : KeyboardEvent = self._deserialize_event( class_name, data, parameters )
+
                 await sleep( ( time - start ) / 1000.0 )
 
                 start = time
 
-                if type == 'press':
+                if kind == 'press':
                     self.on_press( key )
-                elif type == 'release':
+                elif kind == 'release':
                     self.on_release( key )
-
 
         create_task( _replay() )
 

@@ -80,6 +80,6 @@ fun keyboard () {
 keyboard();
 
 # We can also record our performance
-# keyboard\record( "examples/marina-perf-2.csv" );
+# keyboard\record( $__dir__ + "/marina-perf-2.csv" );
 # And then replay it
-# keyboard\replay( "examples/marina-perf-2.csv" );
+# keyboard\replay( $__dir__ + "/marina-perf-2.csv" );

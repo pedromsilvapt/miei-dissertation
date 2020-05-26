@@ -132,6 +132,11 @@ class Keyboard:
         if key_stroke in self.keys:
             self.keys[ key_stroke ].stop( self.context, self.player )
 
+    def __contains__ ( self, key : Union[ KeyboardEvent, str ] ) -> bool:
+        key_stroke : KeyboardEvent = cast( KeyboardEvent, KeyStroke.parse( key ) if Value.typeof( key ) == str else key )
+
+        return key_stroke in self.keys
+
     def on_press ( self, key : Union[ KeyboardEvent, str ] ):
         key_stroke : KeyboardEvent = cast( KeyboardEvent, KeyStroke.parse( key ) if Value.typeof( key ) == str else key )
 
