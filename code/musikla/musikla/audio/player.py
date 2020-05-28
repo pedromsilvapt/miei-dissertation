@@ -2,12 +2,19 @@ import sys
 import time
 from .sequencers import Sequencer, SequencerFactory, ArgumentParser, ArgumentParserError
 from musikla.core import Context
+from musikla.core.events.event import MusicEvent
 from configparser import ConfigParser
 from argparse import Namespace
-from typing import List, Any, Optional, Union
+from typing import List, Any, Optional, Union, Iterable
+from typing_extensions import Protocol
 
 def get_milliseconds () -> int:
     return int( round( time.time() * 1000 ) )
+
+class PlayerLike(Protocol):
+    def get_time( self ) -> int: ...
+    
+    def play_more ( self, events : Iterable[MusicEvent] ): ...
 
 class Player():
     def __init__ ( self, sequencers : List[Sequencer] = [], events = [] ):

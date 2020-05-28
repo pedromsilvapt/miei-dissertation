@@ -1,2 +1,2 @@
-from .player import Player
-from .async_midi_player import AsyncMidiPlayer
+from .player import Player, PlayerLike
+from .interactive_player import InteractivePlayer

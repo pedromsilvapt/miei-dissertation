@@ -1,3 +1,4 @@
+from musikla.libraries.keyboard.virtual_player import VirtualPlayer
 from typing import ClassVar
 from musikla.core import Context, Library, Music
 from musikla.audio import Player
@@ -74,6 +75,11 @@ def keyboard_replay ( context : Context, file : str ):
 
     lib.replay( file )
 
+def keyboard_readperf ( context : Context, file : str, keyboards : List[Keyboard] = None ) -> Music:
+    lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
+
+    return lib.readperf( context, file, keyboards )
+
 class KeyboardLibrary(Library):
     def __init__ ( self, player : Player ):
         super().__init__( "keyboard" )
@@ -100,6 +106,7 @@ class KeyboardLibrary(Library):
         self.assign( "close", CallablePythonValue( keyboard_close ) )
 
         self.assign( "record", CallablePythonValue( keyboard_record ) )
+        self.assign( "readperf", CallablePythonValue( keyboard_readperf ) )
         self.assign( "replay", CallablePythonValue( keyboard_replay ) )
 
         self.assign( "Grid", Grid )
@@ -113,7 +120,7 @@ class KeyboardLibrary(Library):
         )
 
         self.eval_file( script, Path( __file__ ).parent / "library.mkl" )
-    
+
     def register_event_type ( self, *events : Type[KeyboardEvent] ):
         for event in events:
             self.event_types[ event.__name__ ] = event
@@ -218,14 +225,14 @@ class KeyboardLibrary(Library):
 
     def on_press ( self, key : KeyboardEvent ):
         if any( key in kb for kb in self.keyboards ):
-        self._record_key( 'press', key )
+            self._record_key( 'press', key )
 
         for kb in self.keyboards:
             kb.on_press( key )
 
     def on_release ( self, key : KeyboardEvent ):
         if any( key in kb for kb in self.keyboards ):
-        self._record_key( 'release', key )
+            self._record_key( 'release', key )
         
         for kb in self.keyboards:
             kb.on_release( key )
@@ -294,6 +301,27 @@ class KeyboardLibrary(Library):
 
     def record ( self, file : str ):
         self.assign_internal( 'record_file', file )
+
+    def readperf ( self, context : Context, file : str, keyboards : List[Keyboard] = None ) -> Music:
+        with open( file, 'r' ) as f:
+            entries = [ line.strip().split( ',' ) for line in list( f ) ]
+
+        player = VirtualPlayer()
+
+        for time, kind, class_name, data, parameters in entries:
+            time = int( time )
+            
+            key : KeyboardEvent = self._deserialize_event( class_name, data, parameters )
+
+            if kind == 'press':
+                player.on_press( time, key )
+            elif kind == 'release':
+                player.on_release( time, key )
+        
+        if keyboards is None:
+            return player.generate( context, self.keyboards )
+        else:
+            return player.generate( context, keyboards )
 
     def replay ( self, file : str, delay : int = 0 ):
         async def _replay ():

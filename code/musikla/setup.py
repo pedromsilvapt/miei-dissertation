@@ -29,6 +29,7 @@ setuptools.setup(
         'imgui[glfw]',
         'arpeggio',
         'colorama',
+        'typing_extensions',
         'pyfluidsynth-musikla @ http://github.com/pedromsilvapt/pyfluidsynth/archive/master.tar.gz'
     ]
 )

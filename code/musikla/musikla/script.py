@@ -2,7 +2,7 @@ from musikla.libraries.keyboard_pynput import KeyboardPynputLibrary
 from musikla.libraries.keyboard_mido import KeyboardMidoLibrary
 from musikla.core import Context, Library, Music, Value
 from musikla.parser import Parser, Node
-from musikla.audio import Player, AsyncMidiPlayer
+from musikla.audio import Player, InteractivePlayer
 from musikla.audio.sequencers import FluidSynthSequencerFactory, ABCSequencerFactory, PDFSequencerFactory, HTMLSequencerFactory, MidiSequencerFactory, DebugSequencerFactory
 from musikla.libraries import StandardLibrary, MusicLibrary, KeyboardLibrary, MidiLibrary
 from typing import Optional, Union, Set, Dict, Any, cast
@@ -93,7 +93,7 @@ class Script:
             self.player.join()
         else:
             # TODO Instead of music, it should eval the thing
-            async_player = AsyncMidiPlayer( lambda: list( music ), self.player, realtime = realtime )
+            async_player = InteractivePlayer( lambda: list( music ), self.player, realtime = realtime )
 
             task = asyncio.create_task( async_player.start() )
 

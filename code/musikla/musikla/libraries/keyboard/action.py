@@ -1,11 +1,9 @@
 from musikla.core.symbols_scope import SymbolsScope
 from typing import Any, Dict, List, Optional
 from musikla.core import Context, Music
-from musikla.core.theory import Note
 from musikla.parser.abstract_syntax_tree import Node
-from musikla.audio import Player, AsyncMidiPlayer
-from asyncio import Future, sleep, wait, FIRST_COMPLETED, create_task
-from fractions import Fraction
+from musikla.audio import PlayerLike, InteractivePlayer
+from asyncio import create_task
 from .event import KeyboardEvent
 
 class KeyAction:
@@ -22,9 +20,10 @@ class KeyAction:
         self.is_active : bool = False
         self.is_pressed : bool = False
 
-        self.async_player : Optional[AsyncMidiPlayer] = None
+        self.interactive_player : Optional[InteractivePlayer] = None
+        self.sync : bool = False
 
-    def play ( self, context : Context, player : Player, parameters : Dict[str, Any] ):
+    def play ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any] ):
         forked_context : Optional[Context] = None
 
         forked_symbols : SymbolsScope = self.context.symbols.fork( opaque = False )
@@ -53,17 +52,23 @@ class KeyAction:
 
             return None
 
-        self.async_player = AsyncMidiPlayer( eval, player, 0, self.repeat and not self.extend, self.extend, realtime = True )
+        self.interactive_player = InteractivePlayer( eval, player, 0, self.repeat and not self.extend, self.extend, realtime = True )
 
-        create_task( self.async_player.start() )
+        if self.sync:
+            self.interactive_player.start_sync()
+        else:
+            create_task( self.interactive_player.start() )
 
-    def stop ( self, context : Context, player : Player ):
-        if self.async_player != None:
-            create_task( self.async_player.stop() )
+    def stop ( self, context : Context, player : PlayerLike ):
+        if self.interactive_player != None:
+            if self.sync:
+                self.interactive_player.stop_sync( player.get_time() )
+            else:
+                create_task( self.interactive_player.stop() )
 
-        self.async_player = None
+        self.interactive_player = None
 
-    def on_press ( self, context : Context, player : Player, parameters : Dict[str, Any] ):
+    def on_press ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any] ):
         binary = self.key.binary
 
         if not binary and self.is_pressed:
@@ -77,16 +82,15 @@ class KeyAction:
 
         self.is_pressed = True
         
-
         if self.toggle:
-            if self.async_player != None and self.async_player.is_playing:
+            if self.interactive_player != None and self.interactive_player.is_playing:
                 self.stop( context, player )
             else:
                 self.play( context, player, parameters )
         else:
             self.play( context, player, parameters )
         
-    def on_release ( self, context : Context, player : Player ):
+    def on_release ( self, context : Context, player : PlayerLike ):
         if not self.is_pressed:
             return
 

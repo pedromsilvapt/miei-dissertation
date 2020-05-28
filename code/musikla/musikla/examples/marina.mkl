@@ -1,3 +1,5 @@
+$script::player::add_sequencer( $__dir__ + '/marina.html' );
+
 # Title: Soft to Be Strong
 # Artist: Marina
 V70 L1 T120;
@@ -75,6 +77,11 @@ fun keyboard () {
 
         c: toggle_sustain( $sustained );
     };
+
+    @keyboard {
+        [ keyboard_mido\MidiEvent() ] ( $message ): debug( $message );
+        # [ keyboard\MouseMove() ] ( $x, $y ): debug( $x + $y );
+    };
 };
 
 keyboard();
@@ -83,3 +90,5 @@ keyboard();
 # keyboard\record( $__dir__ + "/marina-perf-2.csv" );
 # And then replay it
 # keyboard\replay( $__dir__ + "/marina-perf-2.csv" );
+# Or read the performance as a music sequence
+# $music = keyboard\readperf( $__dir__ + "/marina-perf-2.csv" );

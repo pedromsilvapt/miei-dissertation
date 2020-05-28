@@ -1,8 +1,12 @@
-class IterCursor ():
-    def __init__ ( self, iterable ):
-        self.iterator = iter( iterable )
-        self.ended = False
-        self.current = None
+from typing import TypeVar, Generic, Iterable, Iterator, Optional, Generator, cast
+
+T = TypeVar( 'T' )
+
+class IterCursor( Generic[T] ):
+    def __init__ ( self, iterable : Iterable[T] ):
+        self.iterator : Iterator[T] = iter( iterable )
+        self.ended : bool = False
+        self.current : Optional[T] = None
         
     def move_next ( self ):
         try:
@@ -12,11 +16,13 @@ class IterCursor ():
         except StopIteration:
             self.current = None
 
+            self.ended = True
+
             return False
 
     def close ( self ):
         if callable( getattr( self.iterator, 'close', None ) ):
-            self.iterator.close()
+            cast( Generator, self.iterator ).close()
 
 
 def merge_sorted ( items, order = lambda x: x ):
