@@ -3,7 +3,8 @@ from musikla.core import Context, Music, Voice, Library, Clock
 from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core.events import MusicEvent, NoteOnEvent, NoteOffEvent, ControlChangeEvent, ProgramChangeEvent
 from musikla.core.theory import Note
-from musikla.core.events.transformers import ComposeNotesTransformer, TerminationMelodyTransformer, TeeTransformer, VoiceIdentifierTransformer, MusiklaNotationBuilderTransformer, Transformer
+from musikla.core.events.transformers import ComposeNotesTransformer, TerminationMelodyTransformer, TeeTransformer, VoiceIdentifierTransformer, Transformer
+from musikla.libraries.music import MusiklaNotationBuilderTransformer
 import mido
 from mido.ports import MultiPort
 

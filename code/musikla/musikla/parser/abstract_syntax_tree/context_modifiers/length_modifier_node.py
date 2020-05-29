@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from typing import Tuple
 from .context_modifier_node import ContextModifierNode
 from musikla.core.events import ContextChangeEvent
@@ -16,3 +17,6 @@ class LengthModifierNode( ContextModifierNode ):
         context.voice = context.voice.clone( value = self.length )
 
         yield ContextChangeEvent( context.cursor, "length", context.voice.value, context.voice, 0 )
+
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( 'S' + str( self.length ) )

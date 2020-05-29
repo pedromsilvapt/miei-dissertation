@@ -11,7 +11,7 @@ class ChordNode( MusicNode ):
         self.chord : Chord = chord
     
     def to_source ( self, printer : CodePrinter ):
-        printer.add_token( str( self.chord ) )
+        printer.add_token( self.chord.to_string( base_octave = 0 ) )
 
     def get_events ( self, context ):
         o = Interval.octaves_to_semitones( context.voice.octave )

@@ -1,3 +1,4 @@
+from typing import Optional
 from .note import Note
 from fractions import Fraction
 from typing import List, Dict
@@ -21,7 +22,7 @@ class Chord:
 
     def __init__ ( self, notes : List[Note] = [], name : str = None, value : Fraction = Fraction() ):
         self.notes : List[Note] = notes
-        self.name : str = name
+        self.name : Optional[str] = name
         self.value : Fraction = value
 
     def to_pitches ( self ) -> List[int]:
@@ -38,9 +39,6 @@ class Chord:
     def clone ( self ) -> 'Chord':
         return Chord( self.notes, self.name, self.value )
 
-    def as_chord ( self, chord : List[int] ) -> 'Chord':
-        return Chord( self, chord )
-
     def __eq__ ( self, other ):
         if other is None:
             return False
@@ -50,10 +48,16 @@ class Chord:
     def __hash__ ( self ):
         return hash( str( self ) )
 
+    def to_string ( self, base_octave : int = 3, append_value : bool = True ) -> str:
+        chord =   self.name if self.name is not None \
+            else ''.join( [ n.to_string( base_octave, append_value = False ) for n in self.notes ] )
+
+        chord = '[' + chord + ']'
+
+        if append_value and self.value != None and self.value != 1:
+            chord += str( Fraction( self.value ) )
+
+        return chord
+
     def __str__ ( self ):
-        notes_str = "[" + ' '.join( map( str, self.notes ) ) + "]"
-
-        if self.name is None:
-            return notes_str
-
-        return f'"{self.name}"{ notes_str }'
+        return self.to_string()

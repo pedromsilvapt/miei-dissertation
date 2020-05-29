@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from typing import Tuple
 from .block_context_modifier_node import BlockContextModifierNode
 from musikla.core.events import ProgramChangeEvent
@@ -24,3 +25,9 @@ class VoiceBlockModifier( BlockContextModifierNode ):
             return TemplateMusic( self.body )
         else:
             return super().eval( context )
+    
+    def to_source ( self, printer : CodePrinter ):
+        with printer.block( '(', ')' ):
+            printer.add_token( ':' + str( self.voice_name ) + ' ' )
+
+            self.body.to_source( printer )

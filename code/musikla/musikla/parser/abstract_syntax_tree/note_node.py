@@ -12,7 +12,7 @@ class NoteNode( MusicNode ):
         self.note : Note = note
     
     def to_source ( self, printer : CodePrinter ):
-        printer.add_token( str( self.note ) )
+        printer.add_token( self.note.to_string( base_octave = 0 ) )
 
     def get_events ( self, context ):
         note = NoteEvent(

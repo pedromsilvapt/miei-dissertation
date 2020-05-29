@@ -17,6 +17,9 @@ class Box( Generic[T] ):
         self.value = new_value
 
         return old_value
+    
+    def set ( self, value : T ):
+        self.value = value
 
 class MusicParallelNode( MusicNode ):
     def __init__ ( self, nodes, position : Tuple[int, int] = None ):

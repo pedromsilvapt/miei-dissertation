@@ -5,7 +5,7 @@ from .termination_melody import TerminationMelodyTransformer
 from .sort import SortTransformer
 from .tee import TeeTransformer
 from .voice_identifier import VoiceIdentifierTransformer
-from .notation_builder import NotationBuilderTransformer, MusiklaNotationBuilderTransformer
+from .notation_builder import NotationBuilderTransformer
 from .decompose_chords import DecomposeChordsTransformer
 from .compose_chords import ComposeChordsTransformer
 from .annotate import AnnotateTransformer

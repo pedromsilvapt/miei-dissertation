@@ -109,17 +109,17 @@ class Note:
     def __hash__ ( self ):
         return hash( str( self ) )
 
-    def __str__ ( self ):
+    def to_string ( self, base_octave : int = 3, append_value : bool = True ):
         note : str = NotePitchClassesInv[ self.pitch_class ].lower()
 
-        if self.octave <= 3:
+        if self.octave <= base_octave:
             note = note.upper()
 
-            for _ in range( 2, self.octave - 1, -1 ): note += ","
+            for _ in range( base_octave - 1, self.octave - 1, -1 ): note += ","
         else:
-            for _ in range( 5, self.octave + 1 ): note += "'"
+            for _ in range( base_octave + 2, self.octave + 1 ): note += "'"
         
-        if self.value != None and self.value != 1:
+        if append_value and self.value != None and self.value != 1:
             note += str( Fraction( self.value ) )
 
         if self.accidental == NoteAccidental.DOUBLESHARP:
@@ -132,3 +132,6 @@ class Note:
             note = '__' + note
 
         return note
+
+    def __str__ ( self ):
+        return self.to_string()

@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from musikla.core.events.event import MusicEvent
 from musikla.core import Context, Library, CallableValue, Voice, Instrument, Music, Value, Ref
 from musikla.core.callable_python_value import CallablePythonValue
@@ -32,6 +33,19 @@ def function_discard ( context : Context, *expr ):
 def function_ast ( context : Context, expr ):
     return expr
 
+def function_ast_to_code ( ast : Node, ident = 4 ) -> str:
+    printer = CodePrinter( ident = ident )
+
+    return printer.print( ast )
+
+def function_parse ( code : str ) -> Node:
+    return Parser().parse( code )
+
+def function_eval ( context : Context, code : Union[Node, str] ) -> Any:
+    if type( code ) is str:
+        code = function_parse( code )
+    
+    return Value.assignment( Value.eval( context, code ) )
 
 def function_bool ( val ): return bool( val )
 
@@ -138,6 +152,8 @@ def function_voices_create ( context : Context, name : str, modifiers : Node = N
 
     return voice
 
+def function_seek ( context : Context, time : Node ):
+    context.cursor += Value.eval( context, time )
 
 def function_len ( context : Context, obj : Any ):
     if isinstance( obj, Music ):
@@ -166,7 +182,6 @@ def function_stretch ( context : Context, music : Music, length_or_music : Union
 
         timestamp = int( ( event.timestamp - start_time ) * factor )
 
-
         return event.clone(
             timestamp = timestamp,
             value = event.value * factor,
@@ -185,7 +200,11 @@ class StandardLibrary(Library):
         context.symbols.assign( "play", CallableValue( function_play ) )
         context.symbols.assign( "using", CallableValue( function_using ) )
         context.symbols.assign( "import", CallableValue( function_import ) )
+        context.symbols.assign( "seek", CallableValue( function_seek ) )
         context.symbols.assign( "ast", CallableValue( function_ast ) )
+        context.symbols.assign( "ast_to_code", CallableValue( function_ast_to_code ) )
+        context.symbols.assign( "parse", CallableValue( function_parse ) )
+        context.symbols.assign( "eval", CallableValue( eval ) )
 
         context.symbols.assign( "bool", CallableValue( function_bool ) )
         context.symbols.assign( "int", CallablePythonValue( function_int ) )
@@ -194,6 +213,7 @@ class StandardLibrary(Library):
         context.symbols.assign( "list", list )
         context.symbols.assign( "dict", dict )
         context.symbols.assign( "range", range )
+        context.symbols.assign( "len", CallablePythonValue( function_len ) )
 
         context.symbols.assign( "mod", CallablePythonValue( function_mod ) )
         context.symbols.assign( "div", CallablePythonValue( function_div ) )
@@ -201,7 +221,6 @@ class StandardLibrary(Library):
         context.symbols.assign( "inspect_context", CallablePythonValue( function_inspect_context ) )
         context.symbols.assign( "ord", CallableValue( function_ord ) )
         context.symbols.assign( "chr", CallableValue( function_chr ) )
-        context.symbols.assign( "cc", CallablePythonValue( function_cc ) )
         context.symbols.assign( "setvar", CallablePythonValue( function_setvar ) )
         context.symbols.assign( "hasattr", CallablePythonValue( function_hasattr ) )
         context.symbols.assign( "getattr", CallablePythonValue( function_getattr ) )

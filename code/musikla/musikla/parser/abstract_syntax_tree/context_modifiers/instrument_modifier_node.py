@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from typing import Tuple
 from .context_modifier_node import ContextModifierNode
 from musikla.core.events import ContextChangeEvent
@@ -16,3 +17,6 @@ class InstrumentModifierNode( ContextModifierNode ):
         context.voice = context.voice.clone( instrument = Instrument.from_program( self.instrument ) )
 
         yield ContextChangeEvent( context.cursor, "instrument", context.voice.instrument.program, context.voice, 0 )
+
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( 'I' + str( self.instrument ) )

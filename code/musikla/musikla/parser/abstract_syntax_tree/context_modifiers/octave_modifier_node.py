@@ -1,3 +1,4 @@
+from musikla.parser.printer import CodePrinter
 from typing import Tuple
 from .context_modifier_node import ContextModifierNode
 from musikla.core.events import ContextChangeEvent
@@ -16,3 +17,6 @@ class OctaveModifierNode( ContextModifierNode ):
         context.voice = context.voice.clone( octave = self.octave )
 
         yield ContextChangeEvent( context.cursor, "octave", context.voice.octave, context.voice, 0 )
+    
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( 'O' + str( self.octave ) )

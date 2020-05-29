@@ -1,8 +1,8 @@
-from typing import Generator, AsyncGenerator, Union
+from typing import Generator, Tuple, AsyncGenerator, Union
 
 class Transformer():
     @staticmethod
-    def pipeline ( *transformers : 'Transformer' ) -> 'Transformer':
+    def pipeline2 ( *transformers : 'Transformer' ) -> Tuple['Transformer', 'Transformer']:
         if not transformers:
             raise Exception( "Pipeline cannot be empty" )
 
@@ -12,7 +12,11 @@ class Transformer():
         for transformer in transformers[ 1: ]:
             latest = latest.pipe_to( transformer )
 
-        return first
+        return first, latest
+    
+    @staticmethod
+    def pipeline ( *transformers : 'Transformer' ) -> 'Transformer':
+        return Transformer.pipeline2( *transformers )[ 0 ]
 
     @classmethod
     def subscriber ( cls, on_value, on_end = None ):
