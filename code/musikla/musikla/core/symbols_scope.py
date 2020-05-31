@@ -1,4 +1,4 @@
-from typing import Hashable, Optional
+from typing import Hashable, Optional, Set
 
 class Pointer:
     def __init__ ( self, scope, name ):
@@ -83,6 +83,37 @@ class SymbolsScope:
             self.assign( alias or name, pointer, container = container, local = True )
         
         return pointer.scope if pointer != None else None
+
+    def enumerate ( self, prefix : str = None, limit : int = None, ignore : Set = None, container : str = "", local : bool = False ):
+        if ignore is None:
+            ignore = set()
+
+        count = 0
+
+        if container in self.symbols:
+            for key, value in self.symbols[ container ].items():
+                if limit is not None:
+                    if count >= limit:
+                        return
+                    else:
+                        count += 1
+                    
+                if prefix is not None and not key.startswith( prefix ):
+                    continue
+
+                ignore.add( key )
+
+
+                yield key, value
+
+        
+        if not local and self.parent is not None:
+            if limit is not None:
+                limit -= count
+
+            for key, value in self.parent.enumerate( prefix = prefix, limit = limit, ignore = ignore, container = container ):
+                yield key, value
+
 
     def lookup ( self, name : Hashable, container : str = "", recursive : bool = True, follow_pointers : bool = True, default = None, raise_default : bool = False, stop_on : Optional['SymbolsScope'] = None ):
         if stop_on is None or self != stop_on:

@@ -34,8 +34,13 @@ class KeyboardPynputEventSource( EventSource ):
 
         # Hardcoded fix for wrong value for 5 numpad key
         if key_str == '<65437>': key_str = "'5'"
+        elif key_str == "'\\\\'": key_str = "'\\'"
+        elif key_str == '<220>': key_str = "'\\'"
 
         key_str = key_str[ len( 'Key.' ): ] if key_str.startswith( 'Key.' ) else key_str[ 1:-1 ]
+
+        if key_str == 'ctrl_l' or key_str == 'ctrl_r':
+            key_str = 'ctrl'
 
         is_modifier : bool = key_str in [ 'ctrl', 'alt', 'shift' ]
         

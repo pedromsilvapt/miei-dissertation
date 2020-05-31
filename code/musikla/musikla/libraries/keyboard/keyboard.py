@@ -14,7 +14,7 @@ from .action import KeyAction
 
 class Keyboard:
     @staticmethod
-    def as_event ( key_value : Any ):
+    def as_event ( key_value : Any ) -> KeyboardEvent:
         if type( key_value ) == str:
             return KeyStroke.parse( key_value )
         elif isinstance( key_value, Music ) or isinstance( key_value, NoteEvent )  or isinstance( key_value, Note ):

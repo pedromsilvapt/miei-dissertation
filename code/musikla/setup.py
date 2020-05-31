@@ -30,6 +30,7 @@ setuptools.setup(
         'arpeggio',
         'colorama',
         'typing_extensions',
+        'prompt_toolkit',
         'pyfluidsynth-musikla @ http://github.com/pedromsilvapt/pyfluidsynth/archive/master.tar.gz'
     ]
 )

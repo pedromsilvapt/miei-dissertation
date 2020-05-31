@@ -77,8 +77,9 @@ fun keyboard () {
 
         c: toggle_sustain( $sustained );
     };
-
+    
     @keyboard {
+        "ctrl+\\": { keyboard\repl(); keyboard\on_release( "ctrl+\\" ) };
         [ keyboard_mido\MidiEvent() ] ( $message ): debug( $message );
         # [ keyboard\MouseMove() ] ( $x, $y ): debug( $x + $y );
     };
@@ -92,3 +93,10 @@ keyboard();
 # keyboard\replay( $__dir__ + "/marina-perf-2.csv" );
 # Or read the performance as a music sequence
 # $music = keyboard\readperf( $__dir__ + "/marina-perf-2.csv" );
+
+# print( to_mkl( keyboard\readperf( $__dir__ + "/marina-perf-2.csv" ) ) );
+
+#(
+          #[^CF^G]1/16 [A^ce]1/9
+        #| r6/31 ^g1/18 r1/6 ^g1/14 r3/17 ^g1/15 r1/5 ^f1/15 r21/29 e1/17 r2/17 ^d2/29 r6/25 ^c371201/2484720 ^c180959/2484720
+#)

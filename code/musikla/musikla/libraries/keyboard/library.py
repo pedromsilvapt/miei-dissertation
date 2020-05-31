@@ -1,6 +1,5 @@
 from musikla.libraries.keyboard.virtual_player import VirtualPlayer
-from typing import ClassVar
-from musikla.core import Context, Library, Music
+from musikla.core import Context, Library, Music, Value
 from musikla.audio import Player
 from musikla.core.callable_python_value import CallablePythonValue
 from typing import Dict, List, Set, Type, Union, Optional, Iterator, Tuple, Any, cast
@@ -46,11 +45,15 @@ def start_all ( context : Context, keyboard : Keyboard ):
 def stop_all ( context : Context, keyboard : Keyboard ):
     return keyboard.stop_all()
 
-def on_press ( context : Context, keyboard : Keyboard, key : Union[str, KeyboardEvent] ):
-    return keyboard.on_press( key )
+def on_press ( context : Context, key : Union[str, KeyboardEvent] ):
+    lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
 
-def on_release ( context : Context, keyboard : Keyboard, key : Union[str, KeyboardEvent] ):
-    return keyboard.on_release( key )
+    return lib.on_press( key )
+
+def on_release ( context : Context, key : Union[str, KeyboardEvent] ):
+    lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
+
+    return lib.on_release( key )
 
 def keyboard_create ( context : Context ) -> Keyboard:
     lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
@@ -75,6 +78,13 @@ def keyboard_replay ( context : Context, file : str ):
 
     lib.replay( file )
 
+def keyboard_repl ( context : Context ):
+    lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
+
+    lib.eval( context )
+
+    return None
+
 def keyboard_readperf ( context : Context, file : str, keyboards : List[Keyboard] = None ) -> Music:
     lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
 
@@ -85,12 +95,13 @@ class KeyboardLibrary(Library):
         super().__init__( "keyboard" )
 
         self.player : Player = player
+        self.paused : bool = False
     
     def on_link ( self, script ):
         self.assign_internal( "keyboards", list() )
         self.assign_internal( "event_sources", list() )
         self.assign_internal( "event_types", dict() )
-
+        
         self.assign( "create", CallablePythonValue( keyboard_create ) )
         self.assign( "push_flags", CallablePythonValue( push_flags ) )
         self.assign( "pop_flags", CallablePythonValue( pop_flags ) )
@@ -108,6 +119,7 @@ class KeyboardLibrary(Library):
         self.assign( "record", CallablePythonValue( keyboard_record ) )
         self.assign( "readperf", CallablePythonValue( keyboard_readperf ) )
         self.assign( "replay", CallablePythonValue( keyboard_replay ) )
+        self.assign( "repl", CallablePythonValue( keyboard_repl ) )
 
         self.assign( "Grid", Grid )
 
@@ -223,20 +235,48 @@ class KeyboardLibrary(Library):
         for kb in self.keyboards:
             kb.stop_all()
 
-    def on_press ( self, key : KeyboardEvent ):
+    def on_press ( self, key : Union[str, KeyboardEvent] ):
+        if self.paused: return
+
+        key = Keyboard.as_event( key )
+
         if any( key in kb for kb in self.keyboards ):
             self._record_key( 'press', key )
 
         for kb in self.keyboards:
             kb.on_press( key )
 
-    def on_release ( self, key : KeyboardEvent ):
+    def on_release ( self, key : Union[str, KeyboardEvent] ):
+        if self.paused: return
+
+        key = Keyboard.as_event( key )
+
         if any( key in kb for kb in self.keyboards ):
             self._record_key( 'release', key )
         
         for kb in self.keyboards:
             kb.on_release( key )
 
+    async def prompt_async ( self, prompt ):
+        self.paused = True
+
+        res = await prompt()
+
+        self.paused = False
+
+        return res
+    
+    def prompt ( self, prompt ):
+        create_task( self.prompt_async( prompt ) )
+
+    async def eval_async ( self, context : Context ):
+        from .prompt import run_async
+
+        await self.prompt_async( lambda: run_async( context, self.player ) )
+
+    def eval ( self, context : Context ):
+        create_task( self.eval_async( context ) )
+        
     def add_source ( self, source : EventSource ):
         self.event_sources.append( source )
 
