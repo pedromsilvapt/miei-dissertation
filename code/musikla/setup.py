@@ -31,6 +31,7 @@ setuptools.setup(
         'colorama',
         'typing_extensions',
         'prompt_toolkit',
+        'pygments',
         'pyfluidsynth-musikla @ http://github.com/pedromsilvapt/pyfluidsynth/archive/master.tar.gz'
     ]
 )

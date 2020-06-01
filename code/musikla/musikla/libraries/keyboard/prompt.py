@@ -1,9 +1,8 @@
 """
 A simple example of a Notepad-like text editor.
 """
-from asyncio.tasks import create_task
 import datetime
-from asyncio import Future, ensure_future
+from asyncio import Future, ensure_future, sleep, create_task
 from typing import Any, List, Optional, cast
 from musikla.core import Context, Value, Music
 from musikla.audio import Player, InteractivePlayer
@@ -91,7 +90,7 @@ class VariableCompleter(Completer):
 
 def create_application():
     def get_statusbar_text():
-        return "Ctrl-C: Open menu. Ctrl-E: Execute. Ctrl-S: Stop music. Ctrl-\: Close. "
+        return "Ctrl-C: Close. Ctrl-E: Execute. Ctrl-S: Stop music. F2: Open Menu. "
 
     def get_statusbar_right_text():
         return " {}:{}  ".format(
@@ -196,7 +195,7 @@ def create_application():
     bindings = KeyBindings()
 
 
-    @bindings.add("c-c")
+    @bindings.add("f2")
     def _(event):
         " Focus menu. "
         event.app.layout.focus(root_container.window)
@@ -262,7 +261,7 @@ def create_application():
     def do_new_file(event = None):
         text_field.text = ""
 
-    @bindings.add( 'c-\\' )
+    @bindings.add( 'c-c' )
     def do_exit(event = None):
         get_app().exit()
 
@@ -450,6 +449,7 @@ def run():
     application.input.close()
 
 async def run_async ( context : Context, player : Player ):
+    import os, sys, select
     if ApplicationState.context is not None:
         raise Exception( "Musikla Eval Prompt is not reentrant" )
 
@@ -460,7 +460,8 @@ async def run_async ( context : Context, player : Player ):
         with patch_stdout():
             application, text_field = create_application()
 
-            application.input.read_keys()
+            with application.input.raw_mode():
+                application.input.read_keys()
 
             load_state(application, text_field)
             await application.run_async()

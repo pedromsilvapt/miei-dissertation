@@ -36,11 +36,14 @@ class KeyboardPynputEventSource( EventSource ):
         if key_str == '<65437>': key_str = "'5'"
         elif key_str == "'\\\\'": key_str = "'\\'"
         elif key_str == '<220>': key_str = "'\\'"
+        elif key_str == '<65032>': key_str = "Key.shift"
 
         key_str = key_str[ len( 'Key.' ): ] if key_str.startswith( 'Key.' ) else key_str[ 1:-1 ]
 
         if key_str == 'ctrl_l' or key_str == 'ctrl_r':
             key_str = 'ctrl'
+        elif key_str == 'shift_l' or key_str == 'shift_r':
+            key_str = 'shift'
 
         is_modifier : bool = key_str in [ 'ctrl', 'alt', 'shift' ]
         
