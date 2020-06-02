@@ -449,7 +449,6 @@ def run():
     application.input.close()
 
 async def run_async ( context : Context, player : Player ):
-    import os, sys, select
     if ApplicationState.context is not None:
         raise Exception( "Musikla Eval Prompt is not reentrant" )
 

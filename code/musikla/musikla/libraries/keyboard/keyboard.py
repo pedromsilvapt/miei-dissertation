@@ -53,12 +53,13 @@ class Keyboard:
 
         return name in self.global_flags and self.global_flags[ name ] > 0
 
-    def register_key ( self, context : Context, key : Node, expression : Node, args : List[str] = [], toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
+    def register_key ( self, context : Context, key : Node, expression : Node, args : List[str] = [], toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None, release : Node = None ):
         toggle_value = self.get_keyboard_flag( context, toggle, "toggle" )
         hold_value = self.get_keyboard_flag( context, hold, "hold" )
         repeat_value = self.get_keyboard_flag( context, repeat, "repeat" )
         extend_value = self.get_keyboard_flag( context, extend, "extend" )
-
+        release_value = self.get_keyboard_flag( context, release, "release" )
+        
         key_value = key.eval( context )
 
         if self.global_prefixes:
@@ -75,6 +76,7 @@ class Keyboard:
             hold = hold_value,
             repeat = repeat_value,
             extend = extend_value,
+            release = release_value
         )
 
         self.keys[ action.key ] = action
@@ -105,12 +107,6 @@ class Keyboard:
 
     def pop_prefix ( self, context : Context ):
         self.global_prefixes.pop()
-
-    def register_key_toggle ( self, context : Context, key : Node, expression : Node ):
-        return self.register_key( context, key, expression, toggle = BoolLiteralNode( True ) )
-
-    def register_key_hold ( self, context : Context, key : Node, expression : Node ):
-        return self.register_key( context, key, expression, hold = BoolLiteralNode( True ) )
 
     def start_all ( self ):
         for key in self.keys.values():

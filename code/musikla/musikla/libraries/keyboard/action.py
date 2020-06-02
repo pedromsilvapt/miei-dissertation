@@ -7,7 +7,7 @@ from asyncio import create_task
 from .event import KeyboardEvent
 
 class KeyAction:
-    def __init__ ( self, key : KeyboardEvent, expr : Node, args : List[str], context : Context, hold : bool = False, toggle : bool = False, repeat : bool = False, extend : bool = False ):
+    def __init__ ( self, key : KeyboardEvent, expr : Node, args : List[str], context : Context, hold : bool = False, toggle : bool = False, repeat : bool = False, extend : bool = False, release : bool = False ):
         self.key : KeyboardEvent = key
         self.expr : Node = expr
         self.args : List[str] = args
@@ -16,6 +16,7 @@ class KeyAction:
         self.toggle : bool = toggle
         self.repeat : bool = repeat
         self.extend : bool = extend
+        self.release : bool = release
 
         self.is_active : bool = False
         self.is_pressed : bool = False
@@ -77,7 +78,11 @@ class KeyAction:
             else:
                 self.is_pressed = False
 
-        if self.is_pressed:
+        if self.is_pressed and not ( binary and self.release ):
+            return
+
+        if not self.is_pressed and ( binary and self.release ):
+            self.is_pressed = True
             return
 
         self.is_pressed = True
@@ -94,9 +99,14 @@ class KeyAction:
         if not self.is_pressed:
             return
 
+        if self.key.binary and self.release:
+            self.on_press( context, player, {} )
+            self.is_pressed = False
+            return
+
         self.is_pressed = False
 
-        if self.hold:
+        if self.hold and not ( self.key.binary and self.release ):
             self.stop( context, player )
 
     def clone ( self, **kargs ) -> 'KeyAction':
@@ -109,6 +119,7 @@ class KeyAction:
             hold = self.hold,
             repeat = self.repeat,
             extend = self.extend,
+            release = self.release
         )
 
         for key, value in kargs.items():

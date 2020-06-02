@@ -155,67 +155,22 @@ class InteractivePlayer:
 
         sync_iterator = self.start_gen()
 
-        # if self.cancel_token is None:
-        #     return
-
         if self.realtime:
             iterator = realtime( sync_iterator, self.cancel_token.future, lambda e: e.timestamp, self.player.get_time, self.buffer_duration )
         else:
             iterator = iter_to_aiter( sync_iterator )
-        
+
         async for event in iterator:
             self.player.play_more( [ event ] )
-        
-        if self.extend:
+
+        if self.extend and self.extended_notes:
             await self.cancel_token.future
 
             now = self.player.get_time()
 
             self.player.play_more( [ ev.clone( timestamp = now ) for ev in self.extended_notes ] )
 
-    # async def start ( self ):
-    #     if self.is_playing:
-    #         return
-
-    #     self.stop_future = Future()
-
-    #     try:
-    #         for iterator in flat_factory( self.factory ):
-    #             self.is_playing = True
-
-    #             # First make sure all note events are separated into NoteOn and NoteOff
-    #             self.events_iterator = DecomposeNotesTransformer.iter( iterator )
-    #             # When extending the notes, ignore any early NoteOn events
-    #             if self.extend: 
-    #                 self.events_iterator = filter( lambda ev: not isinstance( ev, NoteOffEvent ) and not isinstance( ev, ChordOffEvent ), self.events_iterator )
-    #             # Then transform the iterator into an async iterator that emits the events only when their timestamp is near
-    #             if self.realtime:
-    #                 self.events_iterator = realtime( self.events_iterator, self.stop_future, lambda e: e.timestamp, self.player.get_time, self.buffer_duration )
-    #             # Finally append any missing NoteOff's that might have been cut off because the player stopped playing
-    #             events_iterator = BalanceNotesTransformer.iter( self.events_iterator, self.player.get_time )
-
-
-    #             async for event in events_iterator:
-    #                 if self.extend and ( isinstance( event, NoteOffEvent ) or isinstance( event, ChordOffEvent ) ):
-    #                     self.extended_notes.append( event )
-    #                 else:
-    #                     self.player.play_more( [ event ] )
-                
-    #             if self.extend:
-    #                 await self.stop_future
-
-    #                 now = self.player.get_time()
-
-    #                 self.player.play_more( [ ev.clone( timestamp = now ) for ev in self.extended_notes ] )
-
-    #             if not self.is_playing or not self.repeat:
-    #                 break
-
-    #             self.events_iterator = None
-    #     finally:
-    #         self.is_playing = False
-
-    #         self.stop_future = None
+        self.is_playing = False
 
     async def stop ( self ):
         self.stop_gen()

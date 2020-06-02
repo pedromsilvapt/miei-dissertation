@@ -28,9 +28,6 @@ class MusiklaNotationBuilderTransformer(NotationBuilderTransformer):
         self.ast : bool = ast
         self.context : Context = context or Context.create()
 
-    # def voice_to_string ( self, voice : Tuple[Voice, int, List[MusicEvent]] ) -> str:
-    #     return f":{voice[ 0 ].name} " + ' '.join( map( str, voice[ 2 ] ) )
-    
     def note_to_ast ( self, context : Context, event : NoteEvent ) -> ast.NoteNode:
         return ast.NoteNode( Note(
             pitch_class = event.pitch_class,
@@ -71,7 +68,12 @@ class MusiklaNotationBuilderTransformer(NotationBuilderTransformer):
         return ast.MusicSequenceNode( nodes )
 
     def voice_to_ast ( self, context : Context, voice : Tuple[Voice, int, List[MusicEvent]] ) -> ast_mod.VoiceBlockModifier:
-        return ast_mod.VoiceBlockModifier( self.event_sequence_to_ast( context, voice[ 2 ] ), voice[ 0 ].name )
+        sequence = self.event_sequence_to_ast( context, voice[ 2 ] )
+
+        if not sequence.expressions:
+            return None
+        
+        return ast_mod.VoiceBlockModifier( sequence, voice[ 0 ].name )
 
     def to_ast ( self, events_per_voice : List[Tuple[Voice, int, List[MusicEvent]]] ) -> ast.Node:
         l = len( events_per_voice )
@@ -79,9 +81,16 @@ class MusiklaNotationBuilderTransformer(NotationBuilderTransformer):
         if l == 0:
             return ast.MusicSequenceNode( [] )
         elif l == 1:
-            return self.voice_to_ast( self.context.fork(), events_per_voice[ 0 ] )
+            staff = self.voice_to_ast( self.context.fork(), events_per_voice[ 0 ] )
+
+            if staff is None:
+                return ast_exp.GroupNode()
+            
+            return staff
         else:
-            return ast.MusicParallelNode( [ self.voice_to_ast( self.context.fork(), v ) for v in events_per_voice ] )
+            staffs = [ self.voice_to_ast( self.context.fork(), v ) for v in events_per_voice ]
+
+            return ast.MusicParallelNode( [ st for st in staffs if st is not None ] )
 
     def to_string ( self, events_per_voice : List[Tuple[Voice, int, List[MusicEvent]]] ) -> Union[str, ast.Node]:
         if self.ast:

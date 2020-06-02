@@ -6,7 +6,7 @@ from ..expressions import FunctionExpressionNode, StringLiteralNode, BoolLiteral
 from ..statements import ForLoopStatementNode, IfStatementNode, StatementsListNode, VariableDeclarationStatementNode
 from .macro import MacroNode
 
-ModifierNames = [ 'hold', 'extend', 'toggle', 'repeat' ]
+ModifierNames = [ 'hold', 'extend', 'toggle', 'repeat', 'release' ]
 
 def handle_modifiers ( modifiers : List[str] ) -> Tuple[Dict[str, bool], Optional[str]]:
     props = dict()

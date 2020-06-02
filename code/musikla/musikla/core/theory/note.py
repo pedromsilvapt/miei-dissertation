@@ -109,15 +109,15 @@ class Note:
     def __hash__ ( self ):
         return hash( str( self ) )
 
-    def to_string ( self, base_octave : int = 3, append_value : bool = True ):
+    def to_string ( self, base_octave : int = 4, append_value : bool = True ):
         note : str = NotePitchClassesInv[ self.pitch_class ].lower()
 
-        if self.octave <= base_octave:
+        if self.octave < base_octave:
             note = note.upper()
 
-            for _ in range( base_octave - 1, self.octave - 1, -1 ): note += ","
+            for _ in range( base_octave - 2, self.octave - 1, -1 ): note += ","
         else:
-            for _ in range( base_octave + 2, self.octave + 1 ): note += "'"
+            for _ in range( base_octave + 1, self.octave + 1 ): note += "'"
         
         if append_value and self.value != None and self.value != 1:
             note += str( Fraction( self.value ) )

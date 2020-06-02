@@ -1,13 +1,13 @@
-from typing import Tuple
+from typing import Tuple, Optional
 from musikla.parser.printer import CodePrinter
 from musikla.core import Context, Music
 from ..node import Node
 
 class GroupNode( Node ):
-    def __init__ ( self, expression, position : Tuple[int, int] = None ):
+    def __init__ ( self, expression : Node = None, position : Tuple[int, int] = None ):
         super().__init__( position )
         
-        self.expression = expression
+        self.expression : Optional[Node] = expression
 
     def get_events ( self, context : Context, forked : Context, value : Music ):
         try:
@@ -17,6 +17,9 @@ class GroupNode( Node ):
             context.join( forked )
 
     def eval ( self, context : Context, assignment : bool = False ):
+        if self.expression is None:
+            return None
+
         forked = context.fork()
 
         value = self.expression.eval( forked )
@@ -30,5 +33,6 @@ class GroupNode( Node ):
 
     def to_source ( self, printer : CodePrinter ):
         with printer.block( '(', ')' ):
-            self.expression.to_source( printer )
+            if self.expression is not None:
+                self.expression.to_source( printer )
 

@@ -48,9 +48,9 @@ class Chord:
     def __hash__ ( self ):
         return hash( str( self ) )
 
-    def to_string ( self, base_octave : int = 3, append_value : bool = True ) -> str:
+    def to_string ( self, base_octave : int = 4, append_value : bool = True ) -> str:
         chord =   self.name if self.name is not None \
-            else ''.join( [ n.to_string( base_octave, append_value = False ) for n in self.notes ] )
+            else ''.join( [ n.to_string( base_octave = base_octave, append_value = False ) for n in self.notes ] )
 
         chord = '[' + chord + ']'
 

@@ -12,8 +12,8 @@ from .keyboard import Keyboard
 from .event import EventSource, KeyStroke, KeyboardEvent, MouseClick, MouseMove, MouseScroll, PianoKey
 from .action import KeyAction
 
-def register_key ( context : Context, keyboard : Keyboard, key : Node, expression : Node, args : List[str] = [], toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None ):
-    return keyboard.register_key( context, key, expression, args, toggle, hold, repeat, extend )
+def register_key ( context : Context, keyboard : Keyboard, key : Node, expression : Node, args : List[str] = [], toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None, release : Node = None ):
+    return keyboard.register_key( context, key, expression, args, toggle, hold, repeat, extend, release )
 
 def push_flags ( context : Context, keyboard : Keyboard, *flags : Node ):
     return keyboard.push_flags( context, *flags )
@@ -26,12 +26,6 @@ def push_prefix ( context : Context, keyboard : Keyboard, expression : Node ):
 
 def pop_prefix ( context : Context, keyboard : Keyboard ):
     return keyboard.pop_prefix( context )
-
-def register_key_toggle ( context : Context, keyboard : Keyboard, key : Node, expression : Node ):
-    return keyboard.register_key_toggle( context, key, expression )
-
-def register_key_hold ( context : Context, keyboard : Keyboard, key : Node, expression : Node ):
-    return keyboard.register_key_hold( context, key, expression )
 
 def start ( context : Context, keyboard : Keyboard, key : Union[str, KeyboardEvent] ):
     return keyboard.start( key )
