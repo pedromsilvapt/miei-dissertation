@@ -10,6 +10,12 @@ from musikla.parser.abstract_syntax_tree.expressions import VariableExpressionNo
 from typing import Any, Union
 from fractions import Fraction
 
+def function_getctx ( context : Context ):
+    return context
+
+def function_withctx( _ : Context, ctx : Context, expr : Node ):
+    return Value.eval( ctx, expr )
+
 def function_using ( context : Context, var ):
     if not isinstance( var, VariableExpressionNode ):
         raise BaseException( f"Using expected a variable syntax node" )
@@ -41,7 +47,7 @@ def function_ast_to_code ( ast : Node, ident = 4 ) -> str:
 def function_parse ( code : str ) -> Node:
     return Parser().parse( code )
 
-def function_eval ( context : Context, code : Union[Node, str] ) -> Any:
+def function_eval ( context : Context, code ) -> Any:
     if type( code ) is str:
         code = function_parse( code )
     
@@ -194,6 +200,8 @@ class StandardLibrary(Library):
     def on_link ( self, script ):
         context : Context = self.context
 
+        context.symbols.assign( "getctx", CallablePythonValue( function_getctx ) )
+        context.symbols.assign( "withctx", CallablePythonValue( function_withctx ) )
         context.symbols.assign( "print", CallablePythonValue( print ) )
         context.symbols.assign( "debug", CallableValue( function_debug ) )
         context.symbols.assign( "discard", CallableValue( function_discard ) )
@@ -202,14 +210,14 @@ class StandardLibrary(Library):
         context.symbols.assign( "import", CallableValue( function_import ) )
         context.symbols.assign( "seek", CallableValue( function_seek ) )
         context.symbols.assign( "ast", CallableValue( function_ast ) )
-        context.symbols.assign( "ast_to_code", CallableValue( function_ast_to_code ) )
-        context.symbols.assign( "parse", CallableValue( function_parse ) )
-        context.symbols.assign( "eval", CallableValue( eval ) )
+        context.symbols.assign( "ast_to_code", CallablePythonValue( function_ast_to_code ) )
+        context.symbols.assign( "parse", CallablePythonValue( function_parse ) )
+        context.symbols.assign( "eval", CallablePythonValue( function_eval ) )
 
-        context.symbols.assign( "bool", CallableValue( function_bool ) )
+        context.symbols.assign( "bool", CallablePythonValue( function_bool ) )
         context.symbols.assign( "int", CallablePythonValue( function_int ) )
-        context.symbols.assign( "float", CallableValue( function_float ) )
-        context.symbols.assign( "str", CallableValue( function_str ) )
+        context.symbols.assign( "float", CallablePythonValue( function_float ) )
+        context.symbols.assign( "str", CallablePythonValue( function_str ) )
         context.symbols.assign( "list", list )
         context.symbols.assign( "dict", dict )
         context.symbols.assign( "range", range )
@@ -219,8 +227,8 @@ class StandardLibrary(Library):
         context.symbols.assign( "div", CallablePythonValue( function_div ) )
 
         context.symbols.assign( "inspect_context", CallablePythonValue( function_inspect_context ) )
-        context.symbols.assign( "ord", CallableValue( function_ord ) )
-        context.symbols.assign( "chr", CallableValue( function_chr ) )
+        context.symbols.assign( "ord", CallablePythonValue( function_ord ) )
+        context.symbols.assign( "chr", CallablePythonValue( function_chr ) )
         context.symbols.assign( "setvar", CallablePythonValue( function_setvar ) )
         context.symbols.assign( "hasattr", CallablePythonValue( function_hasattr ) )
         context.symbols.assign( "getattr", CallablePythonValue( function_getattr ) )

@@ -1,3 +1,4 @@
+from musikla.libraries.keyboard.buffer import KeyboardBuffer
 from musikla.libraries.keyboard.virtual_player import VirtualPlayer
 from musikla.core import Context, Library, Music, Value
 from musikla.audio import Player
@@ -9,7 +10,7 @@ from io import FileIO
 from pathlib import Path
 from .grid import Grid
 from .keyboard import Keyboard
-from .event import EventSource, KeyStroke, KeyboardEvent, MouseClick, MouseMove, MouseScroll, PianoKey
+from .event import EventSource, KeyEvent, KeyStroke, KeyStrokePress, KeyStrokeRelease, KeyboardEvent, MouseClick, MouseMove, MouseScroll, PianoKey
 from .action import KeyAction
 
 def register_key ( context : Context, keyboard : Keyboard, key : Node, expression : Node, args : List[str] = [], toggle : Node = None, hold : Node = None, repeat : Node = None, extend : Node = None, release : Node = None ):
@@ -72,7 +73,7 @@ def keyboard_replay ( context : Context, file : str ):
 
     lib.replay( file )
 
-def keyboard_repl ( context : Context ):
+def keyboard_open_repl ( context : Context ):
     lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
 
     lib.eval( context )
@@ -113,10 +114,16 @@ class KeyboardLibrary(Library):
         self.assign( "record", CallablePythonValue( keyboard_record ) )
         self.assign( "readperf", CallablePythonValue( keyboard_readperf ) )
         self.assign( "replay", CallablePythonValue( keyboard_replay ) )
-        self.assign( "repl", CallablePythonValue( keyboard_repl ) )
+        self.assign( "open_repl", CallablePythonValue( keyboard_open_repl ) )
 
         self.assign( "Grid", Grid )
+        self.assign( "Buffer", KeyboardBuffer )
 
+        self.assign( "KeyEvent", KeyEvent )
+        self.assign( "KeyStroke", KeyStroke )
+        self.assign( "KeyStrokePress", KeyStrokePress )
+        self.assign( "KeyStrokeRelease", KeyStrokeRelease )
+        self.assign( "PianoKey", PianoKey )
         self.assign( "MouseClick", MouseClick )
         self.assign( "MouseMove", MouseMove )
         self.assign( "MouseScroll", MouseScroll )
@@ -125,7 +132,7 @@ class KeyboardLibrary(Library):
             PianoKey, KeyStroke, MouseClick, MouseMove, MouseScroll
         )
 
-        self.eval_file( script, Path( __file__ ).parent / "library.mkl" )
+        script.import_library( Path( __file__ ).parent / "library.mkl", context = self.context )
 
     def register_event_type ( self, *events : Type[KeyboardEvent] ):
         for event in events:

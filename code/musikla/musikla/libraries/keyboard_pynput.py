@@ -1,3 +1,4 @@
+from musikla.libraries.keyboard.event import KeyEvent, KeyStrokePress, KeyStrokeRelease
 from musikla.core import Context, Library
 from musikla.libraries.keyboard import KeyboardLibrary, EventSource, MouseMove, MouseClick, MouseScroll, KeyStroke
 from pynput.keyboard import Key
@@ -75,11 +76,14 @@ class KeyboardPynputEventSource( EventSource ):
 
         keystrokes = self.get_keystrokes( is_modifier, key, value )
             
-        for keystroke in keystrokes:
-            if keystroke == KeyStroke( 'c', True, True, True ):
+        virtual_keyboard.on_press( KeyEvent( key, value, True ) )
+
+        for ks in keystrokes:
+            if ks == KeyStroke( 'c', True, True, True ):
                 raise KeyboardInterrupt()
             
-            virtual_keyboard.on_press( keystroke )
+            virtual_keyboard.on_press( ks )
+            virtual_keyboard.on_press( KeyStrokePress( ks.key, ks.ctrl, ks.alt, ks.shift ) )
 
     def on_release ( self, virtual_keyboard : KeyboardLibrary, key : Key ):
         ( is_modifier, key, value ) = self.get_key_info( key )
@@ -92,8 +96,10 @@ class KeyboardPynputEventSource( EventSource ):
         if value in self.keyboard_state:
             del self.keyboard_state[ value ]
 
-        for keystroke in keystrokes:
-            virtual_keyboard.on_release( keystroke )
+        virtual_keyboard.on_press( KeyEvent( key, value, False ) )
+        for ks in keystrokes:
+            virtual_keyboard.on_release( ks )
+            virtual_keyboard.on_press( KeyStrokeRelease( ks.key, ks.ctrl, ks.alt, ks.shift ) )
 
     def on_move ( self, virtual_keyboard : KeyboardLibrary, x : int, y : int ):
         virtual_keyboard.on_press( MouseMove( x, y ) )

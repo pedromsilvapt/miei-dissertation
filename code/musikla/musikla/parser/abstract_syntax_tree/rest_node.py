@@ -11,7 +11,7 @@ class RestNode( MusicNode ):
         self.visible = visible
 
     def to_source ( self, printer : CodePrinter ):
-        printer.add_token( str( RestEvent( 0, 0, self.value, visible = self.visible ) ) )
+        printer.add_token( RestEvent( 0, 0, self.value, visible = self.visible ).to_string( ( 'r', 'r' ) ) )
 
     def get_events ( self, context ):
         rest = RestEvent(

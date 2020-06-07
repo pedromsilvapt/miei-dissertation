@@ -58,8 +58,6 @@ class ABCBuilder:
 
         if existing_voice is not None:
             self.file.header.score.groups.append_with( voice.name_escaped, existing_voice.name_escaped )
-            
-            print( voice.name_escaped, match[ 1 ], existing_voice.name_escaped )
         else:
             group = ABCVoiceGroup( ABCVoiceGroupKind.Parentheses, [ voice.name_escaped ] )
 

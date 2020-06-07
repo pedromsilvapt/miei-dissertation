@@ -94,8 +94,9 @@ class VoiceIdentifierVoice():
 
     def append ( self, *events : MusicEvent ):
         for event in events:
-            if isinstance( event, NoteEvent ):
-                self.average_pitch += int( event )
+            if isinstance( event, NoteEvent ) or isinstance( event, ChordEvent ):
+                self.average_pitch += int( event ) if isinstance( event, NoteEvent ) \
+                                else  sum( event.pitches ) / len( event.pitches )
 
                 # TODO Allow setting a minimum rest duration. If the empty space between the events is less than
                 # said minimum, then no rest is created
@@ -200,6 +201,8 @@ class VoiceIdentifierTransformer(Transformer):
                 self.register_note( event )
             elif isinstance( event, RestEvent ):
                 self.register_rest( event )
+            elif isinstance( event, ChordEvent ):
+                self.register_chord( event )
             else:
                 self.add_output( event )
 

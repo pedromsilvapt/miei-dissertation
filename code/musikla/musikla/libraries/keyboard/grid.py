@@ -129,9 +129,19 @@ class Grid:
             end_timestamp = event_start_delta + event_end_delta + event.end_timestamp 
         )
 
-    def align ( self, context : Context, music : Union[Music, MusicEvent, Any], individually : bool = False, maintain_duration : bool = True ) -> Union[Music, MusicEvent, Any]:
+    def align ( self, context : Context, music : Union[Music, MusicEvent, Any], mode : str = 'start_end', individually : bool = False, maintain_duration : bool = True ) -> Union[Music, MusicEvent, Any]:
+        """
+        Allowed modes are:
+         - global: Changes only the sequence's start time
+         - start: Changes the note's start time but retains their duration
+         - start_end: Changes both the note's start time and duration to be aligned with the grid
+        """
+
         if self.prealign_with is not None:
-            music = self.prealign_with.align( context, music, individually, maintain_duration )
+            music = self.prealign_with.align( context, music, mode )
+
+        individually = mode != 'global'
+        maintain_duration = not individually or mode != 'start_end'
 
         if isinstance( music, Music ):
             aligned : Music = music.map( lambda e, i, s: self._align_event( e, s, individually, maintain_duration ).join( context ) )

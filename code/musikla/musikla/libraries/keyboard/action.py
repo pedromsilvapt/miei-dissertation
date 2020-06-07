@@ -1,3 +1,4 @@
+from typing import Callable
 from musikla.core.symbols_scope import SymbolsScope
 from typing import Any, Dict, List, Optional
 from musikla.core import Context, Music
@@ -24,7 +25,7 @@ class KeyAction:
         self.interactive_player : Optional[InteractivePlayer] = None
         self.sync : bool = False
 
-    def play ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any] ):
+    def play ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any], cb : Callable = None ):
         forked_context : Optional[Context] = None
 
         forked_symbols : SymbolsScope = self.context.symbols.fork( opaque = False )
@@ -42,18 +43,21 @@ class KeyAction:
             value = self.expr.eval( forked_context )
 
             if isinstance( value, Music ):
-                return value
+                return value.expand( forked_context )
             elif callable( value ):
                 from musikla.core.callable_python_value import CallablePythonValue
 
                 value = CallablePythonValue.call( value, forked_context )
 
                 if isinstance( value, Music ):
-                    return value
+                    return value.expand( forked_context )
 
             return None
 
         self.interactive_player = InteractivePlayer( eval, player, 0, self.repeat and not self.extend, self.extend, realtime = True )
+
+        if cb is not None:
+            cb( self.interactive_player )
 
         if self.sync:
             self.interactive_player.start_sync()
@@ -69,12 +73,12 @@ class KeyAction:
 
         self.interactive_player = None
 
-    def on_press ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any] ):
+    def on_press ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any], cb : Callable = None ):
         binary = self.key.binary
 
         if not binary and self.is_pressed:
             if self.hold or self.toggle:
-                return self.on_release( context, player )
+                return self.on_release( context, player, cb )
             else:
                 self.is_pressed = False
 
@@ -91,16 +95,16 @@ class KeyAction:
             if self.interactive_player != None and self.interactive_player.is_playing:
                 self.stop( context, player )
             else:
-                self.play( context, player, parameters )
+                self.play( context, player, parameters, cb )
         else:
-            self.play( context, player, parameters )
+            self.play( context, player, parameters, cb )
         
-    def on_release ( self, context : Context, player : PlayerLike ):
+    def on_release ( self, context : Context, player : PlayerLike, cb : Callable = None ):
         if not self.is_pressed:
             return
 
         if self.key.binary and self.release:
-            self.on_press( context, player, {} )
+            self.on_press( context, player, {}, cb )
             self.is_pressed = False
             return
 

@@ -1,0 +1,25 @@
+# Note that the use of the "-=" operator is meant to avoid duplicated keys
+
+# Use a "standard" keyboard piano
+$piano = keyboard\piano();
+# Maybe even add a MIDI piano?
+$piano -= keyboard\midi();
+# Or declare a custom piano
+$piano -= @keyboard hold extend {
+    a: [^Cm];       s: [BM];        d: [AM];
+    f: [EM];        g: [^Fm];       
+};
+
+$piano -= @keyboard hold extend (V120) {
+    w: ^c;      e: ^d;      r: e;       t: ^f;
+    y: ^g;      u: b;       i: ^c';     o: ^d';
+    p: e';
+};
+
+# Declares an array that will contain our buffers
+$bf = none;
+# Creates a keyboard that declares a set of buffers. By default, 
+# the numpad keys are used (creating 10 available buffer slots)
+$piano -= keyboard\bufpad( $bf );
+# Creates a keyboard that associates the interpreter accessible by the "\" key
+$piano -= keyboard\repl( ctx = getctx() );

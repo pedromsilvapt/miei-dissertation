@@ -20,9 +20,11 @@ class ReturnStatementNode( StatementNode ):
         if self.expression is None:
             stack_frame.ret()
         else:
-            stack_frame.ret( Value.eval( context, self.expression ) )
+            val = Value.eval( context, self.expression )
 
-        return None
+            stack_frame.ret( val )
+
+            return val
 
     def to_source ( self, printer : CodePrinter ):
         printer.add_token( "return " )

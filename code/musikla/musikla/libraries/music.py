@@ -73,7 +73,7 @@ class MusiklaNotationBuilderTransformer(NotationBuilderTransformer):
         if not sequence.expressions:
             return None
         
-        return ast_mod.VoiceBlockModifier( sequence, voice[ 0 ].name )
+        return ast_mod.VoiceBlockModifier( sequence, voice[ 0 ].name.split( "/" )[0] )
 
     def to_ast ( self, events_per_voice : List[Tuple[Voice, int, List[MusicEvent]]] ) -> ast.Node:
         l = len( events_per_voice )

@@ -1,4 +1,20 @@
-fun keyboard\piano ( $layout, $hshift = @{}, $scales = @{}, $row_octaves = @{}, $transpose = 0; $toggle = false ) {
+$_default_layout = "qwertyuiop+´
+asdfghjklçº~
+<zxcvbnm,.-";
+
+fun keyboard\debug ( $cb = none ) {
+    return @keyboard {
+        [ keyboard\KeyEvent() ] ( $key, $value, $pressed ): {
+            if ($cb != none) {
+                $cb( $key, $value, $pressed );
+            } else {
+                if ($pressed) { print( $key, $value, "PRESSED" ) } else { print( $key, $value, "RELEASED" ) };
+            };
+        };
+    }
+};
+
+fun keyboard\piano ( $layout = $_default_layout, $hshift = @{}, $scales = @{}, $row_octaves = @{}, $transpose = 0; $toggle = false ) {
     fun get_row_scale ( $row_index ) {
         if ( $scales::has( $row_index ) ) {
             return $scales::get( $row_index );
@@ -58,5 +74,65 @@ fun keyboard\midi ( $toggle = false, $transpose = 0 ) {
         $bottom = $bottom + 1;
     };
 
-    $kb;
+    return $kb;
+};
+
+fun keyboard\repl ( $key = "\\", $ctx = none ) {
+    $ctx = $ctx or getctx();
+
+    return @keyboard release {
+        [ $key ]: { withctx( $ctx, keyboard\open_repl() ) };
+    };
+};
+
+fun keyboard\bufslot( $bf = keyboard\Buffer( start = false ), $key = "p" ) {
+    return @keyboard {
+        [ $key ]: {
+            if ($bf::started) {
+                $bf::stop();
+            } else {
+                $bf::clear();
+                $bf::start();
+            };
+        };
+    };
+};
+
+# '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+fun keyboard\bufpad( ref $buffers, $keys = @[ 82, 79, 80, 81, 126, 75, 76, 77, 71, 72, 73 ] ) {
+    $buffers = @{};
+
+    return @keyboard {
+        for ( $i in range( len( $keys ) ) ) {
+            # Bind a variable with the key stored in the array at the given index
+            { $key = $keys::[$i] };
+
+            # Starts and stops the buffer from recording
+            [ keyboard\KeyStroke( $key, ctrl = true ) ]: {
+                $bf = $buffers::get( $key, none );
+
+                if ($bf == none) {
+                    $bf = keyboard\Buffer();
+
+                    $buffers::set( $key, $bf );
+                } else {
+                    if ($bf::started) {
+                        $bf::stop();
+                    } else {
+                        $bf::clear();
+                        $bf::start();
+                    };
+                };
+            };
+
+            # Previews the recorded music sequence inside the buffer
+            [ keyboard\KeyStroke( $key ) ] toggle: {
+                $bf = $buffers::get( $key, none );
+                
+                if ($bf != none) {
+                    return $bf::to_music();
+                };
+            };
+        };
+    };
 };

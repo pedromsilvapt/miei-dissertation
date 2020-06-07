@@ -7,7 +7,7 @@ from typing import Callable, List, Dict, Optional, Union, Any, cast
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
 from musikla.parser.abstract_syntax_tree.expressions import BoolLiteralNode, FunctionExpressionNode, ConstantNode, PropertyAccessorNode, StringLiteralNode
 from musikla.parser.abstract_syntax_tree.statements import FunctionDeclarationStatementNode
-from musikla.audio import Player
+from musikla.audio import Player, InteractivePlayer
 from fractions import Fraction
 from .event import KeyStroke, PianoKey, KeyboardEvent
 from .action import KeyAction
@@ -32,7 +32,20 @@ class Keyboard:
         self.global_flags : Dict[str, int] = dict()
         self.global_prefixes : List[Node] = list()
 
+        self._on_new_player_observers : List[Callable] = []
+
         self.manual_lifetime : bool = False
+
+    def on_new_player ( self, player : InteractivePlayer ):
+        for obs in self._on_new_player_observers:
+            obs( self, player )
+
+    def add_new_player_observer ( self, observer : Callable ):
+        self._on_new_player_observers.append( observer )
+    
+    def remove_new_player_observer ( self, observer : Callable ):
+        if observer in self._on_new_player_observers:
+            self._on_new_player_observers.remove( observer )
 
     @property
     def player ( self ) -> Player:
@@ -120,7 +133,7 @@ class Keyboard:
         key_stroke : KeyboardEvent = cast( KeyboardEvent, KeyStroke.parse( key ) if Value.typeof( key ) == str else key )
 
         if key_stroke in self.keys:
-            self.keys[ key_stroke ].play( self.context, self.player, key_stroke.get_parameters() )
+            self.keys[ key_stroke ].play( self.context, self.player, key_stroke.get_parameters(), self.on_new_player )
 
     def stop ( self, key : Union[ KeyboardEvent, str ] ):
         key_stroke : KeyboardEvent = cast( KeyboardEvent, KeyStroke.parse( key ) if Value.typeof( key ) == str else key )
@@ -142,13 +155,13 @@ class Keyboard:
         key_stroke : KeyboardEvent = cast( KeyboardEvent, KeyStroke.parse( key ) if Value.typeof( key ) == str else key )
 
         if key_stroke in self.keys:
-            self.keys[ key_stroke ].on_press( self.context, self.player, key_stroke.get_parameters() )
+            self.keys[ key_stroke ].on_press( self.context, self.player, key_stroke.get_parameters(), self.on_new_player )
 
     def on_release ( self, key : Union[str, KeyboardEvent] ):
         key_stroke : KeyboardEvent = cast( KeyboardEvent, KeyStroke.parse( key ) if Value.typeof( key ) == str else key )
 
         if key_stroke in self.keys:
-            self.keys[ key_stroke ].on_release( self.context, self.player )
+            self.keys[ key_stroke ].on_release( self.context, self.player, self.on_new_player )
 
     def close ( self, closing : bool = False ) -> 'Keyboard':
         from .library import KeyboardLibrary
@@ -197,10 +210,10 @@ class Keyboard:
 
         return keyboard
 
-    def with_grid ( self, grid ) -> 'Keyboard':
+    def with_grid ( self, grid, mode : str = 'start_end' ) -> 'Keyboard':
         body = PropertyAccessorNode( ConstantNode( grid ), StringLiteralNode( 'align' ) )
 
-        body = FunctionExpressionNode( body, [ VariableExpressionNode( 'music' ) ] )
+        body = FunctionExpressionNode( body, [ VariableExpressionNode( 'music' ), StringLiteralNode( mode ) ] )
 
         return self.map( FunctionDeclarationStatementNode( None, [ ( 'k', None, None ), ( 'music', None, None ) ], body ) )
 

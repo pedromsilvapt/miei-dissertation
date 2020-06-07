@@ -18,6 +18,9 @@ A note about the terminology here:
     - Shallow searches are recursive searches that stop at the first opaque symbol scope they find.
 """
 
+class ValueNotFound:
+    pass
+
 class SymbolsScope:
     def __init__ ( self, parent = None, opaque : bool = True ):
         self.parent : SymbolsScope = parent
@@ -49,9 +52,9 @@ class SymbolsScope:
         scope : SymbolsScope = self
 
         while scope != None:
-            value = scope.lookup( name, container = container, recursive = False, follow_pointers = False )
+            value = scope.lookup( name, container = container, recursive = False, follow_pointers = False, default = ValueNotFound )
 
-            if value != None:
+            if value != ValueNotFound:
                 if isinstance( value, Pointer ):
                     scope = value.scope
                     name = value.name
@@ -97,12 +100,14 @@ class SymbolsScope:
                         return
                     else:
                         count += 1
-                    
+                
+                if key in ignore:
+                    continue
+
                 if prefix is not None and not key.startswith( prefix ):
                     continue
 
                 ignore.add( key )
-
 
                 yield key, value
 
@@ -167,6 +172,11 @@ class SymbolsScope:
 
     def fork ( self, opaque : bool = True ):
         return SymbolsScope( self, opaque )
+
+    def import_from ( self, scope : 'SymbolsScope', local : bool = True ):
+        for key, value in scope.enumerate( local = local ):
+            if not key.startswith( "_" ):
+                self.assign( key, value, local = True )
 
     def unref ( self ):
         for name, value in self.symbols:

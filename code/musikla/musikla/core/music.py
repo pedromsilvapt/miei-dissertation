@@ -21,6 +21,9 @@ class MusicBuffer:
                 
                 break
 
+    def extend ( self, events : Iterable[MusicEvent] ):
+        for event in events: self.append( event )
+
     def collect ( self, time : int = None ):
         if time == None:
             for event in self.buffer:
@@ -99,7 +102,7 @@ class Music:
 
                         return event
 
-                    return self.filter( lambda e, i, s: e.end_timestamp > start ).map( _map )
+                    return self.filter( lambda e, i, s: e.end_timestamp - s > start ).map( _map )
                 elif end is not None:
                     def _map ( event, index, start ):
                         if event.end_timestamp > end:

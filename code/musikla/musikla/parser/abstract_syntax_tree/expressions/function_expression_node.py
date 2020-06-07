@@ -1,5 +1,6 @@
 from musikla.parser.printer import CodePrinter
 from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
+from musikla.parser.abstract_syntax_tree.expressions.property_accessor_node import PropertyAccessorNode
 from .expression_node import ExpressionNode
 from musikla.core import Value
 from musikla.core.callable_python_value import CallablePythonValue
@@ -19,6 +20,11 @@ class FunctionExpressionNode( ExpressionNode ):
         if value == None: 
             if isinstance( self.expression, VariableExpressionNode ):
                 raise BaseException( f"Calling undefined function { cast( VariableExpressionNode, self.expression ).name }" )
+            elif isinstance( self.expression, PropertyAccessorNode ):
+                method_name = cast( PropertyAccessorNode, self.expression ).name.eval( context )
+                object_name = CodePrinter().print( cast( PropertyAccessorNode, self.expression ).expression )
+
+                raise BaseException( f"Calling undefined function '{ method_name }' in '{ object_name }'" )
             else:
                 raise BaseException( "Calling undefined function" )
 

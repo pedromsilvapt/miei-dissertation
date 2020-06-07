@@ -343,15 +343,17 @@ def create_application():
 
             now = ApplicationState.player.get_time()
 
-            val = Value.eval( ApplicationState.context.fork( cursor = now ), ast )
+            ctx = ApplicationState.context.fork( cursor = now )
+
+            val = Value.eval( ctx, ast )
 
             if val is not None and isinstance( val, Music ):
-                pl = InteractivePlayer( lambda: val, ApplicationState.player, realtime = True )
+                pl = InteractivePlayer( lambda: val.expand( ctx ), ApplicationState.player, realtime = True )
 
                 ApplicationState.interactive_players.append( pl )
 
                 create_task( pl.start() )
-        except Exception as e:
+        except BaseException as e:
             if hasattr(e, 'message'):
                 show_message("Eval Error", str(cast(Any, e).message))
             else:

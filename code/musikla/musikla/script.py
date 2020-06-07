@@ -42,7 +42,7 @@ class Script:
         self.add_sequencer_factory( FluidSynthSequencerFactory )
 
         # Import the builtin libraries
-        self.import_library( StandardLibrary )
+        self.import_library( StandardLibrary, prelude = True )
         self.import_library( MusicLibrary )
         self.import_library( KeyboardLibrary, self.player )
         self.import_library( KeyboardPynputLibrary )
@@ -64,18 +64,22 @@ class Script:
 
             self.libraries[ name.lower() ] = library
 
-    def import_library ( self, library : Union[str, Library, Any], *args : Any ):
-        if type( library ) is str:
-            if library in self.libraries:
-                lib_instance = cast( Library, self.libraries[ library ]( *args ) )
+    def import_library ( self, library : Union[str, Path, Library, Any], *args : Any, context : Context = None, prelude : bool = False ):
+        if type( library ) is str or isinstance( library, Path ):
+            library_str = str( library )
+                
+            if library_str in self.libraries:
+                lib_instance = cast( Library, self.libraries[ library_str ]( *args ) )
 
                 self.context.link( lib_instance, self )
-            elif library.lower().endswith( '.mkl' ):
-                node = self.parser.parse_file( library )
+            elif library_str.lower().endswith( '.mkl' ):
+                sub_context = self.create_subcontext( context, True, __main__ = False )
 
-                return self.eval( node )
+                self.execute_file( library_str, context = sub_context, fork = False, silent = True )
+
+                context.symbols.import_from( sub_context.symbols, local = True )
             else:
-                raise Exception( f'Trying to import library {library} not found.' )
+                raise Exception( f'Trying to import library {library_str} not found.' )
         elif isinstance( library, Library ):
             self.context.link( library, self )
         elif issubclass( library, Library ):
@@ -133,14 +137,15 @@ class Script:
 
         return None
     
-    def execute_file ( self, file : str, context : Context = None, fork : bool = True, silent : bool = False, sync : bool = False, realtime : bool = True ):
+    def execute_file ( self, file : str, context : Context = None, fork : bool = True, silent : bool = False, sync : bool = False, realtime : bool = True, locals : Dict[str, Any] = {} ):
         code = self.parser.parse_file( file )
         
         absolute_file : str = os.path.abspath( file )
 
         value = self.eval( code, context = context, fork = fork, locals = {
             '__file__': absolute_file,
-            '__dir__': str( Path( absolute_file ).parent )
+            '__dir__': str( Path( absolute_file ).parent ),
+            **locals
         } )
         
         if not silent and value and isinstance( value, Music ):

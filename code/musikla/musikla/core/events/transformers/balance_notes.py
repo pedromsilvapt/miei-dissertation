@@ -1,27 +1,32 @@
+from typing import Optional
 from .transformer import Transformer
 from ..note import NoteOnEvent, NoteOffEvent
 from ..chord import ChordOnEvent, ChordOffEvent
 from typing import Callable, List, Tuple
 
 class BalanceNotesTransformer( Transformer ):
-    def __init__ ( self, get_time : Callable ):
+    def __init__ ( self, get_time : Callable = None ):
         super().__init__()
 
-        self.get_time : Callable = get_time
+        self.get_time : Optional[Callable] = get_time
 
     def transform ( self ):
         tracker = NoteTracker()
+
+        last_time : int = 0
 
         while True:
             done, value = yield
 
             if done: break
 
+            last_time = max( value.end_timestamp, last_time )
+
             tracker.process( value )
 
             self.add_output( value )
 
-        for event in tracker.close( self.get_time() ):
+        for event in tracker.close( last_time if self.get_time is None else self.get_time() ):
             self.add_output( event )
 
 class NoteTracker:

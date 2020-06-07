@@ -52,6 +52,28 @@ class PianoKey(KeyboardEvent):
     def __str__ ( self ):
         return str( self.note )
 
+class KeyEvent(KeyboardEvent):
+    binary : bool = False
+
+    def __init__ ( self, key = None, value = None, pressed : bool = False ):
+        super().__init__()
+
+        self.key = key
+        self.value = value
+        self.pressed = pressed
+
+    def get_parameters ( self ) -> Dict[str, Any]:
+        return { 'key': self.key, 'value': self.value, 'pressed': self.pressed }
+
+    def __hash__ ( self ):
+        return hash( '<KeyEvent>' )
+    
+    def __eq__ ( self, other ):
+        if other is None:
+            return False
+
+        return isinstance( other, KeyEvent )
+
 class KeyStroke(KeyboardEvent):
     @staticmethod
     def deserialize ( data : str, parameters : Dict[str, Any] ) -> 'KeyStroke':
@@ -60,8 +82,8 @@ class KeyStroke(KeyboardEvent):
     def serialize ( self ) -> str:
         return str( self )
 
-    @staticmethod
-    def parse ( s ):
+    @classmethod
+    def parse ( cls, s ):
         parts = s.strip().split( "+" )
 
         key = parts[ -1 ]
@@ -72,7 +94,7 @@ class KeyStroke(KeyboardEvent):
         alt = 'alt' in mods
         shift = 'shift' in mods
 
-        return KeyStroke( key, ctrl, alt, shift )
+        return cls( key, ctrl, alt, shift )
 
     def __init__ ( self, key, ctrl : bool = False, alt : bool = False, shift : bool = False ):
         super().__init__()
@@ -107,6 +129,18 @@ class KeyStroke(KeyboardEvent):
         mods.append( self.key )
 
         return '+'.join( [ str(m) for m in mods ] )
+
+class KeyStrokePress( KeyStroke ):
+    binary : bool = False
+
+    def __hash__ ( self ):
+        return hash( ( "Press ", super().__hash__() ) )
+
+class KeyStrokeRelease( KeyStroke ):
+    binary : bool = False
+    
+    def __hash__ ( self ):
+        return hash( ( "Release ", super().__hash__() ) )
 
 class MouseMove( KeyboardEvent ):
     @staticmethod
