@@ -1,0 +1,32 @@
+#!/usr/bin/python3.7 /usr/local/bin/musikla
+fun pianoboard ( $toggle = false, $transpose = 0 ) {
+    $kb = keyboard\create();
+
+    $bottom = C,,,,::first_note();
+    $top = g'''''::first_note();
+
+    while ( $bottom <= $top ) {
+        # Important to declare the music to a variable because since we are inside a loop
+        # If we didn't bound to a variable, it would always be bound to the last note of the loop
+        $music = $bottom::music() + $transpose;
+
+        keyboard\register( $kb, key = $bottom, expression = $music, hold = not $toggle, toggle = $toggle, extend = true );
+
+        $bottom = $bottom + 1;
+    };
+
+    $kb;
+};
+
+fun readmidi_ports () {
+    # Stops recording when the notes C4 D4 are played one after the other
+    $notes = readmidi( port = true, cutoff_sequence = c d );
+
+    debug( $notes ); 
+
+    play( $notes );
+};
+
+setinstrument(22);
+cc(64,0);
+pianoboard( mode = 'hold', transpose = interval( octaves = -3 ) );
