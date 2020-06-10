@@ -1,0 +1,110 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% chapter4.tex
+%% NOVA thesis document file
+%%
+%% Chapter with lots of dummy text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Desenvolvimento}
+O desenvolvimento do projeto pode ser dividido de grosso modo em três. Nessas três camadas são cobertos um grupo abrangente de aspetos tanto da área do processamento de linguagens e do desenvolvimento de \acrshort{dsl}'s, da teoria músical, e do processamento digital de audio. 
+
+Na camada da linguagem esteve mais proeminente a área de processamento de linguagens, por motivos óbvios. Mas nas decisões tomadas durante o desenvolvimento desta camada, estiveram sempre presentes também as necessidades específicas que a teoria músical (e a sua notação) impõeem numa linguagem de programação.
+
+Do mesmo modo, o interpretador faz claramente uso de tópicos do domínio do processamento de linguagens, mas é ainda mais fortemente influencidado pelas restrições  e requisitos impostos pela componente músical da linguagem. Esta influencia a forma e a semântica da execução dos vários operadores disponibilizados.
+
+A última camada, de desenvolvimento de uma biblioteca, composta pelos objetos e procedimentos que têm como objetivo facilitar a utilização da linguagem. Para isso foi necessário identificar os casos de utilização mais comuns e prioritários, de modo a guiar a construção destas interfaces para refletirem uma utilização real da aplicação.
+
+\section{Linguagem}
+A camada sintática da aplicação pode ser conceptualmente dividida em duas fases:
+\begin{description}
+    \item[Sintaxe] Esta fase caracteriza-se por delinear qual a sintaxe usada pela linguagem, bem como os construtores e operadores suportados;
+    \item[Parser] Nesta fase foi desenvolvido um \textit{parser} em \textit{Python}, responsável por converter o código fonte da linguagem numa \acrfull{ast};
+\end{description}
+
+No entanto, a realidade é que a abordagem seguida (não só nesta camada mas como em todo o projeto) foi mais iterativa, dividindo cada faze em porções semi-independentes e intercalando as várias porções das diversas fases. Esta abordagem tem a vantagem de permitir ir testando e experimentando com o projeto mais cedo do que seria possível com um modelo de desenvolvimento em cascata.
+\subsection{Sintaxe}
+A sintaxe da linguagem é bastante inspirada nas usualmente chamadas linguagens da família C, com recurso a parênteses curvos e chavetas para delínear os vários blocos da linguagem. No entanto, as expressões são complementadas com um novo conjunto de literais e operadores dedicados a componente músical da linguagem. Conseguir juntar estes dois mundos trás consigo alguns desafios que serão discutidos mais em detalhe em cada umas das secções seguintes.
+
+\subsubsection{\textbf{Literais}}
+Literais referem-se ao conceito de sintaxe desenhada com o propósito de descrever data (literal) no código. São usados em quase todas as linguagens de programação (e na nossa também) para descrever números, \textit{strings} e booleanos.
+
+A maior diferença nesta área entre a nossa linguagem foi a adição de literais responsáveis por modelar conceitos músicais, como notas, pausas e acordes. Esta sintaxe, tal como já foi mencionado anteriormente, foi inspirada pelo projecto \textit{abc notation}, com algumas modificações.
+
+\subsubsection{\textbf{Notas e Pausas}}
+A sintaxe de notas descrição de notas é composta por quatro componentes: \textbf{acidentais}, \textbf{\textit{pitch}} (obrigatório), \textbf{oitava} e \textbf{duração}.
+
+\begin{center}
+\begin{lstlisting}[backgroundcolor=\color{transparent},captionpos=b,caption=Expressão regular que identifica uma nota (quebras de linha apenas para claridade de leitura),xleftmargin=.4\textwidth]
+[_^]*
+[a-gA-G]
+[',]*
+([0-9]*\/)?[0-9]*
+\end{lstlisting}
+\end{center}
+
+O \textit{pitch} refere-se à nota (ou frequência) que deve ser tocada. O \textbf{C médio} (também conhecido como C4) é descrito simplesmente como \texttt{C}. É possível descer uma ou mais oitavas acrescentando uma ou mais vírgulas \texttt{,}. Para subir uma oitava, podemos primeiro substituir as letras maíusculas por minúsculas. Para subir mais oitavas, podemos acrescentar uma ou mais pelicas \texttt{'}. Para subir ou descer semitons, podemos preceder a notas com os acidentais \texttt{\_} e \texttt{\^}.
+
+As pausas são mais simples, sendo compostas simplesmente pela letra \texttt{r} seguida da sua \textbf{duração} (usando as mesma sintaxe das notas).
+
+\subsubsection{\textbf{Acordes}}
+Para definir acordes na linguagem, colocam-se várias notas dentro de parenteses retos. A notação usada para cada nota inclui os seus três primeiros componentes (acidentais, \textit{pitch} e oitava), mas exclui a duração. Em vez de definir a duração em cada nota, esta é definida globalmente no acorde após fechar os parenteses retos.
+
+Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de um acorde manualmente, temos uma sintaxe abreviada para os tipos de acordes mais comuns, onde é apenas necessário introduzir a nota base seguido do tipo de acorde.
+
+\begin{table}[h]
+\centering
+\def\arraystretch{1.3}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{}        & \textbf{Abreviações}           \\ \hline
+\textbf{Tríades} & M, m, aug, dim, +                \\ \hline
+\textbf{Quinta}  & 5                                \\ \hline
+\textbf{Sétimas} & m7, M7, dom7, 7, m7b5, dim7, mM7 \\ \hline
+\end{tabular}
+\caption{Lista de abreviaturas possíveis de serem acrescentadas a seguir a uma nota para especificar um acorde.}
+\label{tab:modifiers-list}
+\end{table}
+
+A decisão de embrulhar cada acorde com parênteses retos deveu-se ao facto de muitas abreviaturas serem já populares no domínio da notação músical, e como tal o ideal era não as mudar. No entanto, algumas dessas abreviaturas poderiam entrar em conflito com outros componentes da declaração da nota. Por exemplo, \texttt{C7} poderia ser tanto um acorde de sétima como uma nota com duração de 7. Com a separação por parenteses retos, a ambiguidade deixa de existir, sendo obvio que \texttt{[C7]} é um acorde de sétima, e \texttt{C7} é uma nota com duração 7.
+
+\begin{lstlisting}[caption={Exemplos de três definições de acordes possíveis}] 
+[CFG]/4 [^Fm] [C5]2
+\end{lstlisting}
+
+\subsubsection{\textbf{Modificadores}}
+
+Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar certas propriedades das notas e acordes à sua frente, por exemplo.
+
+\begin{table}[h]
+\centering
+\def\arraystretch{1.3}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Nome} & \textbf{Modificador}                                            & \textbf{Exemplo}                                        & \textbf{Predefinição} \\ \hline
+Instrumento   & I$N$                                                            & I46                                                     & I0           \\ \hline
+Velocidade    & V$N$                                                            & V100                                                    & V127         \\ \hline
+Tempo         & T$N$                                                            & T120                                                    & T60          \\ \hline
+Duração       & \begin{tabular}[c]{@{}c@{}}L$N$\\ L/$N$\\ L$D$/$N$\end{tabular} & \begin{tabular}[c]{@{}c@{}}L2\\ L/4\\ L3/8\end{tabular} & L1           \\ \hline
+Oitava        & O$N$                                                            & O2                                                      & O4           \\ \hline
+Compasso      & S$D$/$N$                                                        & S3/4                                                    & S4/4         \\ \hline
+\end{tabular}
+\caption{Lista de modificadores e exemplos da sua utilização}
+\label{tab:modifiers-list}
+\end{table}
+
+\subsubsection{\textbf{Operadores}}
+
+\subsubsection{\textbf{Variáveis}}
+
+\subsubsection{\textbf{Funções}}
+
+\subsection{Parser}
+\section{Interpretador}
+\section{Biblioteca Standard}
+\subsection{Inputs \& Outputs}
+\subsection{Ficheiros de Som}
+\subsection{Teclados Músicais}
+\subsection{Grelhas}
+\subsection{Transformadores}
+\subsection{Editor Embutido}
+

@@ -1,0 +1,25 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% chapter1.tex
+%% NOVA thesis document file
+%%
+%% Chapter with introduciton
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\novathesis}{\emph{novathesis}}
+\newcommand{\novathesisclass}{\texttt{novathesis.cls}}
+
+
+\chapter{Introdução}
+\label{cha:introducao}
+
+%\epigraph{
+  %This work is licensed under the Creative Commons Attribution-NonCommercial~4.0 %International License.
+  %To view a copy of this license, visit \url{http://creativecommons.org/licenses/%by-nc/4.0/}.
+%}
+
+% Context,\\ motivation,\\ main aims	(objectives) \\ research hypothesis, (optional) \\ paper organization!
+O objetivo deste trabalho é estudar e prototipar formas de criação de música com recurso a técnicas habitualmente usadas na criação de \textit{software}. Para além de permitir criar música através das notas introduzidas manualmente, a linguagem deve facilitar a geração de música de um modo mais dinâmico, com recurso a operações de combinação e transformação de notas, como concatenar e misturar música.
+
+O termo música neste contexto é usado num sentido mais amplo que apenas sons. O objetivo desta linguagem é permitir gerar vários \textit{outputs} através do mesmo código fonte, como pautas músicais, ABC, WAV, MIDI, entre outros.
+
+Uma das partes mais críticas relativas à pesquisa e desenvolvimento necessários para a realização desta linguagem é a componente temporal implícita em todos os aspetos da linguagem: deve ser possível de um modo intuítivo expressar as várias composições possíveis de notas sem ser necessário expressar os tempos manualmente, tais como notas sequênciais, notas em paralelo, acordes, pequenas pausas e grandes pausas, bem como sincronizar partes da música de modo simples.
