@@ -704,9 +704,33 @@ $keyboard::stop_all();
 	As pausas são mais simples, sendo compostas simplesmente pela letra \texttt{r} seguida da sua \textbf{duração} (usando as mesma sintaxe das notas).
 	
 	\subsubsection{\textbf{Acordes}}
+	Para definir acordes na linguagem, colocam-se várias notas dentro de parenteses retos. A notação usada para cada nota inclui os seus três primeiros componentes (acidentais, \textit{pitch} e oitava), mas exclui a duração. Em vez de definir a duração em cada nota, esta é definida globalmente no acorde após fechar os parenteses retos.
+	
+	Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de um acorde manualmente, temos uma sintaxe abreviada para os tipos de acordes mais comuns, onde é apenas necessário introduzir a nota base seguido do tipo de acorde.
+	
+\begin{table}[h]
+\centering
+\def\arraystretch{1.3}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{}        & \textbf{Abreviações}           \\ \hline
+\textbf{Tríades} & M, m, aug, dim, +                \\ \hline
+\textbf{Quinta}  & 5                                \\ \hline
+\textbf{Sétimas} & m7, M7, dom7, 7, m7b5, dim7, mM7 \\ \hline
+\end{tabular}
+\caption{Lista de abreviaturas possíveis de serem acrescentadas a seguir a uma nota para especificar um acorde.}
+\label{tab:modifiers-list}
+\end{table}
+
+    A decisão de embrulhar cada acorde com parênteses retos deveu-se ao facto de muitas abreviaturas serem já populares no domínio da notação músical, e como tal o ideal era não as mudar. No entanto, algumas dessas abreviaturas poderiam entrar em conflito com outros componentes da declaração da nota. Por exemplo, \texttt{C7} poderia ser tanto um acorde de sétima como uma nota com duração de 7. Com a separação por parenteses retos, a ambiguidade deixa de existir, sendo obvio que \texttt{[C7]} é um acorde de sétima, e \texttt{C7} é uma nota com duração 7.
+    
+	\begin{lstlisting}[caption={Exemplos de três definições de acordes possíveis}] 
+    [CFG]/4 [^Fm] [C5]2
+    \end{lstlisting}
+	
 	\subsubsection{\textbf{Modificadores}}
 	
-	Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar as configurações que ditam a forma de criação das notas e acordes à sua frente, por exemplo.
+	Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar certas propriedades das notas e acordes à sua frente, por exemplo.
 	
 \begin{table}[h]
 \centering
@@ -725,7 +749,11 @@ Compasso      & S$D$/$N$                                                        
 \label{tab:modifiers-list}
 \end{table}
 	
+	\subsubsection{\textbf{Operadores}}
+	
 	\subsubsection{\textbf{Variáveis}}
+	
+	\subsubsection{\textbf{Funções}}
 	
 	\subsection{Parser}
 	\section{Interpretador}
