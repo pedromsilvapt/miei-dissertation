@@ -42,7 +42,7 @@ class Script:
         self.add_sequencer_factory( FluidSynthSequencerFactory )
 
         # Import the builtin libraries
-        self.import_library( StandardLibrary, prelude = True )
+        self.import_library( StandardLibrary, self.player, prelude = True )
         self.import_library( MusicLibrary )
         self.import_library( KeyboardLibrary, self.player )
         self.import_library( KeyboardPynputLibrary )

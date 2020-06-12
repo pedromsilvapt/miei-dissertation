@@ -18,10 +18,13 @@ class Sequencer:
         self.transformer : Optional[Transformer] = None
 
     def set_transformers ( self, *transformers : Transformer ):
-        self.transformer = Transformer.pipeline( 
-            *transformers,
-            Transformer.subscriber( self.on_event, self.on_close )
-        )
+        if transformers:
+            self.transformer = Transformer.pipeline( 
+                *transformers,
+                Transformer.subscriber( self.on_event, self.on_close )
+            )
+        else:
+            self.transformer = None
 
     @property
     def playing ( self ) -> bool:

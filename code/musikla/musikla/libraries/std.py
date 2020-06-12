@@ -7,8 +7,11 @@ from musikla.core.theory import Interval, Scale
 from musikla.parser import Parser
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
 from musikla.parser.abstract_syntax_tree.expressions import VariableExpressionNode
-from typing import Any, Union
+from musikla.audio.sequencers.sequencer import Sequencer
+from musikla.audio import Player
+from typing import Any, List, Union, cast
 from fractions import Fraction
+import musikla.audio.sequencers as seqs
 
 def function_getctx ( context : Context ):
     return context
@@ -52,6 +55,65 @@ def function_eval ( context : Context, code ) -> Any:
         code = function_parse( code )
     
     return Value.assignment( Value.eval( context, code ) )
+
+SequencerLike = Union[str, List[str], Sequencer]
+
+def function_make_sequencer ( context : Context, sequencer : SequencerLike ) -> Sequencer:
+    std = cast( StandardLibrary, context.library( StandardLibrary ) )
+
+    format = None
+    uri = None
+    args = None
+
+    if type(sequencer) is str:
+        uri = sequencer
+    elif type( sequencer ) is list:
+        args_start = 0
+
+        if len( sequencer ) >= args_start + 2 and sequencer[ args_start ] == '-o':
+            uri = sequencer[ args_start + 1 ]
+            args_start += 2
+
+        if len( sequencer ) >= args_start + 2 and sequencer[ args_start ] == '-f':
+            format = sequencer[ args_start + 1 ]
+            args_start += 2
+
+        args = sequencer[ args_start: ]
+    elif isinstance( sequencer, Sequencer ):
+        return sequencer
+
+    if format is not None:
+        return std.player.make_sequencer_from_format( format, uri or "", args or [] )
+    
+    return std.player.make_sequencer_from_uri( uri or "", args or [] )
+
+def function_save ( context : Context, music : Music, outputs : Union[str, Sequencer, List[SequencerLike]] ) -> Any:
+    # The single parameter specifies if only one sequencer was given
+    # In that case, instead of returning an array, we return just the sequencer
+    single : bool = False
+
+    if type( outputs ) is str or isinstance( outputs, Sequencer ):
+        sequencers : List[Sequencer] = [ function_make_sequencer( context, outputs ) ]
+
+        single = True
+    else:
+        sequencers : List[Sequencer] = [ function_make_sequencer( context, seq ) for seq in outputs ]
+
+    for seq in sequencers: 
+        seq.realtime = False
+
+        seq.start()
+
+    for ev in music.expand( context.fork( cursor = 0 ) ):
+        for seq in sequencers:
+            seq.register_event( ev )
+
+    for seq in sequencers: seq.close()
+
+    if single:
+        return sequencers[ 0 ]
+
+    return sequencers
 
 def function_bool ( val ): return bool( val )
 
@@ -197,6 +259,11 @@ def function_stretch ( context : Context, music : Music, length_or_music : Union
     return music.map( _stretch )
 
 class StandardLibrary(Library):
+    def __init__ ( self, player : Player ):
+        super().__init__()
+
+        self.player : Player = player
+    
     def on_link ( self, script ):
         context : Context = self.context
 
@@ -213,6 +280,8 @@ class StandardLibrary(Library):
         context.symbols.assign( "ast_to_code", CallablePythonValue( function_ast_to_code ) )
         context.symbols.assign( "parse", CallablePythonValue( function_parse ) )
         context.symbols.assign( "eval", CallablePythonValue( function_eval ) )
+        context.symbols.assign( "make_sequencer", CallablePythonValue( function_make_sequencer ) )
+        context.symbols.assign( "save", CallablePythonValue( function_save ) )
 
         context.symbols.assign( "bool", CallablePythonValue( function_bool ) )
         context.symbols.assign( "int", CallablePythonValue( function_int ) )
@@ -242,5 +311,12 @@ class StandardLibrary(Library):
         context.symbols.assign( "scale", Scale )
 
         context.symbols.assign( "stretch", CallablePythonValue( function_stretch ) )
+
+        context.symbols.assign( "sequencers\\ABC", CallablePythonValue( seqs.ABCSequencer ) )
+        context.symbols.assign( "sequencers\\PDF", CallablePythonValue( seqs.PDFSequencer ) )
+        context.symbols.assign( "sequencers\\HTML", CallablePythonValue( seqs.HTMLSequencer ) )
+        context.symbols.assign( "sequencers\\Midi", CallablePythonValue( seqs.MidiSequencer ) )
+        context.symbols.assign( "sequencers\\Debug", CallablePythonValue( seqs.DebugSequencer ) )
+        context.symbols.assign( "sequencers\\FluidSynth", CallablePythonValue( seqs.FluidSynthSequencer ) )
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )

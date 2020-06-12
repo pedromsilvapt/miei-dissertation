@@ -19,10 +19,10 @@ fluid_synth_get_active_voice_count = pyfluidsynth.cfunc('fluid_synth_get_active_
                                     ('synth', c_void_p, 1))
 
 class FluidSynthSequencer ( Sequencer ):
-    def __init__ ( self, output : str = None, soundfont : str = None, settings : Mapping[str, Any] = {} ):
+    def __init__ ( self, output : str = None, soundfont : str = None, settings : Mapping[str, Any] = {}, realtime : bool = True ):
         super().__init__()
 
-        self.realtime = True
+        self.realtime = realtime
 
         self.output : str = output or "pulseaudio"
         self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
@@ -44,7 +44,7 @@ class FluidSynthSequencer ( Sequencer ):
         self.events_data : Dict[int, Any] = dict()
         self.events_data_id : int = 1
         self.voices : Dict[str, int] = dict()
-        self.samples : Dict[str, Tuple[int, int]] = dict()
+        self.samples : Dict[int, Tuple[int, int]] = dict()
         self.samples_voices : Dict[int, Voice] = dict()
         self.last_sample : int = 0
         # For some reason, notes below 15 are somewhat pitched down, and below 10 are heavily pitched down
@@ -209,23 +209,30 @@ class FluidSynthSequencer ( Sequencer ):
             self.timer( event.timestamp, data = event, dest = self.client )
     
     def on_close ( self ):
-        # TODO Release fluidsynth resources
-        pass
+        # Render the file
+        if not self.realtime:
+            pyfluidsynth.FileRenderer.fast_loop_sequencer( self.synth, self.sequencer, self.last_note + 1000 )
+
+        # Release resources
+        self.sequencer.delete()
+        self.synth.delete()
 
     def _join_callback ( self, time, event, seq, data ):
-        self.join_lock.release()
+        if self.join_lock is not None:
+            self.join_lock.release()
 
-        self.join_lock = None
+            self.join_lock = None
 
     def join ( self ):
         if not self.playing:
             return
 
-        self.join_lock = Semaphore( 0 )
+        if self.realtime:
+            self.join_lock = Semaphore( 0 )
 
-        self.timer( self.last_note + 1000, dest = self.client )
-        
-        self.join_lock.acquire()
+            self.timer( self.last_note + 1000, dest = self.client )
+            
+            self.join_lock.acquire()
 
         # while True:
         #     voices = fluid_synth_get_active_voice_count( self.synth.synth )
@@ -238,20 +245,18 @@ class FluidSynthSequencer ( Sequencer ):
         #         break
 
     def start ( self ):
-        self.synth = pyfluidsynth.Synth()
-
-        # self.synth.setting( 'audio.period-size', 1024 )
-        self.synth.setting( 'synth.verbose', 0 )
-
-        for key, value in self.settings.items():
-            self.synth.setting( key, value )
+        self.synth = pyfluidsynth.Synth( **self.settings )
 
         if self.is_output_file:
             self.synth.setting( 'audio.file.name', self.output )
             self.synth.setting( 'audio.driver', 'file' )
             
-            self.synth.audio_driver = pyfluidsynth.new_fluid_audio_driver( self.synth.settings, self.synth.synth )
+            if self.realtime:
+                self.synth.audio_driver = pyfluidsynth.new_fluid_audio_driver( self.synth.settings, self.synth.synth )
         else:
+            if not self.realtime:
+                raise BaseException( "Can only render audio fast to a file (not audio device)" )
+
             self.synth.start( driver = self.output )
 
         self.soundfontId = self.synth.sfload( self.soundfont, update_midi_preset = 1 )
@@ -262,7 +267,7 @@ class FluidSynthSequencer ( Sequencer ):
         self.synth.cc( 0, 64, 127 )
         self.synth.program_change( 0, 1 )
     
-        self.sequencer = pyfluidsynth.Sequencer()
+        self.sequencer = pyfluidsynth.Sequencer( use_system_timer = self.realtime )
         
         self.synthId = self.sequencer.register_fluidsynth( self.synth )
 
@@ -283,6 +288,7 @@ class FluidSynthSequencerFactory( SequencerFactory ):
         self.argparser.add_argument( '-L', '--audio-channels', dest = 'audio_channels', type = int, action='store', help = 'The number of stereo audio channels [default = 1] (equivalent to `synth.audio-channels`)' )
         self.argparser.add_argument( '-r', '--sample-rate', dest = 'sample_rate', type = float, action='store', help = 'Set the sample rate (equivalent to `synth.sample-rate`)' )
         self.argparser.add_argument( '-z', '--audio-bufsize', dest = 'audio_buffsize', type = float, action='store', help = 'Size of each audio buffer (equivalent to `audio.period-size`)' )
+        self.argparser.add_argument( '--fast', dest = 'fast', action='store_true', help = 'Render the music file as fast as possible (instead of in realtime)' )
 
     def _args_settings_dictionary ( self, args ):
         settings_dict = {}
@@ -325,4 +331,4 @@ class FluidSynthSequencerFactory( SequencerFactory ):
         cli_settings = self._args_settings_dictionary( args )
         ini_settings = self.config[ 'FluidSynth.Settings' ] if 'FluidSynth.Settings' in self.config else {}
 
-        return FluidSynthSequencer( uri, soundfont, { **cli_settings, **ini_settings } )
+        return FluidSynthSequencer( uri, soundfont, { **cli_settings, **ini_settings }, realtime = not args.fast )
