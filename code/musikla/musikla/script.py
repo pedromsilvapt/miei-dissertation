@@ -31,6 +31,12 @@ class Script:
         self.soundfont : Optional[str] = None
         
         self.context.symbols.assign( 'script', self, local = True )
+        # Some core code may depend on the script variable to get a hold of it at runtime
+        # But in some child context, the user might have locally binded a custom value to the symbol named "script"
+        # And thus any services that were handed that child context would have difficulty finding the main script variable
+        # Therefore we publish it too in the "internal" container, which is not available through the musikla language
+        # And so we can ensure with more safety that it will be the correct script variable
+        self.context.symbols.assign( 'script', self, local = True, container = 'internal' )
         
         self.libraries : Dict[str, Any] = {}
         

@@ -2,8 +2,12 @@ from .instrument import Instrument, GeneralMidi
 from .voice import Voice
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
-from typing import Any, Hashable, Optional, cast
+from typing import Any, Hashable, Optional, cast, TYPE_CHECKING
 from fractions import Fraction
+
+
+if TYPE_CHECKING:
+    from musikla.script import Script
 
 class Library:
     def __init__ ( self, namespace : str = None ):
@@ -72,6 +76,10 @@ class Context():
         self.voice : Optional[Voice] = voice
         self.cursor : int = cursor
         self.symbols : SymbolsScope = symbols
+
+    @property
+    def script ( self ) -> 'Script':
+        return self.symbols.lookup( 'script', container = 'internal' )
 
     def fork ( self, cursor : int = None, symbols : SymbolsScope = None ) -> 'Context':
         return Context(

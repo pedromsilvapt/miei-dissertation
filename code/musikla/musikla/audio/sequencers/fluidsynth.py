@@ -1,3 +1,4 @@
+from musikla.core.events import sound
 from musikla.core.voice import Voice
 from musikla.core.instrument import Instrument
 import pyfluidsynth
@@ -7,7 +8,7 @@ from musikla.core.events.transformers import DecomposeChordsTransformer
 from .sequencer import Sequencer, SequencerFactory, ArgumentParser
 from ctypes import c_void_p, c_int
 from threading import Semaphore
-from typing import Dict, List, Mapping, Tuple, Any, Optional
+from typing import Dict, List, Mapping, Tuple, Any, Optional, Union
 from time import sleep
 from collections import defaultdict
 import re
@@ -19,18 +20,20 @@ fluid_synth_get_active_voice_count = pyfluidsynth.cfunc('fluid_synth_get_active_
                                     ('synth', c_void_p, 1))
 
 class FluidSynthSequencer ( Sequencer ):
-    def __init__ ( self, output : str = None, soundfont : str = None, settings : Mapping[str, Any] = {}, realtime : bool = True ):
+    def __init__ ( self, output : str = None, soundfonts : Dict[str, Optional[str]] = {}, settings : Mapping[str, Any] = {}, realtime : bool = True ):
         super().__init__()
 
         self.realtime = realtime
 
         self.output : str = output or "pulseaudio"
-        self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+        # self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
         self.settings : Mapping[str, Any] = settings
 
         self.synth : Optional[pyfluidsynth.Synth] = None
         self.synthId : Optional[int] = None
-        self.soundfontId : Optional[int] = None
+        self.soundfonts : Dict[str, int] = dict( [ ( sf, -1 ) for sf in soundfonts.keys() ] )
+        self.soundfont_aliases : Dict[str, str] = dict( [ ( alias, sf ) for sf, alias in soundfonts.items() if alias is not None ] )
+        self.defaultSoundfont : Optional[int] = None
         self.ramSoundfont : Optional[pyfluidsynth.RamSoundFont] = None
         self.ramSoundfontId : Optional[int] = None
         self.sequencer : Optional[pyfluidsynth.Sequencer] = None
@@ -69,11 +72,11 @@ class FluidSynthSequencer ( Sequencer ):
 
         if voice.instrument.soundfont is None and voice.instrument.bank is None:
             self.synth.program_change( value, voice.instrument.program )
-        elif voice.instrument.soundfont is None and voice.instrument.bank is not None:
-            self.synth.program_select( value, self.soundfontId, voice.instrument.bank, voice.instrument.program )
-        else:
-            self.synth.program_select( value, voice.instrument.soundfont, voice.instrument.bank, voice.instrument.program )
+        elif voice.instrument.bank is not None:
+            soundfont = self.get_soundfont_id( voice.instrument.soundfont )
 
+            self.synth.program_select( value, soundfont, voice.instrument.bank, voice.instrument.program )
+        
         return value
 
     def _sound_to_note_event ( self, event : SoundEvent ) -> NoteEvent:
@@ -117,12 +120,56 @@ class FluidSynthSequencer ( Sequencer ):
 
     @property
     def playing ( self ):
-        if self.synth == None:
+        if self.synth is None:
             return False
 
         now = self.get_time()
 
         return self.last_note != None and now <= self.last_note
+    
+    @property
+    def started ( self ):
+        return self.synth is not None
+
+    def load_soundfont ( self, soundfont : str, alias : str = None ) -> int:
+        if self.started:
+            sf_id = self.synth.sfload( soundfont, update_midi_preset = 1 )
+
+            if self.defaultSoundfont is None:
+                self.defaultSoundfont = sf_id
+        else:
+            sf_id = -1
+
+        self.soundfonts[ soundfont ] = sf_id
+
+        if alias is not None:
+            self.soundfont_aliases[ alias ] = soundfont
+
+        return sf_id
+
+    def unload_soundfont ( self, soundfont : str ):
+        if soundfont in self.soundfont_aliases:
+            alias, soundfont = soundfont, self.soundfont_aliases[ soundfont ]
+
+            del self.soundfont_aliases[ alias ]
+
+        if self.started:
+            self.synth.sfunload( self.soundfonts[ soundfont ], update_midi_preset = 1 )
+
+        if soundfont in self.soundfonts:
+            del self.soundfonts[ soundfont ]
+
+    def get_soundfont_id ( self, soundfont : Union[str, int, None] ) -> Optional[int]:
+        if type( soundfont ) is int:
+            return soundfont
+        elif type( soundfont ) is str:
+            if soundfont in self.soundfont_aliases:
+                soundfont = self.soundfont_aliases[ soundfont ]
+            
+            if soundfont in self.soundfonts:
+                return self.soundfonts[ soundfont ]
+        elif soundfont is None:
+            return self.defaultSoundfont
         
     def get_time ( self ):
         if self.sequencer == None:
@@ -175,10 +222,19 @@ class FluidSynthSequencer ( Sequencer ):
 
         self.synth.noteon( channel, key, event.velocity )
     
+    def apply_channel_program ( self, channel : int, soundfont : int, bank : int, program : int ):
+        # TODO Cache current program to avoid continuous calls to fluidsynth
+        self.synth.program_select( channel, soundfont, bank, program )
+
     def apply_event ( self, event : MusicEvent ):
         if isinstance( event, VoiceEvent ):
             channel = self._get_voice_channel( event.voice )
-            
+
+            soundfont = self.get_soundfont_id( event.voice.instrument.soundfont )
+
+            if soundfont is not None:
+                self.apply_channel_program( channel, soundfont, event.voice.instrument.bank or 0, event.voice.instrument.program )
+                        
             if isinstance( event, NoteOnEvent ):
                 self.apply_event_noteon( channel, event )
             elif isinstance( event, NoteOffEvent ):
@@ -245,6 +301,9 @@ class FluidSynthSequencer ( Sequencer ):
         #         break
 
     def start ( self ):
+        if self.started:
+            return
+
         self.synth = pyfluidsynth.Synth( **self.settings )
 
         if self.is_output_file:
@@ -259,7 +318,8 @@ class FluidSynthSequencer ( Sequencer ):
 
             self.synth.start( driver = self.output )
 
-        self.soundfontId = self.synth.sfload( self.soundfont, update_midi_preset = 1 )
+        for soundfont in self.soundfonts.keys():
+            self.load_soundfont( soundfont )
 
         self.ramSoundfont = pyfluidsynth.RamSoundFont()
         self.ramSoundfontId = self.synth.add_sfont( self.ramSoundfont )
@@ -290,6 +350,8 @@ class FluidSynthSequencerFactory( SequencerFactory ):
         self.argparser.add_argument( '-z', '--audio-bufsize', dest = 'audio_buffsize', type = float, action='store', help = 'Size of each audio buffer (equivalent to `audio.period-size`)' )
         self.argparser.add_argument( '--fast', dest = 'fast', action='store_true', help = 'Render the music file as fast as possible (instead of in realtime)' )
 
+        self.soundfonts : Dict[str, Optional[str]] = {}
+
     def _args_settings_dictionary ( self, args ):
         settings_dict = {}
 
@@ -300,15 +362,15 @@ class FluidSynthSequencerFactory( SequencerFactory ):
                 key, value = arg.split( '=' )
 
                 if value == 'true':
-                    settings_dict[ arg ] = True
+                    settings_dict[ key ] = True
                 elif value == 'false':
-                    settings_dict[ arg ] = False
+                    settings_dict[ key ] = False
                 elif FLOAT_PATTERN.match( value ):
-                    settings_dict[ arg ] = float( value )
+                    settings_dict[ key ] = float( value )
                 elif INT_PATTERN.match( value ):
-                    settings_dict[ arg ] = int( value )
+                    settings_dict[ key ] = int( value )
                 else:
-                    settings_dict[ arg ] = value
+                    settings_dict[ key ] = value
 
         if args.audio_buffcount is not None:
             settings_dict[ 'audio.periods' ] = args.audio_buffcount
@@ -325,10 +387,30 @@ class FluidSynthSequencerFactory( SequencerFactory ):
 
         return settings_dict
 
+    def add_soundfont ( self, soundfont : str, alias : str = None ):
+        self.soundfonts[ soundfont ] = alias
+
+    def remove_soundfont ( self, soundfont : str ):
+        keys = []
+        for key, alias in self.soundfonts.keys():
+            if alias == soundfont:
+                keys.append( key )
+        
+        for key in keys:
+            del self.soundfonts[ key ]
+        
+        if soundfont in self.soundfonts:
+            del self.soundfonts[ soundfont ]
+
     def from_str ( self, uri : str, args ) -> FluidSynthSequencer:
         soundfont = self.config.get( 'Musikla', 'soundfont', fallback = None )
 
         cli_settings = self._args_settings_dictionary( args )
         ini_settings = self.config[ 'FluidSynth.Settings' ] if 'FluidSynth.Settings' in self.config else {}
 
-        return FluidSynthSequencer( uri, soundfont, { **cli_settings, **ini_settings }, realtime = not args.fast )
+        soundfonts = { **self.soundfonts }
+
+        if soundfont is not None:
+            soundfonts[ soundfont ] = None
+
+        return FluidSynthSequencer( uri, soundfonts, { **cli_settings, **ini_settings }, realtime = not args.fast )

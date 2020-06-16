@@ -1,15 +1,15 @@
-from typing import Optional
+from typing import Optional, Union
 
 class Instrument():
     @staticmethod
-    def from_program ( program : int ) -> 'Instrument':
-        return Instrument( GeneralMidi.get_name( program ), program )
+    def from_program ( program : int, bank : int = None, soundfont : Union[int, str] = None ) -> 'Instrument':
+        return Instrument( GeneralMidi.get_name( program ), program, bank, soundfont )
 
-    def __init__ ( self, name : str, program : int, bank : int = None, soundfont : int = None ):
+    def __init__ ( self, name : str, program : int, bank : int = None, soundfont : Union[int, str] = None ):
         self.name : str = name
         self.program : int = program
         self.bank : Optional[int] = bank
-        self.soundfont : Optional[int] = soundfont
+        self.soundfont : Optional[Union[int, str]] = soundfont
 
 class GeneralMidi():
     @staticmethod

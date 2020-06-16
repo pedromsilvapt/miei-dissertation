@@ -156,8 +156,32 @@ def function_slice ( notes : Music, start : int, end : int ):
 def function_setvoice ( context : Context, voice : Voice ):
     context.voice = voice
 
-def function_setinstrument ( context : Context, instrument : int ):
-    context.voice = context.voice.clone( instrument = Instrument( "", instrument ) )
+def function_setinstrument ( context : Context, instrument : int, bank : int = None, soundfont : Union[int, str] = None ):
+    context.voice.instrument = Instrument.from_program( instrument, bank, soundfont )
+
+def function_sfload ( context : Context, soundfont : str, alias : str = None, only_new : bool = False ):
+    script = context.script
+
+    if not only_new:
+        for seq in script.player.sequencers:
+            if hasattr( seq, 'load_soundfont' ):
+                cast( Any, seq ).load_soundfont( soundfont, alias )
+    
+    for factory in script.player.sequencer_factories:
+        if hasattr( factory, 'add_soundfont' ):
+            cast( Any, factory ).add_soundfont( soundfont, alias )
+
+def function_sfunload ( context : Context, soundfont : str, only_new : bool = False ):
+    script = context.script
+
+    if not only_new:
+        for seq in script.player.sequencers:
+            if hasattr( seq, 'unload_soundfont' ):
+                cast( Any, seq ).unload_soundfont( soundfont )
+    
+    for factory in script.player.sequencer_factories:
+        if hasattr( factory, 'remove_soundfont' ):
+            cast( Any, factory ).remove_soundfont( soundfont )
 
 def function_debug ( context : Context, expr ):
     value = expr.eval( context.fork() )
@@ -307,6 +331,8 @@ class StandardLibrary(Library):
         context.symbols.assign( "cc", CallablePythonValue( function_cc ) )
         context.symbols.assign( "setvoice", CallablePythonValue( function_setvoice ) )
         context.symbols.assign( "setinstrument", CallablePythonValue( function_setinstrument ) )
+        context.symbols.assign( "sfload", CallablePythonValue( function_sfload ) )
+        context.symbols.assign( "sfunload", CallablePythonValue( function_sfunload ) )
         context.symbols.assign( "interval", Interval )
         context.symbols.assign( "scale", Scale )
 
