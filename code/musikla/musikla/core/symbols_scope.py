@@ -175,6 +175,7 @@ class SymbolsScope:
 
     def import_from ( self, scope : 'SymbolsScope', local : bool = True ):
         for key, value in scope.enumerate( local = local ):
+            # Treat symbols that start with an underscore as private
             if not key.startswith( "_" ):
                 self.assign( key, value, local = True )
 

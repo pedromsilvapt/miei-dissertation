@@ -199,27 +199,20 @@ def function_mod ( n : float, d : float ) -> float:
 def function_div ( n : float, d : float ) -> float: 
     return n // d
 
-def function_inspect_context ( context : Context, ignore_root : bool = True ):
+def function_inspect_context ( context : Context, ignore_root : bool = True, ignore_symbols : bool = False ):
     symbols = context.symbols
     
     while symbols != None and ( not ignore_root or symbols.parent is not None ):
         print( f"Context#{ id( symbols ) } (Opaque = { symbols.opaque })" )
-        for container_name, container in symbols.symbols.items():
-            print( f"  - { container_name or '<default>' }:" )
-            for key, value in container.items():
-                print( f"    - { key }: { value }" )
+
+        if not ignore_symbols:
+            for container_name, container in symbols.symbols.items():
+                print( f"  - { container_name or '<default>' }:" )
+                for key, value in container.items():
+                    print( f"    - { key }: { value }" )
 
         symbols = symbols.parent
     print()
-
-def function_import ( context : Context, file : Node ):
-    file_value : Value = file.eval( context )
-
-    Value.expect( file, str, "Import" )
-
-    ast = Parser().parse_file( file_value )
-
-    return ast.eval( context )
 
 def function_voices_create ( context : Context, name : str, modifiers : Node = None, inherit : Voice = None ):
     if inherit != None:
@@ -298,7 +291,6 @@ class StandardLibrary(Library):
         context.symbols.assign( "discard", CallableValue( function_discard ) )
         context.symbols.assign( "play", CallableValue( function_play ) )
         context.symbols.assign( "using", CallableValue( function_using ) )
-        context.symbols.assign( "import", CallableValue( function_import ) )
         context.symbols.assign( "seek", CallableValue( function_seek ) )
         context.symbols.assign( "ast", CallableValue( function_ast ) )
         context.symbols.assign( "ast_to_code", CallablePythonValue( function_ast_to_code ) )

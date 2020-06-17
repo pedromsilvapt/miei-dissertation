@@ -13,6 +13,7 @@ Python port of the experiments that were started in the .NET project.
  > **Note** Instead of installing pyFluidSynth from PyPi, we need to use the more up-to-date version (which accepts pulseaudio) from the git repo
  > ```shell
  >pip3 install git+https://github.com/pedromsilvapt/pyfluidsynth
+ >sudo python3.7 -m pip install git+http://github.com/pedromsilvapt/pyfluidsynth
  >```
  
 ## Usage

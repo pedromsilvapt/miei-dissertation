@@ -22,22 +22,25 @@ def load_config () -> ConfigParser:
     return config
 
 class Script:
-    def __init__ ( self, code : Union[str, Node] = None, context : Context = Context.create(), config : ConfigParser = None ):
-        self.context : Context = context
+    def __init__ ( self, code : Union[str, Node] = None, context : Context = None, config : ConfigParser = None ):
+        self.prelude_context : Context = context or Context.create()
+        self.context : Context = self.prelude_context.fork( symbols = self.prelude_context.symbols.fork( True ) )
         self.parser : Parser = Parser()
         self.player : Player = Player()
         self.config : ConfigParser = config or load_config()
         self.tasks : Set[asyncio.Task] = set()
         self.soundfont : Optional[str] = None
+        self.import_paths : List[str] = []
+        self.import_cache : Dict[str, Context] = {}
         
-        self.context.symbols.assign( 'script', self, local = True )
+        self.prelude_context.symbols.assign( 'script', self, local = True )
         # Some core code may depend on the script variable to get a hold of it at runtime
         # But in some child context, the user might have locally binded a custom value to the symbol named "script"
         # And thus any services that were handed that child context would have difficulty finding the main script variable
         # Therefore we publish it too in the "internal" container, which is not available through the musikla language
         # And so we can ensure with more safety that it will be the correct script variable
-        self.context.symbols.assign( 'script', self, local = True, container = 'internal' )
-        
+        self.prelude_context.symbols.assign( 'script', self, local = True, container = 'internal' )
+
         self.libraries : Dict[str, Any] = {}
         
         self.add_sequencer_factory( ABCSequencerFactory )
@@ -48,12 +51,12 @@ class Script:
         self.add_sequencer_factory( FluidSynthSequencerFactory )
 
         # Import the builtin libraries
-        self.import_library( StandardLibrary, self.player, prelude = True )
-        self.import_library( MusicLibrary )
-        self.import_library( KeyboardLibrary, self.player )
-        self.import_library( KeyboardPynputLibrary )
-        self.import_library( KeyboardMidoLibrary )
-        self.import_library( MidiLibrary )
+        self.import_library( StandardLibrary, self.player, context = self.prelude_context )
+        self.import_library( MusicLibrary, context = self.prelude_context )
+        self.import_library( KeyboardLibrary, self.player, context = self.prelude_context )
+        self.import_library( KeyboardPynputLibrary, context = self.prelude_context )
+        self.import_library( KeyboardMidoLibrary, context = self.prelude_context )
+        self.import_library( MidiLibrary, context = self.prelude_context )
 
         if code != None:
             self.eval( code )
@@ -70,26 +73,69 @@ class Script:
 
             self.libraries[ name.lower() ] = library
 
-    def import_library ( self, library : Union[str, Path, Library, Any], *args : Any, context : Context = None, prelude : bool = False ):
+    def resolve_import ( self, current_path : str, import_path : str, local : bool ) -> str:
+        import os
+        from pathlib import Path
+
+        import_extensions = [ '.py', '.mkl' ]
+
+        if local:
+            if os.path.isabs( import_path ):
+                return import_path
+            
+            return str( Path( current_path ).parent.joinpath( import_path ).resolve() )
+        else:
+            for path in self.import_paths:
+                joined_path = str( Path( path ).join( import_path ).resolve() )
+
+                if any( joined_path.endswith( ext ) for ext in import_extensions ):
+                    if os.path.exists( joined_path ):
+                        return joined_path
+                
+                for ext in import_extensions:
+                    if os.path.exists( joined_path + ext ):
+                        return joined_path + ext
+
+    def import_module ( self, context : Context, module_path : str, save_cache : bool = True ):
+        module_path = os.path.realpath( module_path )
+
+        if module_path not in self.import_cache:
+            module_context : Context = self.create_subcontext( self.prelude_context, fork = True )
+
+            self.execute_file( module_path, module_context, fork = False, silent = True )
+
+            if save_cache:
+                self.import_cache[ module_path ] = module_context
+        else:
+            module_context : Context = self.import_cache[ module_path ]
+
+        if module_context is not None:
+            context.symbols.import_from( module_context.symbols, local = True )
+
+    def import_library ( self, library : Union[str, Path, Library, Any], *args : Any, context : Context = None ):
+        context = context or self.context
+
         if type( library ) is str or isinstance( library, Path ):
             library_str = str( library )
                 
             if library_str in self.libraries:
                 lib_instance = cast( Library, self.libraries[ library_str ]( *args ) )
 
-                self.context.link( lib_instance, self )
-            elif library_str.lower().endswith( '.mkl' ):
-                sub_context = self.create_subcontext( context, True, __main__ = False )
+                context.link( lib_instance, self )
+            # elif library_str.lower().endswith( '.mkl' ):
+            #     sub_context = self.create_subcontext( context, True, __main__ = False )
 
-                self.execute_file( library_str, context = sub_context, fork = False, silent = True )
+            #     self.execute_file( library_str, context = sub_context, fork = False, silent = True )
 
-                context.symbols.import_from( sub_context.symbols, local = True )
+            #     context.symbols.import_from( sub_context.symbols, local = True )
+            # elif library_str.lower().endswith( '.py' ):
+            #     raise Exception( f'Importing python files still not supported.' )
             else:
                 raise Exception( f'Trying to import library {library_str} not found.' )
         elif isinstance( library, Library ):
-            self.context.link( library, self )
+            context.link( library, self )
         elif issubclass( library, Library ):
-            self.context.link( library( *args ), self )
+            context.link( library( *args ), self )
         else:
             raise Exception( f'Trying to import library {library} not found.' )
 
@@ -129,9 +175,9 @@ class Script:
             code = self.parse( code )
 
         if context is None:
-            context = self.create_subcontext( None, fork, **locals )
+            context = self.create_subcontext( None, fork = fork, **locals )
         elif locals:
-            context = self.create_subcontext( context, fork, **locals )
+            context = self.create_subcontext( context, fork = fork, **locals )
 
         return Value.eval( context, code )
     
@@ -154,8 +200,13 @@ class Script:
             **locals
         } )
         
-        if not silent and value and isinstance( value, Music ):
-            return self.play( value, sync = sync, realtime = realtime )
+        if value and isinstance( value, Music ):
+            if not silent:
+                return self.play( value, sync = sync, realtime = realtime )
+            else:
+                # Since code can be lazy, we need to make sure we actually execute the file even
+                # when we have no intention of handling it's events
+                for _ in value.expand( context ): pass
 
         return None
 

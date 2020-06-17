@@ -26,7 +26,6 @@ class FluidSynthSequencer ( Sequencer ):
         self.realtime = realtime
 
         self.output : str = output or "pulseaudio"
-        # self.soundfont : str = soundfont or "/usr/share/sounds/sf2/FluidR3_GM.sf2"
         self.settings : Mapping[str, Any] = settings
 
         self.synth : Optional[pyfluidsynth.Synth] = None
@@ -403,7 +402,7 @@ class FluidSynthSequencerFactory( SequencerFactory ):
             del self.soundfonts[ soundfont ]
 
     def from_str ( self, uri : str, args ) -> FluidSynthSequencer:
-        soundfont = self.config.get( 'Musikla', 'soundfont', fallback = None )
+        soundfont = self.config.get( 'Musikla', 'soundfont', fallback = "/usr/share/sounds/sf2/FluidR3_GM.sf2" )
 
         cli_settings = self._args_settings_dictionary( args )
         ini_settings = self.config[ 'FluidSynth.Settings' ] if 'FluidSynth.Settings' in self.config else {}

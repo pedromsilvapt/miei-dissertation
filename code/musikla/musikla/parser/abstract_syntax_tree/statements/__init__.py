@@ -5,4 +5,5 @@ from .function_declaration_node import FunctionDeclarationStatementNode
 from .for_loop_node import ForLoopStatementNode
 from .while_loop_node import WhileLoopStatementNode
 from .if_node import IfStatementNode
+from .import_node import ImportStatementNode
 from .return_node import ReturnStatementNode

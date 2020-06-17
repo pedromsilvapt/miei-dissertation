@@ -22,7 +22,7 @@ from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, Less
 from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockNode, PropertyAccessorNode
 
 from .abstract_syntax_tree.statements import StatementsListNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
-from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode, ReturnStatementNode
+from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode, ReturnStatementNode, ImportStatementNode
 
 from .abstract_syntax_tree.macros import KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode, KeyboardForLoopMacroNode, KeyboardWhileLoopMacroNode, KeyboardIfMacroNode, KeyboardBlockMacroNode
 from .abstract_syntax_tree.macros import VoiceDeclarationMacroNode
@@ -53,6 +53,14 @@ class ParserVisitor(PTNodeVisitor):
 
     def visit_statement ( self, node, children ):
         return children[ 0 ]
+
+    def visit_import ( self, node, children ):
+        position = ( node.position, node.position_end )
+
+        if children.namespaced:
+            return ImportStatementNode( children.namespaced[ 0 ], False, position = position )
+
+        return ImportStatementNode( children.string_value[ 0 ].value, True, position = position )
 
     def visit_var_declaration ( self, node, children ):
         position = ( node.position, node.position_end )

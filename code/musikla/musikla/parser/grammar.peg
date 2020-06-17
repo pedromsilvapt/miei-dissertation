@@ -5,7 +5,11 @@ body <- statement ( ";" statement )* _ ";"? _
       ;
 
 // Statements
-statement <- _ ( var_declaration / voice_declaration / for_loop_statement / while_loop_statement / if_statement / return_statement / python_statement / expression ) _;
+statement <- _ ( var_declaration / voice_declaration / import / for_loop_statement / while_loop_statement / if_statement / return_statement / python_statement / expression ) _;
+
+import <- "import" _ namespaced
+        / "import" _ string_value
+        ;
 
 var_declaration <- "$" namespaced _ var_declaration_infix? "=" _ expression;
 
@@ -246,6 +250,8 @@ identifier <- r"[a-zA-Z\_][a-zA-Z0-9\_]*";
 alphanumeric <- r"[a-zA-Z0-9\_]*";
 
 _ <- r"[ \t\r\n]*";
+
+__ <- r"[ \t\r\n]+";
 
 e <- "";
 

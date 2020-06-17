@@ -132,8 +132,8 @@ class KeyboardLibrary(Library):
             PianoKey, KeyStroke, MouseClick, MouseMove, MouseScroll
         )
 
-        script.import_library( Path( __file__ ).parent / "library.mkl", context = self.context )
-
+        script.import_module( self.context, Path( __file__ ).parent / "library.mkl", save_cache = False )
+        
     def register_event_type ( self, *events : Type[KeyboardEvent] ):
         for event in events:
             self.event_types[ event.__name__ ] = event
