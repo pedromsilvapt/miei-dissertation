@@ -18,7 +18,7 @@ Apesar de ser anunciada como direcionada tanto a músicos como a programadores, 
 
 \subsubsection{Exemplos}
 O exemplo seguinte demonstra um simples programa escrito em \textit{alda}, demonstrando: a seleção de um instrumento (\texttt{piano:}), a definição da oitava base (\texttt{o3}), um acorde com quatro notas (\texttt{c1/e/g/>c4}) em que a última se encontra uma oitava acima das outras.
-\begin{lstlisting}[caption={Exemplo da linguagem alda},captionpos=b,backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}[caption={Exemplo da linguagem alda}]
 piano: o3 c1/e/g/>c4 < b a g | < g+1/b/>e
 \end{lstlisting}
  É também possível verificar o uso de acidentais (identificados pelos símbolos \texttt{+} ou \texttt{-} a seguir a uma nota) bem como a diferenciação da duração de algumas notas (identificadas pelos números em frente às notas).
@@ -34,14 +34,14 @@ No entanto, tal como a linguagem \textit{ALDA}, as músicas definidas são está
     \subsubsection{Exemplos}
 A sintaxe de um ficheiro \textit{ABC} é composta por duas partes: um cabeçalho onde são definidas as configurações da música atual, seguido pelo corpo da música. O cabeçalho é formado por uma várias linhas. Cada linha, em ABC chamada de campo, tem uma chave e um valor separados por dois pontos (\texttt{:}). A especificação da notação descreve bastantes campos possíves, mas os mais usados são: \textbf{X} (número de referência), \textbf{T} (título), \textbf{M} (compasso), \textbf{L} (unidade de duração de nota) e \textbf{K} (clave).
 
-\begin{lstlisting}[caption={Exemplo da notação ABC},captionpos=b,backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}[caption={Exemplo da notação ABC}]
 C, D, E, F,|G, A, B, C|D E F G|A B c d|e f g a|b c' d' e'|f' g' a' b'|]
 \end{lstlisting}
 
 No exemplo acima podemos ver uma escala completa das notas (sem acidentais). O chamado C médio é representado por um \textbf{c} minúsculo (a capitalização das letras muda o significado). Para subir uma oitava, podemos anotar as notas com um apóstrofo (\textbf{c'}). As oitavas subsequentes são anotadas por mais apóstrofos. De modo análogo, para baixar uma oitava, devemos usar primeiro a nota em maíuscula (\textbf{C}). As oitavas anteriores são identificadas por uma (ou mais) vírgula a seguir à nota com letra maíuscula (\textbf{C,}).
 
 
-\begin{lstlisting}[caption={Exemplo da notação ABC},captionpos=b,backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}[caption={Exemplo da notação ABC}]
 A/2 A/ A A2 __A _A =A ^A ^^A [CEGc] [C2G2] [CE][DF]
 \end{lstlisting}
 A duração das notas pode ser ajustada relativamente à unidade global definida no cabeçalho acrescentando um número (por exemplo \textbf{2}) ou fração \textbf{1/4} à nota. Os acidentais bemol, bequadro e sustenido podem ser adicionados acrescentando um \textbf{\_}, \textbf{=} e \textbf{\^} antes da nota, respetivamente. Acordes (notas tocadas ao mesmo tempo) podem ser definidas entre parênteses retos (\textbf{[} e \textbf{]}).
@@ -65,7 +65,7 @@ process = no.noise*0.5;
 
 No primeiro exemplo, podemos ver a estrutura mais básica de um programa escrito em \textit{Faust}. Na primeira linha é importada a biblioteca \textit{standard} da linguagem. Na segunda linha podemos ver a \textit{keyword} \textbf{\texttt{process}}, que representa o \textit{input} e \textit{output} audio do nosso programa. Finalmente, em frente a essa \textit{keyword} podemos ver a expressão \texttt{no.noise*0.5}. Isto demonstra a utilização de construções da biblioteca \textit{standard}, como o gerador de ruído aleatório, bem como a utilização de operadores matemáticos usuais (neste caso a multiplicação) para manipular o audio, e diminuir o volume para metade.
 
-\begin{lstlisting}[caption={Geração de ruído aleatório com um filtro \textit{low-pass}},captionpos=b]
+\begin{lstlisting}[caption={Geração de ruído aleatório com um filtro \textit{low-pass}}]
 import("stdfaust.lib");
 ctFreq = 500;
 q = 5;
@@ -74,7 +74,7 @@ process = no.noise : fi.resonlp(ctFreq,q,gain);
 \end{lstlisting}
 Neste exemplo, estamos a usar o operador \texttt{:} para canalizar o \texttt{output} do gerador de ruído para um filtro \textit{low-pass}, que filtra todas as frequências acima de um valor de corte (a variável \texttt{ctFreq}). Aumentar esta variável resulta num som mais agudo, enquanto que ao diminui-la obtemos um som mais grave (pois o valor de corte é mais baixo, apenas os sons abaixo desse valor são passados).
 
-\begin{lstlisting}[caption={Geração de ruído aleatório com um filtro \textit{low-pass} controlada por uma interface},captionpos=b]
+\begin{lstlisting}[caption={Geração de ruído aleatório com um filtro \textit{low-pass} controlada por uma interface}]
 import("stdfaust.lib");
 ctFreq = hslider("[0]cutoffFrequency",500,50,10000,0.01);
 q = hslider("[1]q",5,1,30,0.1);
@@ -135,7 +135,7 @@ Tradicionalmente, as gramáticas mais populares no campo de processamento de tex
 A diferença com maiores repercussões práticas entre as duas classes de gramáticas deve-se á semãntica atribuída ao operador de escolha, e a consequente \textbf{ambíguidade} (ou falta dela) na gramática. Nas gramáticas \acrshort{peg}, o operador é ordenado, o que significa que a ordem por que as alternativas aparecem é relevante durante o \textit{parsing} do \textit{input}. Isto contrasta com a semântica nas \acrshort{cfg}, onde a ordem das alternativas é irrelevante. Isto pode no entanto levar a ambíguidades, onde o mesmo \textit{input}, descrito pela mesma gramática, pode resultar em duas árvores de \textit{parsing} diferentes, se satisfizesse mais do que um dos ramos do operador de escolha. Isto é, as \acrshort{cfg} podem por essa razão ser ambíguas.
 
 Tomemos como exemplo o famoso problema do \textit{dangling else}~\cite{dangling-else} descrito nas duas classe de gramáticas:
-\begin{lstlisting}[backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}
  if (a) if (b) f1(); else f2();
 \end{lstlisting}
 
@@ -174,7 +174,7 @@ Um ficheiro de SoundFont é constítuido por um ou mais bancos (\textit{banks}) 
 
 Usando a sintaxe de declaração de tipos do \textit{Python} (que irá ser usada mais vezes neste projeto), podemos declarar um \textit{SoundFont}, de uma forma bastante genérica e omitindo detalhes não essenciais, como sendo modelado pelos seguintes tipos:
 \newpage
-\begin{lstlisting}[caption=Sistema de Tipos de um ficheiro SoundFont,captionpos=b,language=Python]
+\begin{lstlisting}[caption=Sistema de Tipos de um ficheiro SoundFont,language=Python]
     # Cada preset e identificado por um par: (bank, preset number)
     SoundFont = Dict[ Tuple[ int, int ], Preset ]
     

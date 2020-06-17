@@ -257,7 +257,7 @@
 \setglossarystyle{super}
 \setabbreviationstyle[acronym]{long-short}
 \acronymsfile{acronyms} 
-\symbolsfile{symbols}
+% \symbolsfile{symbols}
 
 % The Table of Contents is always printed.
 % The other lists below may be commented and omitted.
@@ -282,8 +282,8 @@
 % sintax: \appendixfile{file}
 % Comment if not needed
 \appendixfile{appendix1}
-\appendixfile{appendix2}
-\annexfile{annex1}
+%\appendixfile{appendix2}
+%\annexfile{annex1}
 
 
 
@@ -307,6 +307,15 @@
 
 %% Begining of document
 \begin{document}
+
+
+\lstset{
+  captionpos=b,
+  backgroundcolor=\color{verylightgray},
+  rulecolor=\color{white},
+  framesep=7pt
+}
+
 
 \printcoverpage    % The cover page
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

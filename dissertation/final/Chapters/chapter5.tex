@@ -6,7 +6,7 @@
 %% Chapter with lots of dummy text
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Desenvolvimento}
-O desenvolvimento do projeto pode ser dividido de grosso modo em três. Nessas três camadas são cobertos um grupo abrangente de aspetos tanto da área do processamento de linguagens e do desenvolvimento de \acrshort{dsl}'s, da teoria músical, e do processamento digital de audio. 
+O desenvolvimento do projeto pode ser dividido de grosso modo em três camadas. Nelas são cobertos um grupo abrangente de aspetos tanto da área do processamento de linguagens e do desenvolvimento de \acrshort{dsl}'s, da teoria músical, e do processamento digital de audio. 
 
 Na camada da linguagem esteve mais proeminente a área de processamento de linguagens, por motivos óbvios. Mas nas decisões tomadas durante o desenvolvimento desta camada, estiveram sempre presentes também as necessidades específicas que a teoria músical (e a sua notação) impõeem numa linguagem de programação.
 
@@ -33,14 +33,12 @@ A maior diferença nesta área entre a nossa linguagem foi a adição de literai
 \subsubsection{\textbf{Notas e Pausas}}
 A sintaxe de notas descrição de notas é composta por quatro componentes: \textbf{acidentais}, \textbf{\textit{pitch}} (obrigatório), \textbf{oitava} e \textbf{duração}.
 
-\begin{center}
-\begin{lstlisting}[backgroundcolor=\color{transparent},captionpos=b,caption=Expressão regular que identifica uma nota (quebras de linha apenas para claridade de leitura),xleftmargin=.4\textwidth]
+\begin{lstlisting}[caption=Expressão regular que identifica uma nota (quebras de linha apenas para claridade de leitura)]
 [_^]*
 [a-gA-G]
 [',]*
 ([0-9]*\/)?[0-9]*
 \end{lstlisting}
-\end{center}
 
 O \textit{pitch} refere-se à nota (ou frequência) que deve ser tocada. O \textbf{C médio} (também conhecido como C4) é descrito simplesmente como \texttt{C}. É possível descer uma ou mais oitavas acrescentando uma ou mais vírgulas \texttt{,}. Para subir uma oitava, podemos primeiro substituir as letras maíusculas por minúsculas. Para subir mais oitavas, podemos acrescentar uma ou mais pelicas \texttt{'}. Para subir ou descer semitons, podemos preceder a notas com os acidentais \texttt{\_} e \texttt{\^}.
 
@@ -65,7 +63,7 @@ Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de
 \label{tab:modifiers-list}
 \end{table}
 
-A decisão de embrulhar cada acorde com parênteses retos deveu-se ao facto de muitas abreviaturas serem já populares no domínio da notação músical, e como tal o ideal era não as mudar. No entanto, algumas dessas abreviaturas poderiam entrar em conflito com outros componentes da declaração da nota. Por exemplo, \texttt{C7} poderia ser tanto um acorde de sétima como uma nota com duração de 7. Com a separação por parenteses retos, a ambiguidade deixa de existir, sendo obvio que \texttt{[C7]} é um acorde de sétima, e \texttt{C7} é uma nota com duração 7.
+A decisão de envolver cada acorde com parênteses retos deveu-se ao facto de muitas abreviaturas serem já populares no domínio da notação músical, e como tal o ideal era não as mudar. No entanto, algumas dessas abreviaturas poderiam entrar em conflito com outros componentes da declaração da nota. Por exemplo, \texttt{C7} poderia ser tanto um acorde de sétima como uma nota com duração de 7. Com a separação por parenteses retos, a ambiguidade deixa de existir, sendo obvio que \texttt{[C7]} é um acorde de sétima, e \texttt{C7} é uma nota com duração 7.
 
 \begin{lstlisting}[caption={Exemplos de três definições de acordes possíveis}] 
 [CFG]/4 [^Fm] [C5]2
@@ -73,7 +71,13 @@ A decisão de embrulhar cada acorde com parênteses retos deveu-se ao facto de m
 
 \subsubsection{\textbf{Modificadores}}
 
-Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar certas propriedades das notas e acordes à sua frente, por exemplo.
+Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar certas propriedades das notas e acordes. Duas destas propriedades (duração e oitava) podem ser depois customizadas em cada nota ou acorde, como já vimos. No entanto, em vez de estes valores substituirem simplesmente os valores predefinidos, eles ``complementam-se''.
+
+Ou seja, se declarar-mos por exemplo que a duração base das notas é $\frac{1}{4}$. Quando definirmos alguma nota a seguir com a duração de $\frac{1}{2}$, a sua duração real irá ser calculada da seguinte forma $\frac{1}{4} \times \frac{1}{2} = \frac{1}{8}$.
+
+Do mesmo modo, quando definimos por exemplo a oitava base como $5$ (o valor predefinido é $4$), a nota \texttt{C,} passa a representar a oitava $5 - 1 = 4$ (por predefinição seria $4 - 1 = 3$).
+
+Podemos então ver a lista dos modificadores aceites pela linguagem, bem como exemplos de utilização e os seus respetivos valores predefinidos (usados quando nenhum modificador é aplicado).
 
 \begin{table}[h]
 \centering
@@ -92,14 +96,113 @@ Compasso      & S$D$/$N$                                                        
 \label{tab:modifiers-list}
 \end{table}
 
-\subsubsection{\textbf{Operadores}}
+\subsubsection{\textbf{Variáveis e Funções}}
+Uma das consequências da introdução da sintaxe de notas literais foi a impossibilidade de ter variáveis com certos nomes. Uma variável chamada \texttt{a}, por exemplo, iria entrar em conflito com a nota do mesmo nome. Do mesmo modo, uma variável chamada \texttt{i1} iria entrar em conflito com o modificador de instrumento. 
 
-\subsubsection{\textbf{Variáveis}}
+Em vez de criar casos de excepção para as variáveis que possam ter nomes que conflitam com outros construtores sintáticos, seguimos o exemplo de outras linguagems como \textit{PHP}, \textit{Perl} ou \textit{Powershell}, e decidimos prefixar as nossas variáveis com o caracter \texttt{\$}.
 
-\subsubsection{\textbf{Funções}}
+No caso das funções foi possível evitar a ambiguidade (e do mesmo modo a obrigatoriedade de as prefixar com um caracter) devido ao facto de as funções terem obriugatoriamente um par de parênteses (sem espaço entre o nome da função) quando são chamadas.
+
+No entanto não quer dizer que as funções passaram imunes à introdução das literais de música. Uma vez que a vírgula é usada para mudar a oitava de uma nota (e foi escolhida de forma a manter compatibilidade com a sintaxe do projeto \textit{abc notation}, existem casos em que esta não pode ser utilizada para separar os argumentos passados a uma função.
+
+Por exemplo, dada a expressão \texttt{function\_name(C, A, \$a, 2)}, podemos concluir que a mesma tem quantos argumentos? A resposta correta seria dois, pois as duas primeiras vírgulas poderiam pertencer à nota ou ao separador da função. Mas neste caso a nota teria prioridade, pelo que \texttt{C, A, \$a} seria o primeiro argumento, e \texttt{2} seria o segundo.
+
+A solução tomada inicialmente foi utilizar ponto-e-vírgula para substituir a vírgula como separador de argumentos  nas funções. E enquanto iso resolveu os problemas de ambiguidade, tornou-se óbvio à medida que que a linguagem foi avançando, que a prevalência da vírgula como separador em quase todas as linguagens de programação mais populares fazia com que houvesse um custo mental de mudança de contexto sempre que alguém mudava de alguma linguagem para a nossa, e vice-versa.
+
+A solução escolhida no final foi um compromisso entre as duas opções: tanto a vírgula como o ponto-e-vírgula podem ser usados como separadores de argumentos, com a exceção de quando o argumento é uma nota músical, onde o ponto-e-vírgula tem de ser obrigatoriamente usado. Assim sendo, poderiamos rescrever o exemplo anterior da seguinte forma \texttt{function\_name(C; A; \$a, 2)}, passando a função a receber agora os quatro argumentos como seria inicialmente esperado.
 
 \subsection{Parser}
+Para implementar o parser da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} descendente recursivo como recurso a \textit{memoization} para melhora da performance. A gramática utilizada pode ser vista em maior detalhe no apêndice \ref{grammar}.
+
+\begin{lstlisting}[caption={Excerto da gramática desenvolvida}]
+main <- body EOF;
+
+body <- statement ( ";" statement )* _ ";"? _
+    / ""
+    ;
+
+// Statements
+statement <- _ ( var_declaration / voice_declaration / function_declaration / for_loop_statement / while_loop_statement / if_statement / expression ) _;
+
+var_declaration <- "$" namespaced _ "=" _ expression;
+// ...
+\end{lstlisting}
+
+A gramática PEG desenvolvida para o projeto foi depois complementada por uma classe \textbf{Parser}, responsável por gerar a \acrshort{ast} da linguagem. Para isso recorremos ao \textit{Visitor Pattern}, com um método para cada regra não-terminal da gramática (todos prefixados com \texttt{visit\_}).
+
+\begin{lstlisting}[caption={Métodos responsáveis por criarem a AST}]
+def visit_body ( self, node, children ): ...
+
+def visit_comment ( self, node, children ): ...
+
+def visit_statement ( self, node, children ): ...
+
+def visit_var_declaration ( self, node, children ): ...
+\end{lstlisting}
+
 \section{Interpretador}
+As linguagens compiladas usualmente recorrem à compilação \acrfull{aot}, em que o código é transformado em código máquina com antecedência (durante a fase de compilação). Esta é a solição que consegue geralmente oferecer melhor \textit{performance}, menor consumo de memória e tempos de \textit{startup} mais rápido. Por outro lado, obriga a um passo de compilação separado sempre que o código fonte é alterado, e regra geral necessita de tipos de dados estáticos.
+No que toca a linguagens interpretadas temos mais opções. Podemos então dividir os seus modos de execução em três categorias distintas, cada uma com possíveis vantagens e desvantagens, bem como diferenças de dificuldade de implementação bastante salientes.
+\begin{description}
+ \item[Interpretadores] Também chamados por vezes como interpretadores \textit{tree walk}, são usualmente os mais simples de implementar (mas também os mais lentos a executar). O seu conceito baseia-se no \textit{design pattern} homónimo, em que as operações da linguagem são modeladas numa árvore, geralmente igual ou similar à estrutura da \acrshort{ast}. Para executar uma expressão é chamado um método na raiz da árvore, e esse método irá chamar recursivamente os métodos das suas sub-expressões, passando o estado como argumentos da função, e recebendo o resultado pelo valor retornado da função.
+ \item[Bytecode VM] São chamadas máquinas virtuais (VM) porque o seu comportamento assemelha-se mais ao comportamento dos processadores reais dos computadores. As expressões da árvore de sintaxe abstrata são previamente convertidas numa sequência linear de instruções mais simples (geralmente compactadas em binário para melhor \textit{performance}, também referido como \textit{bytecode}. Cada instrução é depois executada dentro de um ciclo. Esta solução fornece um balanço entre facilidade de implementação e velocidade de execução (evitando a grande quantidade de chamadas recursivas de funções presentes nos interpretadores).
+ \item[Just In Time] O método mais complexo (mas também o que oferece melhor \textit{performance} para tarefas pesadas). O código é executado inicialmente por um dos dois métodos anteriores, de modo a recolher estatísticas sobre qual o tipo de execução mais comum do código. Após esta recolha, é gerado código máquina optimizado para os tipos de dados mais comuns de uma variável, ou para os caminhos de execução mais prevalentes, para que seja possível da próxima vez que o mesmo pedaço de código seja executado, isso ocorra com recurso ao código máquina. Este processo é gerlamente repetido ao longo da execução do programa, sendo que caso a versão de código máquina gerada fique desatualizado (o tipo de dados usualmente passados a uma função mudem), essa porção de código seja invalidada e eventualmente substituida por uma nova versão mais adequada.
+ \end{description}
+
+ É possível ver que a solução ideal seria sempre a compilação \acrfull{jit}, que evita uma fase de compilação explícita e forçada ao utilizador, mas ao mesmo tempo consegue fornecer \textit{performance} competitiva para tarefas mais exigentes. No entanto é inevitável concluir que esta solução impõe custos de desenvolvimento astronómicos, e implica equipas de grande dimensão e tempos de desenvolvimento extremamente longos.
+ 
+ Desta forma a nossa escolha reside logicamente entre a solução de \textbf{Interpretador} e um simples \textbf{Bytecode}. Acabamos por escolher a primeira opção pelas seguintes razões:
+ \begin{itemize}
+  \item A geração de eventos músicais é relativamente computacionalmente barata (mesmo admitindo algumas dezenas de eventos músicais por segundo).
+  \item A componente mais pesada geralmente reside na sintetização dos eventos músicais (\textit{note on, note off}) em \textit{streams} de audio, mas esta tarefa é encaminhada para bibliotecas desenvolvidas em linguagens de baixo nível.
+  \item A possibilidade de correr código \textit{Python} no meio de qualquer parte da nossa linguagem já fornece um bom meio termo para quando é necessária mais alguma \textit{performance} (sem sacrificar demasiado a simplicidade de uma linguagem destinada primariamente a músicos e não engenheiros informáticos).
+  \item Também a facilidade de implementação de um interpretador significou uma velocidade de ordens de magnitude superior durante a implementação da linguagem e da prototipação de funcionalidades.
+  \item Uma posterior modificação do interpretador para uma \textit{bytecode VM} mais eficiente seria possível estando a linguagem mais estabilizada, e seria simples manter uma \acrshort{api} virtualmente 100\% compatível.
+ \end{itemize}
+
+ Em conclusão, cada operação foi implementada através de um método \texttt{eval()} em cada classe da \acrshort{ast}, recebendo uma variável de contexto como \textit{input}, e usando depois o valor retornado pela função como resultado da avaliação da expressão.
+ 
+\subsection{Contexto}
+A variável de contexto guarda o estado da execução, e deve conter toda a informação necessária para cada instrução poder executar. Os seus conteúdos podem ser divididos em três componentes:
+\begin{description}
+ \item[Timestamp] Esta propriedade é um simples inteiro que permite às expressões de geração de eventos músicais saberem qual o tempo virtual atual. Este tempo virtual é manipulado pelos vários operadores. O operador sequencial por exemplo, que recebe uma lista de expressões e emite uma lista de eventos músicais uns a seguir aos outros, avança este cursor para o fim do último evento antes de passar o contexto para avaliar a expressão seguinte.
+ \item[Voz] Objeto que contém as várias propriedades músicais que devem ser aplicadas durante a geração de eventos, tais como a duração base das notas, o compasso ou as batidas por minuto.
+ \item[Símbolos] Um contentor que permite aceder e modificar os símbolos disponíveis na linguagem (tais como variáveis e funções).
+ \end{description}
+ 
+ Os contextos foram desenhados com o intuito de serem leves, daí apenas conterem  referências para três variáveis. Desta forma é possível criar cópias dos contextos e permitir que operações variadas estejam a executar ao mesmo tempo com diferentes contextos.
+ 
+ Para percebermos a razão desta necessidade, basta pensarmos no operador paralelo. Se colocarmos duas expressões músicais que devem tocar ao mesmo tempo, a geração de uma (ou mais) notas na primeira expressão não deve afetar o \texttt{timestamp} da segunda. Para isto, cada uma das expressões deve receber uma cópia do contexto (com o \textit{timestamp} inicial igual). Quando as duas expressões terminarem, no entanto, é importante que o contexto original (que gerou as duas cópias) atualize os seu \textit{timestamp} para qual for a expressão mais longa.
+ 
+ Se prestarmos atenção, podemos estar aqui a detetar um padrão bastante comum na área da programação: o modelo \textbf{fork-join}.
+ 
+ E é fácil perceber que faz sentido. Apesar de estarmos a lidar com notas e eventos músicais, fundamentalmente estamos a criar ramos paralelos de execução, e queremos no final aguardar o seu resutado e uníficá-lo com o ramo original. Se substituirmos ramo por \textit{thread} para o caso da programação, ou \textit{contexto} para o nosso caso, vemos a equivalência de contextos.
+ 
+ Como tal, para além do estado (as três variáveis) que o objeto de contexto engloba, este providencia também algumas operações bastante simples e úteis:
+ 
+ \begin{description}
+  \item[Fork] Cria uma cópia do contexto, podendo receber opcionalmente também um inteiro como argumento com vista a substituir o valor do \textit{timestamp} do contexto pai. Como segundo argumento pode também receber um novo \textit{scope} de símbolos, algo que iremos aprofundar mais no capítulo seguinte.
+  \item[Join] Recebe uma lista de contextos como argumento, e avança o \textit{timestamp} para o maior encontrado nessa lista.
+  \item[Seek] A operação de mudar o \textit{timestamp} do contexto atual.
+ \end{description}
+
+ Os contextos não têm (nem precisam) de referências para outros \textit{contextos-pai} ou \textit{contextos-filhos}, de modo a que não é preciso grandes preocupações relativamente a fugas de memória com a criação de novos contextos: apenas são mantidos em memória os contextos que têm referências para eles, e que portanto estão ainda em uso.
+
+\subsection{Scope de Símbolos}
+Cada contexto tem uma referência para o \textit{scope} de símbolos a que tem acesso. Nestes scopes são guardadas as variáveis e funções que o utilizador (e as bibliotecas standard da linguagem) declararem. Mais uma vez, cada objeto de \textit{scope} é composto por três propriedades: uma referência ao seu \textbf{antecessor} (ou pai), uma tabela de \textit{hash} com os \textbf{símbolos}, e uma \textit{flag} booleana para designar este \textit{scope} como \textbf{opaco}.
+
+O próprio conceito de \textit{scope} implica por si só uma hierarquia, e de facto cada objecto \textit{scope} guarda uma referência para o seu parente (ou para o valor nulo, caso seja o \textit{scope} raiz). Esta propriedade é utilizada para as operações disponíveis, tanto para pesquisar, como para atribuir valores a símbolos do \textit{scope} atual, algo que iremos verificar mais a seguir.
+
+\begin{description}
+ \item[Lookup]
+ \item[Assign]
+ \item[Enumerate]
+\end{description}
+
+
+
+
+\subsection{Módulos}
 \section{Biblioteca Standard}
 \subsection{Inputs \& Outputs}
 \subsection{Ficheiros de Som}

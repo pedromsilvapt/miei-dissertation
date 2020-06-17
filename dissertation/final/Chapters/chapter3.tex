@@ -75,21 +75,21 @@ Em termos de instruções suportadas, a linguagem irá ter as usuais:
 \subsubsection{Acompanhamentos Musicais}
 A gramática de expressões ou acompanhamentos músicais tem como base fundamental os seguintes blocos: notas, pausas e modificadores. As notas são identificadas pelas letras A até G, seguindo a notação de \textit{Helmholtz}\cite{helmholtz-pitch-notation} para denotar as respetivas oitavas. Podem também ser seguidas de um número ou de uma fração, indicando a duração da nota.
 
-\begin{lstlisting}[caption={Exemplos de notas},captionpos=b,backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}[caption={Exemplos de notas}]
 C,, C, C c c' c'' c''' c'/4 A1/4 B2
 \end{lstlisting}
 
 
 As notas podem depois ser compostas \textbf{sequencialmente} (como demonstrado em cima, em que cada nota avança o tempo pelo valor da sua duração) ou em \textbf{paralelo} (separados por uma barra vertical \texttt{|}, criando uma bifurcação do contexto em dois, que irão correr em paralelo). Devemos notar que o operador paralelo tem a menor precedência de todos, pelo que não é necessário agrupar as notas com parênteses quando se usa. Isto é, as duas expressões seguintes são equivalentes.
 
-\begin{lstlisting}[captionpos=b,backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}
 A B C | D E F
 ( A B C ) | ( D E F )
 \end{lstlisting}
 
 É também possível agrupar estes blocos com recurso a parênteses. Os grupos herdam o contexto da expressão superior, mas as modificações ao seu contexto permanecem locais. Isto permite, por exemplo, modificar configurações para apenas um conjunto restrito de notas. No exemplo seguinte, a velocidade da nota \texttt{C} é 70, mas para o grupo de notas \texttt{A B} a velocidade é 127.
 
-\begin{lstlisting}[captionpos=b,backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}
 v70 (v127 A B) C
 \end{lstlisting}
 
@@ -103,13 +103,13 @@ Os modificadores disponíveis são:
 
 É também poossível definir qual o instrumento a ser utilizado para as notas. Todas as notas pertencentes ao mesmo contexto depois do modificador utilizarão esse instrumento.
 
-\begin{lstlisting}[captionpos=b,backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}
 (:cello A F | :violin A D)
 \end{lstlisting}
 
 Para além destas funcionalidades, também existe algum açúcar sintático para algumas das tarefas mais comuns na construção de acompanhamentos, como tocar acordes ou repetir padrões.
 
-\begin{lstlisting}[captionpos=b,backgroundcolor=\color{softgray},rulecolor=\color{white},framesep=6pt]
+\begin{lstlisting}
 ( [BG]*2 [B2G2] )*3
 \end{lstlisting}
 
