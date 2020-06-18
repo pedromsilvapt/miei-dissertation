@@ -339,13 +339,11 @@ def create_application():
         code = text_field.buffer.text
 
         try:
-            ast = Parser().parse( code )
+            script = ApplicationState.context.script
 
             now = ApplicationState.player.get_time()
 
-            ctx = ApplicationState.context.fork( cursor = now )
-
-            val = Value.eval( ctx, ast )
+            val = script.eval( code, context = ApplicationState.context.fork( cursor = now ) )
 
             if val is not None and isinstance( val, Music ):
                 pl = InteractivePlayer( lambda: val.expand( ctx ), ApplicationState.player, realtime = True )
