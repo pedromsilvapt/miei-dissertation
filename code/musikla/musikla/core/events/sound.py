@@ -1,12 +1,15 @@
-from typing import Any, cast
+from typing import Any, Optional, Union, cast
 from ..voice import Voice
 from .event import DurationEvent
 from wave import Wave_read, open
 from pathlib import Path
 from subprocess import Popen, PIPE
+from weakref import WeakValueDictionary
 import os
 
 class SoundEvent( DurationEvent ):
+    cached_sounds : WeakValueDictionary = WeakValueDictionary()
+
     @staticmethod
     def is_optimized ( file : str ) -> bool:
         suffix : str = Path( file ).suffix.lower()
@@ -55,13 +58,23 @@ class SoundEvent( DurationEvent ):
         else:
             return SoundEvent.convert( file )
         
+    @staticmethod
+    def open_wave_cached ( file : str ):
+        try:
+            return SoundEvent.cached_sounds[ file ]
+        except:
+            wave = SoundEvent.open_wave( file )
 
-    def __init__ ( self, file : str, timestamp = 0, duration = None, value = None, velocity : int = 127, voice : Voice = None ):
+            SoundEvent.cached_sounds[ file ] = wave
+
+            return wave
+
+    def __init__ ( self, file : Union[str, Wave_read], timestamp = 0, duration = None, value = None, velocity : int = 127, voice : Voice = None ):
         super().__init__( timestamp, duration, value, voice )
 
-        self.file : str = file
+        self.file : Optional[str] = file if type( file ) is str else None
         self.velocity : int = velocity
-        self.wave : Wave_read = SoundEvent.open_wave( self.file )
+        self.wave : Wave_read = SoundEvent.open_wave_cached( file ) if type( file ) is str else file
         self.wave_duration : int = int( ( self.wave.getnframes() / float( self.wave.getframerate() ) ) * 1000 )
         
         if self.duration is None and self.value is None:
