@@ -1,6 +1,6 @@
 %!TEX root = ../template.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% chapter4.tex
+%% chapter5.tex
 %% NOVA thesis document file
 %%
 %% Chapter with lots of dummy text
@@ -194,19 +194,130 @@ Cada contexto tem uma referência para o \textit{scope} de símbolos a que tem a
 O próprio conceito de \textit{scope} implica por si só uma hierarquia, e de facto cada objecto \textit{scope} guarda uma referência para o seu parente (ou para o valor nulo, caso seja o \textit{scope} raiz). Esta propriedade é utilizada para as operações disponíveis, tanto para pesquisar, como para atribuir valores a símbolos do \textit{scope} atual, algo que iremos verificar mais a seguir.
 
 \begin{description}
- \item[Lookup]
- \item[Assign]
- \item[Enumerate]
+ \item[Pesquisa] A operação de pesquisa por um símbolo começa por procurar o símbolo no próprio \textit{scope}, e caso não encontre nada, navega recursivamente para o \textit{scope} pai para efetuar a pesquisa.
+ 
+ \item[Atribuição] A operação de atribuição segue a mesma filosofia da operação de pesquisa, procurando o \textit{scope} onde o símbolo a atribuir está guardado. No entanto, esta pesquisa decorre até encontrar o primeiro \textit{scope} opaco. Um \textit{scope} opaco não impede a leitura de valores de \textit{scopes} superiores, mas impede a escrita. Por exemplo, uma atribuição dentro de uma função cria apenas uma variável dentro do \textit{scope} dessa função.
+ 
+ Se encontrar o símbolo nalgum \textit{scope}, então muda o seu valor nesse \textit{scope} onde está declarado. Caso contrário, é criado um novo símbolo no \textit{scope} original onde a operação de atribuição foi iniciada.
+ 
+ \item[Enumeração] A operação de enumeração permite listar quais os símbolos vísiveis a partir de um \textit{scope}. Ela permite listar não só os símbolos do próprio \textit{scope}, mas também dos seus pais, tendo o cuidado para não retornar símbolos que tenham sido obscurecidos por um \textit{scope} mais em baixo. Esta é útil para importar símbolos do \textit{scope} de um módulo para outro, ou para implementar funcionalidades como \textit{autocomplete} sobre um script em execução (e permitir sugerir os símbolos disponíveis).
+ 
+ \item[Apontadores] Como vimos na atribuição, é ímpossível alterar valores de variáveis globais dentro de \textit{scopes} opacos (como dentro de funções, por exemplo). Para colmatar isso, similar ao operador \texttt{global} e \texttt{nonlocal} do \textit{Python}, é possível instruir um \textit{scope} a criar um apontador para um símbolo declarado noutro \textit{scope}, de forma a que quando ocorre alguma atribuição, a alteração é replicada no seu \textit{scope} original.
 \end{description}
 
-
-
-
 \subsection{Módulos}
+O interpretador dispõe também da possibilidade de executar código separado em vários ficheiros, cada um sendo considerado um módulo. O utilizador pode configurar uma lista de pastas (num conceito similar à variável de ambiente \texttt{\$PATH}) onde serão procurados módulos quando alguma instrução \texttt{import} é avaliada. Também é possível passar um caminho absoluto ou relativo ao módulo que iniciou a importação.
+
+Cada ficheiro importado é executado apenas uma vez durante a primeira importação, e no final o seu \textit{scope} é guardado em \textit{cache} para ser usado em futuras importações.
+
+Cada instrução de importação é dividida em duas fases: primeiro, o caminho passado é resolvido no caminho real e absoluto do ficheiro. Só depois é verificada na cache  se o ficheiro já foi importado antes. Uma vez obtido o seu \textit{scope}, os seus símbolos são enumerados e copiados para o scope que efetuou a importação (com símbolos que comecem com um \textit{underscore} sendo tratados como símbolos privados e ignorados).
+
+Para isso, quando o interpretador é inicializado, é criado um \textit{scope} raiz chamado \textbf{prelude}, e um \textit{scope} filho. Cada módulo importado é executado num \textit{scope} criado sempre a partir do \textit{prelude}. Desta forma, os símbolos aí guardados estão sempre acessíveis em todos os módulos importados.
+
+% TODO Imagem a exemplificar os scopes
+
+\subsection{Operadores Músicais}
+
 \section{Biblioteca Standard}
 \subsection{Inputs \& Outputs}
+Durante a execução, os eventos músicais são representados em memória por objetos \textit{Python} que derivam da classe base \textbf{MusicEvent}, e estão agrupados em sequências pelos objetos que derivam da classe \textbf{Music}.
+
+A forma mais óbvia de criar estes objetos é utilizando a syntaxe de literais de música inspirada pelo projeto \textit{abc notation} que pode ser utilizada dentro da própria linguagem.
+
+No entanto, não há nenhuma restrição que forçe este a ser o único método de introdução ou geração de eventos músicais. De facto, existem já vários formatos de descrição de música, e a capacidade de os poder ler e traduzir para objetos músicais dentro da nossa linguagem, indistinguíveis daqueles que são criados pela sintaxe de literais, traz ínumeras vantagens e abre a possibilidade de este projeto se tornar como um canivete suísso da notação músical, capaz de ler, transformar e depois também escrever em diversos formatos diferentes.
+
+Para além de ser capaz de ler (\textbf{input}) eventos músicais e transforma-los nos objetos em memória que a nossa linguagem expecta, é também importante poder, depois de os criar e transformar ao nosso gosto, poder fazer algo de útil com eles. Ou seja, escrever (\textbf{output}) estes eventos músicais em diversos formatos.
+
+O verdadeiro objetivo da linguagem é que seja extensível, de modo a que qualquer pessoa capaz de programar \textit{Python} possa connectar um novo \textit{input} ou \textit{output} para as suas necessidades específicas, sem necessitar de ter conhecimentos intrínsecos do funcionamento de toda a linguagem. Nesta secção iremos descrever alguns dos modos de \textit{input} e \textit{output} incluídos de base com a linguagem e que servem de prova de conceito do que é possível fazer com ela.
+
+Os \textit{outputs} podem ser globais, ou seja, aplicarem-se aos eventos emitidos pela aplicação. Neste caso são geralmente passados como argumentos de linha de comandos, ou adicionados durante a execução através da função \texttt{\$script::player::add\_sequencer()}. Também é possível gravar apenas expressões de música específicas com a função \texttt{save()}.
+\subsubsection{FluidSynth}
+Esta biblioteca serve apenas como \textbf{output} para a linguagem, e permite sintetizar sons a partir de ficheiros \textit{SoundFont}. Os sons gerados podem depois ser passados diretamente para as colunas do computador, ou guardados em disco num ficheiro de música.
+
+Para implementar este \textit{output}, utilizamos o projeto \textit{pyfluidsynth}\cite{pyfluidsynth} para interoperar o nosso código \textit{Python} com a biblioteca \textit{FluidSynth}, escrita em \textit{C}. Como os \textit{bindings} do projeto em \textit{Python} não cobriam toda a \acrshort{api} da biblioteca que nós necessitavamos, optamos por realizar um \textit{fork} dos \textit{bindings}, o que nos permitiu depois efetuar as alterações necessárias à nossa medida.
+
+O objeto principal disponibilizado pelo \textit{FluidSynth} é o objeto \texttt{Synth}. Este disponibiliza inúmeros métodos (baseados no \textit{standard} MIDI) para ativar e desativar uma nota, mudar o instrumento, definir o valor de um controlo, entre muitas outras. Os métodos chamados neste objetos são aplicados imediatamente, pelo que se tivermos uma lista de ações (eventos músicais) a tomar com \textit{timestamps} variados, temos de tratar do seu correto agendamento.
+
+Felizmente a biblioteca também providencia um objeto para isso: \texttt{Sequencer}.  Para o efeito registamos um \textit{callback} na nossa aplicação que recebe o evento e é responsável por o aplicar ao \texttt{Synth}. Depois, sempre que algum evento é gerado, chamamos a função \texttt{Sequencer.timer()} e passamos-lhe o \textit{timestamp} em que deve ser executado o evento, bem como o evento em si e o \textit{callback} a chamar quando o temporizador concluir.
+
+A maioria dos eventos da nossa linguagem são inspirados pelo \textit{standard} MIDI, tal como a é desenhada a \acrshort{api} do sintetizador do \textit{FluiSynth}, pelo que aplicação dos eventos passa geralmente apenas por chamar a função correta e fornecer-lhe os parâmetros carregados pelo evento. Há no entanto uma exceção à regra, algo que iremos aprofundar mais à frente, e que é a possibilidade de reproduzir, para além de notas músicais, mas ficheiros músicais também. Infelizmente o \textit{FluidSynth} não suporta diretamente este tipo de utilização, mas com alguma criatividade foi possível implementá-la usando as ferramentas que nos eram disponibilizadas.
+
+A sintetização de notas efetuada pelo \textit{FluidSynth} recorre aos ficheiros \textit{Soundfont}, que podem ser descritos de uma forma muito simplista como um dicionário que associa a cada nota de cada instrumento um \textit{buffer} contendo o som a ser reproduzido, mais algumas configurações que permitem ajustar o som gerado a diversas situações (duração da nota, velocidade, entre outras).
+
+Estas fontes de som podem ser carregadas para o \textit{FluidSynth} e através do método \texttt{Synth.sfload()} e passando-lhe o caminho do ficheiro. Mas para além de fontes carregadas do disco, também é disponibilizada uma estrutura \texttt{RamSFont} que permite criar, representar e editar uma fonte de som completamente em memória, que pode ser depois associada ao sintetizador pelo método \texttt{Synth.add\_sfont()}.
+
+Sempre que algum evento músical traz consigo um ficheiro de música para ser reproduzido, nós associamos o conteúdo desse ficheiro a uma nota de um instrumento virtual da \texttt{RamSFont} que criamos. Quando o mesmo ficheiro é pedido para ser reproduzido várias vezes, a mesma nota do mesmo instrumento é utilizada, evitando estar sempre a ler os conteúdos do ficheiro. Este evento músical é depois convertido num evento de reprodução de notas, com a informação da nota e do instrumento a usar sendo preenchidas automaticamente com o nosso instrumento virtual.
+
+Desta forma, podemos reproduzir ficheiros arbitrários de som em conjunto com as notas músicais de uma forma transparente para o utilizador.
+
+No entanto, um obstáculo que encontramos durante a implementação desta funcionalidade foi o facto de os sons associados a notas com um valor inteiro inferior a 15 (cada instrumento pode ter 128 notas, entre 0-127) tinham o seu \textit{pitch} distorcido, mesmo quando eram passadas as \textit{flags} para que os sons fossem reproduzidos sem ajustamento do \textit{pitch}. Este comportamento no entanto desaparecia acima de notas com o valor 15, pelo que adotamos esse valor como a nossa base (o que desperdiça 15 lugares em cada instrumento que poderiam ser associados a sons). Como na \textit{SoundFont} podemos utilizar também vários instrumentos, isso significava que ainda assim conseguíamos reproduzir $127 \times 113 = 14351$ sons distintos, o que é bastante mais do que suficiente para a maioria dos casos.
+
+\subsubsection{MIDI}
+Mais uma biblioteca que achamos importante incluir de base foi o suporte para leitura e escrita de dados MIDI. Isto tanto pelo facto de que o \textit{standard} MIDI é um dos mais utilizados no mundo da música, mas também porque a nossa implementação da linguagem, particularmente relativa à representação dos eventos músicais em memória, foi fortemente inspirada por este formato. Dessa forma, implementar funções de transformação dos não exigiu demasiado esforço. Para o efeito, utilizamos o módulo \textit{Python} \texttt{mido}, que permite ler e escrever eventos MIDI, tanto de portas como de ficheiros em disco.
+
+A nível de leitura (\textbf{input}), o módulo disponibiliza uma função \texttt{readmidi()} que permite ler eventos músicais de um ficheiro ou porta MIDI, returnando um objeto do tipo \textbf{Music}. A função aceita os seguintes parâmetros (sendo os parâmetros de ficheiro ou de porta mutualmente exclusivos):
+
+\begin{description}
+ \item[file] \textit{(Opcional)} Quando presente, lê os eventos músicais de um ficheiro MIDI.
+ \item[port] \textit{(Opcional)} Permite ler os eventos de uma porta em vez de um ficheiro. Este parâmetro aceita vários valores.
+ \begin{description}
+  \item[True] Se receber este valor, tenta listar as portas MIDI disponíveis e escolher a mais indicada para ler os eventos.
+  \item[List{[String]}] Uma lista de nomes de portas para escutar. Os eventos das portas referidas são combinados numa única sequência de eventos, como se viessem todos da mesma porta.
+  \item[String] O nome de uma única porta para estar à escuta de eventos.
+ \end{description}
+ \item[voices] \textit{(Opcional)} Uma lista de vozes para mapear a cada canal MIDI a que os eventos pertencem. Quando nenhuma voz é especificada, a voz atual presente no contexto é utilizada para todos os canais.
+ \item[cutoff\_sequence] \textit{(Opcional)} Uma sequência de notas ou eventos músicais que, quando recebidos pelas portas MIDI, são utilizados como sinal para terminar imediatamente a leitura e retornar a sequência de eventos já capturada. È ignorada quando a fonte de leitura é um ficheiro.
+ \item[ignore\_message\_types] \textit{(Opcional)} Uma lista de \textit{strings} com os nomes de mensagens MIDI que devem ser ignoradas.
+\end{description}
+
+É também possível escrever (\textbf{output}) para portas e ficheiros MIDI de forma bastante simples. Este \textit{output} é ativado automaticamente quando se grava um ficheiro com a extensão MIDI, ou quando se prefixa o nome de uma porta com a \textit{string} \texttt{midi://}.
+
+Ao escrever para ficheiros ou portas MIDI, é possível filtrar apenas os eventos de certas vozes, e mapear também os canais atribuidos a cada voz. Isto é extremamente útil para permitir ligar a aplicação a programas \acrshort{daw}, e permitir receber os eventos MIDI em faixas separadas (para aplicar efeitos ou transformações específicas a cada faixa).
+
+\subsubsection{ABC}
+
 \subsection{Ficheiros de Som}
+Como já foi mencionado no sub-capítulo sobre o \textit{output} \textbf{FluidSynth}, uma das funcionalidades que queriamos implementar na linguagem era a possibilidade de reproduzir ficheiros de som arbitrários, e integra-los com o resto da geração de eventos músicais.
+
+Isto abre a possibilidade de incluir nos projetos que usem a linguagem sons gerados por outros programas, e mais uma vez vai de encontro ao nosso objetivo central de extensibilidade da linguagem. Podemos pensar assim que mesmo que a aplicação não suporte todo o tipo de geração de sons que alguma pessoa possa precisar, é sempre possível usar a aplicação para a maioria dos casos mais comuns que são suportados, e gerar ficheiros com recurso a alguma aplicação externa que colmatem as nossas necessidades mais específicas. Para utilizar-mos esta funcionalidade, temos à nossa disposição o método \texttt{sample()}.
+
+\begin{lstlisting}[caption=Exemplo de reproduzir um ficheiro a seguir a duas notas]
+A B sample( "cihat.wav" );
+\end{lstlisting}
+
+Para facilitar todo o processo, os ficheiros de som devem seguir todos as mesmas especificações. Por conveniência, adoptamos as configurações suportadas pela biblioteca \textit{FluidSynth} para blocos de som nas suas \textit{SoundFonts}.
+
+\begin{table}[h]
+\centering
+\def\arraystretch{1.3}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Configuração} & \textbf{Valor} \\ \hline
+Formato               & WAVE           \\ \hline
+Sample Rate           & 41.100hz       \\ \hline
+Canais                & 2              \\ \hline
+Bit depth             & 16bit          \\ \hline
+Compressão            & \textit{N/A}   \\ \hline
+\end{tabular}
+\caption{Formato nativo suportado pelo FluidSynth}
+\label{tab:sounds-format}
+\end{table}
+
+Para facilitar a utilização, é possível ao utilizador carregar ficheiros de som em formatos diferentes desde que tenha a ferramenta FFMPEG instalada no sistema. Quando isso ocorre, a linguagem converte o ficheiro musical \textit{background}, aplicando as configurações necessárias, e guarda-o depois em memória. Isto é especialmente útil para experiências rápidas e com ficheiros pequenos (até alguns \textit{megabytes}).
+
+Esta funcionalidade traz bastante simplicidade à utilização da linguagem, mas impõe um custo durante a inicialização de todos os programas. Para permitir aos utilizadores determinarem se os seus ficheiros vão necessitar de conversão, sem terem de recorrer a ferramentas externas para efetuar a verificação, disponibilizamos a função \texttt{is\_sample\_optimized()}, em conjunto com a função \texttt{optimize\_sample()} para converter o ficheiro e gravar o resultado em disco.
+
+\begin{lstlisting}[caption={Verificar se um ficheiro de audio está optimizado, e convertê-lo caso contrário}]
+if ( not is_sample_optimized( "cihat.wav" ) ) {
+    # Converts the file and saves it to disc
+    optimize_sample( "cihat.wav", "cihat_opt.wav" );
+};
+\end{lstlisting}
+
+Desta forma a conversão ocorre apenas uma vez, e de seguida o utilizador pode utilizar o ficheiro convertido e não se preocupar com a perda de performance sempre que usa o som num \textit{script}.
+
 \subsection{Teclados Músicais}
+
 \subsection{Grelhas}
 \subsection{Transformadores}
 \subsection{Editor Embutido}
