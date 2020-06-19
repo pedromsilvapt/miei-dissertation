@@ -317,7 +317,137 @@ if ( not is_sample_optimized( "cihat.wav" ) ) {
 Desta forma a conversão ocorre apenas uma vez, e de seguida o utilizador pode utilizar o ficheiro convertido e não se preocupar com a perda de performance sempre que usa o som num \textit{script}.
 
 \subsection{Teclados Músicais}
+Para além de permitir construir expressões que geram sequências de eventos músicais dinâmicas, algo que esteve desde início no topo da nossa lista de prioridades foi sem dúvida adicionar suporte para a criação de teclados interativos. Sendo esta linguagem desenvolvida em computadores, não seria errado pensar que por teclado nos referimos aos teclados físicos dos computadores. E esses fazem certamente parte, mas quando nos referimos a teclados músicais, referimo-nos à possibilidade de descrever na nossa linguagem mapeamentos entre \textit{eventos} e expressões músicais ou ações a executar quando esses eventos acontecem.
 
+\begin{lstlisting}[caption={Exemplo de declaração de duas teclas}]
+@keyboard {
+    a: print( "Tecla a carregada" );
+    b: d;
+};
+\end{lstlisting}
+
+Esses eventos podem então ser teclas de um teclado, mas também de um piano conectado ao computador, ou eventos do rato, ou de qualquer outro dispositivo de \acrshort{io} que as pessoas queiram adaptar, bastando para isso herdar a classe\texttt{KeyboardEvent}.
+
+\subsubsection{Tipos de Eventos}
+Os tipos de evento mais comum são teclas de teclado e de piano. Por essa mesma razão implementamos açúcar sintático na definição desses eventos  (que são implementados pelas classes \texttt{KeyStroke} e \texttt{PianoKey}, respectivamente).
+
+\begin{lstlisting}[caption={Declaração de três eventos, o primeiro é uma combinação de teclas, o segundo referência o \textit{virtual key code}, e o terceiro uma nota MIDI}]
+@keyboard {
+    ctrl+c: ^c;
+    [16]: d;
+    [c']: e;
+};
+\end{lstlisting}
+
+A lista de tipos de eventos suportados de base pela linguagem são os seguintes:
+\begin{description}
+ \item[KeyStroke]
+ Este tipo de eventos referem-se às teclas do teclado. Para além de permitirem descrever teclas singulares, também suportam os modificadores \textit{ctrl}, \textit{alt} e \textit{shift}. O evento não carrega consigo nenhum parâmetro extra.
+ 
+ \textbf{Parâmetros:} \textit{N/A}
+ \item[PianoKey] Sinalizam quando uma nota é tocada e recebida pela porta MIDI que a aplicação esteja à escuta. Trazem consigo um parâmetro que identifica a velocidade com que a nota foi premida.
+ 
+ \textbf{Parâmetros:} \texttt{\$vel}
+ \item[MouseClick] Evento ocorre quando algum dos botões do rato é premido. As informações sobre a posição em que o rato se encontra, bem como qual o botão premido e se foi premido ou levantado, são incluidas como parâmetros deste evento.
+ 
+ \textbf{Parâmetros:} \texttt{\$x}, \texttt{\$y}, \texttt{\$button} \texttt{\$pressed}
+ \item[MouseMove] Evento ocorre sempre que o rato é movido. Pode ser útil paar controlar alguma variável como se fosse um \textit{slider}. Trás como parâmetros as coordenadas do rato.
+ 
+ \textbf{Parâmetros:} \texttt{\$x}, \texttt{\$y}
+ \item[MouseScroll] Evento despoletado quando a roda do rato é acionada. Para além de trazer informações sobre a posição do rato, indica também qual o valor que a roda se moveu, tanto na vertical (mais comum) como também na horizontal.
+ 
+ \textbf{Parâmetros:} \texttt{\$x}, \texttt{\$y}, \texttt{\$dx}, \texttt{\$dy}
+\end{description}
+
+Os \textbf{parâmetros} são algo que, como pudemos ver, é disponibilizado por quase todos os tipos de eventos. Eles dão-nos a possibilidade de saber que os eventos foram despoletados, mas saber propriedades sobre o que os despoletou. Estes parâmetros podem ser acedidos passando as variáveis desejadas com o nome do parâmetro (a ordem é irrelevante) à frente da declaração do evento. Essas variáveis podem depois ser acedidas dentro da ação do evento.
+
+\begin{lstlisting}[caption={Teclado que imprime as coordenadas do rato sempre que ele se move}]
+@keyboard {
+    [keyboard\MouseMove] ($x, $y): print( $x, $y );
+};
+\end{lstlisting}
+
+Para criar novos tipos de eventos, basta criar uma nova classe em \textit{Python} que derive da classe \texttt{KeyboardEvent}. Esta classe deve implementar apenas dois métodos obrigatórios (\texttt{\_\_hash\_\_} e \texttt{\_\_eq\_\_}) que são usados para guardar os eventos num dicionário, ficando cada evento associado à sua ação. Opcionalmente pode ser definido um terceiro método, \texttt{get\_parameters}, que deve returnar um dicionário com as variáveis e os seus respetivos valores que o evento disponibiliza. Cada tipo de evento pode também definir uma propriedade chamada \texttt{binary} como verdadeira ou falsa.
+
+Os \textbf{binários} referem-se ao conceito de eventos que são conceptualmente compostos por duas fases: premir e soltar. Exemplos deste tipo de eventos são, obviamente premir e soltar teclas do computador ou de um piano. A razão porque este conceito é tratado como um caso particular na nossa linguagem, ao invés de serem tratados como dois eventos separados (\texttt{PianoKeyPress} e \texttt{PianoKeyRelease} por exemplo), deve-se ao facto de os eventos binários mapearem de forma bastante elegante com o conceito de \textit{note on} e \textit{note off} na geração de música. E da mesma maneira que a nossa linguagem não obriga o utilizador a declarar por cada nota o seu ponto de início e de fim separados, não faria sentido fazer isso para os teclados.
+
+Por essa razão, os teclados podem (através dos modificadores \texttt{hold extend} que vamos cobrir a seguir) mapear automaticamente o início e o fim das notas declaradas em cada uma das suas teclas, com os modos \textit{press} e \textit{release} dos seus eventos.
+
+\subsubsection{Modificadores de Eventos}
+Cada evento de um teclado tem associada uma ação: essa ação pode ter \textit{size effects}, e opcionalmente returnar um evento músical (ou uma sequência de eventos). Sempre que o evento é despoletado, a ação é avaliada e caso retorne um objeto músical, esse é reproduzido.
+
+Por predefinição, o tempo que a tecla está premida não afeta a duração das notas emitidas. Pelo contrário, a duração das notas (e acordes e todo o resto de eventos músicais) é calculada com o que o utilizador tiver determinado no código. Isto acontece porque o teclado permite que o utilizador defina não só um evento músical para cada tecla, mas sim que possa definir uma música completa, se quiser. Neste caso quando a tecla é premida, a música começa a tocar até terminar.
+
+Os \textbf{modificadores} permitem customizar o comportamento do teclado quando encontra alguma sequência músical. Cada modificador pode ser aplicado a todo o teclado (quando aparece à frente da \textit{keyword} \texttt{@keyboard}), ou ser aplicada individualmente a cada tecla.
+
+\begin{description}
+ \item[repeat] Quando presente, o teclado reproduz a música da tecla, e quando esta acabar, começa a tocar novamente, sem parar.
+ \item[toggle] Reproduz a música da tecla até esta ser premida novamente (ou a música acabar).
+ \item[hold] Reproduz a música da tecla enquanto a tecla estiver premida (ou a música acabar).
+ \item[extend] Tanto o \texttt{toggle} como o \texttt{hold} permitem terminar uma música mais cedo. Com este modificador, todas as notas tocadas pela tecla ficam ativas enquanto a pessoa não carregar novamente na tecla (em conjunto com o \texttt{toggle}), ou a largar (em conjunto com o \texttt{hold}).
+\end{description}
+
+Assim, se quisermos replicar o comportamento de um piano, por exemplo, em que premir a tecla começa a tocar uma nota, e libertá-la para a nota, podemos usar os modificadores \texttt{hold extend} em conjunto.
+
+\begin{lstlisting}[caption={Aplicar o modificar \texttt{hold extend} a um teclado inteiro}]
+@keyboard hold extend {
+    a: c;
+    s: d:
+    d: e;
+};
+\end{lstlisting}
+
+\subsubsection{Estruturas de Controlo}
+Até agora temos visto como é possível declarar manualmente ações num teclado. Algo que ainda não foi dito é o facto de o bloco de declaração de um teclado \verb|@keyboard {}| ser uma macro que, antes da execução, é traduzida para instruções que criam o teclado e registam as teclas.
+
+\begin{lstlisting}[caption={Código gerado automaticamente para criação do teclado descrito no capitulo anterior}]
+{
+    $__keyboard = keyboard\create();
+    keyboard\push_flags($__keyboard; 'hold'; 'extend');
+    keyboard\register($__keyboard; 'a'; c);
+    keyboard\register($__keyboard; 's'; d);
+    keyboard\register($__keyboard; 'd'; e);
+    keyboard\pop_flags($__keyboard; 'hold'; 'extend');
+    $__keyboard
+}
+\end{lstlisting}
+
+Vendo desta forma é possível concluir que o código fica extremamente mais verboso, mas ao mesmo tempo abre novas possibilidades: é possível registar teclas condicionalmente, envolvendo a chamada da função num \texttt{if}, ou registar teclas em massa dentro de um ciclo \texttt{for} ou \texttt{while}.
+
+A abordagem de criar os teclados manualmente desta forma é sem dúvida válida para os casos mais complexos (com alguns dos teclados definidos na biblioteca \textit{standard} a serem criados desta forma). Mas achamos que seria interessante poder integrar este tipo de estruturas de controlo simples com a sintaxe específica de declaração de teclados, para permitir mais variedade ao tipo de teclados que são possíveis de criar com ela.
+
+Assim sendo, dentro da expressão de declaração de teclados, são suportados os seguintes construtores sintáticos:
+\begin{description}
+ \item[Condicionais] Permitem tornar a declaração de uma ou mais teclas condicionais. O código gerado é transformado de forma a envolver as funções que registam as teclas dentro de um \texttt{if}.
+ \item[Ciclos] É possível ter também ciclos \texttt{for} e \texttt{while} dentro de um teclado. Isto permite percorrer um \textit{array} ou repetir a mesma tecla com alguma variação várias vezes.
+ \item[Blocos] É possível envolver instruções da linguagem em chavetas em qualquer parte dos teclados.
+\end{description}
+
+Tomemos um pequeno exemplo que associa a quatro teclas a ação de imprimir para o ecrã um número. Podemos ver que é possível encadear os construtores uns dentro dos outros (neste caso um \texttt{if} dentro de um \texttt{for}). Mas mais interessante do que isso, é verificarmos que existe um pequeno bloco de código responsável por declarar a variável \texttt{\$ki = \$i}, e que no \texttt{print} são impressos os dois valores.
+
+Não seria invulgar pensar que ambos os números seriam iguiais sempre que fossem impressos, mas isso não é o caso. Isto providencia uma boa ocasião para reforçar a noção que as teclas ficam associadas a expressões, e essas expressões são executadas só quando a tecla é ativada.
+
+Isto significa que quando qualquer tecla for premida, o valor de \texttt{\$i} será sempre o mesmo: 4. Isto porque a variável está declarada fora do teclado, e mais importante, fora do ciclo \texttt{for}, o que significa que todas as teclas referenciam a mesma variável. Por outro lado, a variável \texttt{\$ki} é declarada pela primeira vez dentro do ciclo, e como tal está a criar quatro símbolos diferentes que são depois cada um referenciado pela tecla respetiva.
+
+\begin{lstlisting}[caption={Declaração de teclado dinâmica recorrendo ao uso de ciclos, condicionais e blocos de código.}]
+$i = 0;
+
+@keyboard {
+    for ($k in @[ 'a', 's', 'd', 'f' ]) {
+        if ($i > 0) {
+            { $ki = $i };
+            [$k] hold extend: print( $i, $ki );
+        };
+        { $i += 1 };
+    }
+};
+\end{lstlisting}
+
+
+
+
+\subsubsection{Buffers}
+\subsubsection{Gravar e Reproduzir Performances}
 \subsection{Grelhas}
 \subsection{Transformadores}
 \subsection{Editor Embutido}
