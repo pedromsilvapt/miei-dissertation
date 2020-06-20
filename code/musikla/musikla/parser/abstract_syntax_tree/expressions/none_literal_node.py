@@ -13,4 +13,4 @@ class NoneLiteralNode( ExpressionNode ):
         return self.value
     
     def to_source ( self, printer : CodePrinter ):
-        printer.add_token( "null" )
+        printer.add_token( "none" )

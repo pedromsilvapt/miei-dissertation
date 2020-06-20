@@ -99,22 +99,65 @@ fun keyboard\bufslot( $bf = keyboard\Buffer( start = false ), $key = "p" ) {
 };
 
 # '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-fun keyboard\bufpad( ref $buffers, $keys = @[ 82, 79, 80, 81, 126, 75, 76, 77, 71, 72, 73 ] ) {
+fun keyboard\bufpad( ref $buffers, $keys = @[ 82, 79, 80, 81, 126, 75, 76, 77, 71, 72, 73 ], $savename = "buffers.mkl", $load_key = 'f7', $save_key = 'f8' ) {
     $buffers = @{};
 
-    return @keyboard {
+    $saving_file = false;
+    $save_location = getcwd() + "/" + $savename;
+
+    fun prompt_location ( $title, $cb ) {
+        if ( not $saving_file ) {
+            $saving_file = true;
+            
+            keyboard\filedialog( title = $title, default_value = $save_location, cb = fun ( $file ) {
+                using( $save_location );
+
+                $saving_file = false;
+
+                if ( $file != none ) {
+                    $save_location = $file;
+                };
+
+                $cb();
+            } );
+        };
+    };
+
+    fun load_buffers ( $interactive = true ) {
+        if ( $interactive ) {
+            prompt_location( "Open File", fun () => load_buffers( interactive = false ) );
+        } else {
+            $keyboard\Buffer::load_all( $save_location, $buffers ); 
+        }
+    };
+
+    fun save_buffers ( $interactive = true ) {
+        if ( $interactive ) {
+            prompt_location( "Save File", fun () => save_buffers( interactive = false ) );
+        } else {
+            $keyboard\Buffer::save_all( $save_location, $buffers ); 
+        }
+    };
+
+    $_kb = @keyboard {
+        # Load
+        [$load_key]: load_buffers();
+
+        # Save
+        [$save_key]: save_buffers();
+
         for ( $i in range( len( $keys ) ) ) {
             # Bind a variable with the key stored in the array at the given index
             { $key = $keys::[$i] };
 
             # Starts and stops the buffer from recording
             [ keyboard\KeyStroke( $key, ctrl = true ) ]: {
-                $bf = $buffers::get( $key, none );
+                $bf = $buffers::get( $i, none );
 
                 if ($bf == none) {
                     $bf = keyboard\Buffer();
 
-                    $buffers::set( $key, $bf );
+                    $buffers::set( $i, $bf );
                 } else {
                     if ($bf::started) {
                         $bf::stop();
@@ -127,7 +170,7 @@ fun keyboard\bufpad( ref $buffers, $keys = @[ 82, 79, 80, 81, 126, 75, 76, 77, 7
 
             # Previews the recorded music sequence inside the buffer
             [ keyboard\KeyStroke( $key ) ] toggle: {
-                $bf = $buffers::get( $key, none );
+                $bf = $buffers::get( $i, none );
                 
                 if ($bf != none) {
                     return $bf::to_music();
@@ -135,4 +178,6 @@ fun keyboard\bufpad( ref $buffers, $keys = @[ 82, 79, 80, 81, 126, 75, 76, 77, 7
             };
         };
     };
+
+    return pack( into = $_kb, exclude = @[ 'keys' ] );
 };

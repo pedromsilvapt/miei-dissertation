@@ -1,3 +1,4 @@
+from musikla.core import symbols_scope
 from musikla.core.events.transformers.balance_notes import BalanceNotesTransformer
 from musikla.core.events.transformers.compose_notes import ComposeNotesTransformer
 from musikla.audio.player import PlayerLike
@@ -5,10 +6,62 @@ from musikla.audio.interactive_player import InteractivePlayer
 from musikla.core.context import Context
 from musikla.core.music import Music, MusicBuffer, SharedMusic
 from musikla.core.events import MusicEvent
-from typing import List, Optional, cast
+from typing import Dict, List, Optional, cast
 from .keyboard import Keyboard
 
 class KeyboardBuffer:
+    @staticmethod
+    def save_all ( context : Context, file : str, buffers : Dict[int, 'KeyboardBuffer'] ):
+        from musikla.parser.printer import CodePrinter
+        from musikla.libraries.music import function_to_mkl
+        import musikla.parser.abstract_syntax_tree as ast
+        import musikla.parser.abstract_syntax_tree.statements as ast_st
+        import musikla.parser.abstract_syntax_tree.expressions as ast_ex
+
+        body = ast_st.StatementsListNode( [] )
+
+        body.statements.append( ast_st.VariableDeclarationStatementNode( 'buffers', ast_ex.ObjectLiteralNode( [] ) ) )
+
+        for key, buffer in buffers.items():
+            set_fn = ast_ex.PropertyAccessorNode( ast_ex.VariableExpressionNode( 'buffers' ), ast_ex.StringLiteralNode( 'set' ) )
+
+            key_p = ast_ex.NumberLiteralNode( key )
+            music_p = function_to_mkl( context, buffer.to_music(), ast = True ) \
+                if buffer else \
+                ast_ex.NoneLiteralNode()
+
+            body.statements.append( ast_ex.FunctionExpressionNode( set_fn, [ key_p, music_p ] ) )
+
+        file_str = CodePrinter().print( body )
+
+        with open( file, 'w+' ) as f:
+            f.write( file_str )
+    
+    @staticmethod
+    def load_all ( context : Context, file : str, buffers = None ):
+        from musikla.parser.abstract_syntax_tree.expressions.object_literal_node import Object
+
+        buffers = Object() if buffers is None else buffers
+
+        forked_context = context.fork( symbols = context.symbols.fork() )
+
+        context.script.import_module( forked_context, file, save_cache = False )
+
+        saved_buffers = forked_context.symbols.lookup( "buffers", recursive = False )
+        
+        for key, music in saved_buffers.items():
+            bf = buffers.get( key, default = None )
+
+            if bf is None:
+                bf = KeyboardBuffer( context, start = False )
+            
+            if music is not None:
+                bf.from_music( music )
+
+            buffers.set( key, bf )
+        
+        return buffers
+
     def __init__ ( self, context : Context, keyboards : List[Keyboard] = None, start : bool = True ):
         from .library import KeyboardLibrary
         lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
@@ -72,5 +125,14 @@ class KeyboardBuffer:
 
         self.collected_events.clear()
 
+    def __len__ ( self ):
+        return len( self.collected_events )
+
+    def __bool__ ( self ):
+        return bool( self.collected_events )
+
     def to_music ( self ):
         return Music( [ *self.collected_events ] ).transform( BalanceNotesTransformer ).transform( ComposeNotesTransformer ).shared()
+
+    def from_music ( self, music : Music ):
+        self.collected_events = list( music )

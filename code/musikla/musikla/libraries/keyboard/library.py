@@ -85,6 +85,26 @@ def keyboard_readperf ( context : Context, file : str, keyboards : List[Keyboard
 
     return lib.readperf( context, file, keyboards )
 
+def keyboard_filedialog ( context : Context, title : str = "File", text : str = "File Path:", default_value : str = None, cb = None ):
+    from prompt_toolkit.patch_stdout import patch_stdout
+    from prompt_toolkit.shortcuts import input_dialog
+    from prompt_toolkit.completion import PathCompleter
+
+    lib : KeyboardLibrary = cast( KeyboardLibrary, context.library( KeyboardLibrary ) )
+
+    def _run ():
+        with patch_stdout():
+            application = input_dialog( title = title, text = text, completer = PathCompleter() )
+
+            with application.input.raw_mode():
+                application.input.read_keys()
+
+            application.layout.current_control.buffer.insert_text(default_value or "")
+            
+            return application.run_async()
+
+    lib.prompt( _run, cb )
+
 class KeyboardLibrary(Library):
     def __init__ ( self, player : Player ):
         super().__init__( "keyboard" )
@@ -115,6 +135,7 @@ class KeyboardLibrary(Library):
         self.assign( "readperf", CallablePythonValue( keyboard_readperf ) )
         self.assign( "replay", CallablePythonValue( keyboard_replay ) )
         self.assign( "open_repl", CallablePythonValue( keyboard_open_repl ) )
+        self.assign( "filedialog", CallablePythonValue( keyboard_filedialog ) )
 
         self.assign( "Grid", Grid )
         self.assign( "Buffer", KeyboardBuffer )
@@ -258,17 +279,20 @@ class KeyboardLibrary(Library):
         for kb in self.keyboards:
             kb.on_release( key )
 
-    async def prompt_async ( self, prompt ):
+    async def prompt_async ( self, prompt, cb = None ):
         self.paused = True
 
-        res = await prompt()
+        try:
+            res = await prompt()
 
-        self.paused = False
+            if callable( cb ): cb( res )
 
-        return res
-    
-    def prompt ( self, prompt ):
-        create_task( self.prompt_async( prompt ) )
+            return res
+        finally:
+            self.paused = False
+        
+    def prompt ( self, prompt, cb = None ):
+        create_task( self.prompt_async( prompt, cb = cb ) )
 
     async def eval_async ( self, context : Context ):
         from .prompt import run_async

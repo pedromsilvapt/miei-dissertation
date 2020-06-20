@@ -19,6 +19,21 @@ def function_getctx ( context : Context ):
 def function_withctx( _ : Context, ctx : Context, expr : Node ):
     return Value.eval( ctx, expr )
 
+def function_pack ( context : Context, into = None, ctx = None, prefix : str = None, exclude = None, ignore_existing = False ):
+    ctx = ctx or context
+    into = into or type('PackedObject', (object,), {})()
+
+    for key, value in ctx.symbols.enumerate( local = True ):
+        if not key.startswith( '_' ) and ( exclude is None or key not in exclude ):
+            p_key = ( prefix or "" ) + key
+
+            if hasattr( into, p_key ) and not ignore_existing:
+                raise BaseException( f"pack(): Cannot pack attribute '{ p_key }' of '{ type(into) }', attribute already exists." )
+
+            setattr( into, p_key, value )
+    
+    return into
+
 def function_using ( context : Context, var ):
     if not isinstance( var, VariableExpressionNode ):
         raise BaseException( f"Using expected a variable syntax node" )
@@ -114,6 +129,11 @@ def function_save ( context : Context, music : Music, outputs : Union[str, Seque
         return sequencers[ 0 ]
 
     return sequencers
+
+def function_getcwd ():
+    import os
+
+    return os.getcwd()
 
 def function_bool ( val ): return bool( val )
 
@@ -286,6 +306,7 @@ class StandardLibrary(Library):
 
         context.symbols.assign( "getctx", CallablePythonValue( function_getctx ) )
         context.symbols.assign( "withctx", CallablePythonValue( function_withctx ) )
+        context.symbols.assign( "pack", CallablePythonValue( function_pack ) )
         context.symbols.assign( "print", CallablePythonValue( print ) )
         context.symbols.assign( "debug", CallableValue( function_debug ) )
         context.symbols.assign( "discard", CallableValue( function_discard ) )
@@ -298,6 +319,7 @@ class StandardLibrary(Library):
         context.symbols.assign( "eval", CallablePythonValue( function_eval ) )
         context.symbols.assign( "make_sequencer", CallablePythonValue( function_make_sequencer ) )
         context.symbols.assign( "save", CallablePythonValue( function_save ) )
+        context.symbols.assign( "getcwd", CallablePythonValue( function_getcwd ) )
 
         context.symbols.assign( "bool", CallablePythonValue( function_bool ) )
         context.symbols.assign( "int", CallablePythonValue( function_int ) )

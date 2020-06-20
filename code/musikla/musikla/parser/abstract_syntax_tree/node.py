@@ -20,8 +20,8 @@ class ValueNode(Node):
     def __init__ ( self, value : Any ):
         self.value : Any = value
     
-    def to_source ( self ) -> str:
-        return "<VALUE>"
+    def to_source ( self, printer : CodePrinter ):
+        printer.add_token( "<VALUE>" )
 
     def eval ( self, context : Context ):
         return self.value
