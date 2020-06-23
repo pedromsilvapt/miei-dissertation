@@ -423,11 +423,7 @@ Assim sendo, dentro da expressão de declaração de teclados, são suportados o
  \item[Blocos] É possível envolver instruções da linguagem em chavetas em qualquer parte dos teclados.
 \end{description}
 
-Tomemos um pequeno exemplo que associa a quatro teclas a ação de imprimir para o ecrã um número. Podemos ver que é possível encadear os construtores uns dentro dos outros (neste caso um \texttt{if} dentro de um \texttt{for}). Mas mais interessante do que isso, é verificarmos que existe um pequeno bloco de código responsável por declarar a variável \texttt{\$ki = \$i}, e que no \texttt{print} são impressos os dois valores.
-
-Não seria invulgar pensar que ambos os números seriam iguiais sempre que fossem impressos, mas isso não é o caso. Isto providencia uma boa ocasião para reforçar a noção que as teclas ficam associadas a expressões, e essas expressões são executadas só quando a tecla é ativada.
-
-Isto significa que quando qualquer tecla for premida, o valor de \texttt{\$i} será sempre o mesmo: 4. Isto porque a variável está declarada fora do teclado, e mais importante, fora do ciclo \texttt{for}, o que significa que todas as teclas referenciam a mesma variável. Por outro lado, a variável \texttt{\$ki} é declarada pela primeira vez dentro do ciclo, e como tal está a criar quatro símbolos diferentes que são depois cada um referenciado pela tecla respetiva.
+Tomemos um pequeno exemplo que associa a quatro teclas a ação de imprimir para o ecrã um número. Podemos ver que é possível encadear os construtores uns dentro dos outros (neste caso um \texttt{if} dentro de um \texttt{for}). Mas mais interessante do que isso, é verificarmos que existe um pequeno bloco de código responsável por declarar a variável \texttt{\$ki = \$i}, e que no \texttt{print} são impressos as duas variáveis.
 
 \begin{lstlisting}[caption={Declaração de teclado dinâmica recorrendo ao uso de ciclos, condicionais e blocos de código.}]
 $i = 0;
@@ -443,11 +439,65 @@ $i = 0;
 };
 \end{lstlisting}
 
+Não seria invulgar pensar que ambos os números seriam iguiais sempre que fossem impressos, mas isso não é o caso. Isto providencia uma boa ocasião para reforçar a noção que as teclas ficam associadas a expressões, e essas expressões são executadas só quando a tecla é ativada.
 
+Isto significa que quando qualquer tecla for premida, o valor de \texttt{\$i} será sempre o mesmo: $4$. Isto porque a variável está declarada fora do teclado, e mais importante, fora do ciclo \texttt{for}, o que significa que todas as teclas referenciam a mesma variável. Por outro lado, a variável \texttt{\$ki} é declarada pela primeira vez dentro do ciclo, e como tal está a criar quatro símbolos diferentes que são depois cada um referenciado pela tecla respetiva.
 
+\subsubsection{Gravar e Reproduzir Performances}
 
 \subsubsection{Buffers}
-\subsubsection{Gravar e Reproduzir Performances}
+Ao contrário de performances, que gravam os eventos que acionam as teclas dos teclados, é possível guardar diretamente os eventos músicais produzidos pelos teclados com a class \texttt{keyboard\textbackslash{}Buffer}. Os eventos capturados em \textit{buffers} podem ser tratados como qualquer outra sequência músical, e como tal, ser composta com outras expressões, passada a funções e tudo o resto que a linguagem possibilita. 
+
+\begin{lstlisting}[caption={Instanciação de um \textit{buffer}}]
+$buffer = keyboard\Buffer( $keyboards = ..., $start = true );
+\end{lstlisting}
+Ao construir um \textit{buffer}, por predefinição, todos os teclados são gravados imediatamente. É no entanto possível passar uma lista a limitar quais os teclados que irão ser gravados para o buffer, útil para permitir dividir as notas gravadas em faixas separadas (um \textit{buffer} grava uma faixa, outro grava uma faixa diferente, etc). Para além disso, é possível também não iniciar a gravação para o buffer imediatamente. 
+
+Entre as funcionalidades disponibilizadas pela classe, podemos destacar as mais importantes como sendo:
+\begin{description}
+ \item[start] Começa a gravar os eventos emitidos. Mesmo depois de chamado o método \texttt{start()}, o \textit{buffer} só inicia a gravação quando for capturado o primeiro evento músical. Caso se queira forçar um \textit{padding} silencioso ao início, pode-se emitir um evento de pausa com duração zero. Caso o buffer já tenha conteúdos em memória, o que for gravado agora é acrescentado ao fim.
+ \item[stop] Para a gravação do \textit{buffer}. Mais uma vez, a gravação é cortada no último evento músical. Caso se queira forçar a duração do \textit{buffer} com mais algum tempo depois da última nota, basta emitir um evento de pausa com duração zero quando realmente quisermos que o \textit{buffer} termine.
+ \item[clear] Limpa tudo o que o buffer tiver gravado e permite reutilizar o \textit{buffer} do ínicio.
+ \item[to\_music] Retorna os conteúdos do \textit{buffer} na forma de uma sequência músical. Esta sequência é ímutável: alterações aos conteúdos do \textit{buffer} não são refletidos nos dados da sequência gerada. Para obter essas alterações, este método deve ser chamado novamente, returnando uma nova sequência músical.
+ \item[from\_music] Permite substituir manualmente o conteúdo do \textit{buffer} com uma sequência músical. É útil como iremos ver mais à frente para permitir as operações de \texttt{save()} e \texttt{load()} dos \textit{buffers}.
+\end{description}
+
+Tudo isto permite manipular os \textit{buffers} através da linguagem de \textit{scripting}, mas sendo o objetivo dos \textit{buffers} serem usados em conjunto com os teclados, primariamente quando o utilizador os estiver a usar para compor arranjos músicais, é desejável associar todas estas chamadas de código a teclas do teclado, para as permitir usar durante a sua utilização.
+
+Tendo acesso às funções dos \textit{buffers}, cada utilizador pode então programar a sua utilização como bem quiser. Mas para os casos mais comuns, a biblioteca da linguagem fornece já funções destinadas a facilitar o seu uso.
+
+\begin{lstlisting}[caption={Funções disponibilizadas para criação de \textit{buffers} controlados por teclados.}]
+keyboard\bufslot( $bf = keyboard\Buffer( start = false ), $key = "p" );
+
+keyboard\bufpad( ref $buffers, $keys = @[ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ], $savename = "buffers.mkl", $load_key = 'f7', $save_key = 'f8' );
+\end{lstlisting}
+
+A primeira função \texttt{keyboard\textbackslash{}bufslot} permite criar apenas um \textit{buffer} associado a uma tecla.
+
+A segunda \texttt{keyboard\textbackslash{}bufpad} função permite uma utilização mais avançada, associando $N$ \textit{buffers} distintos a $N$ teclas. Para além de permitir iniciar e parar de gravar, bem como reproduzir os conteúdos de cada \textit{buffer}, também permitem gravar e carregar os conteúdos dos \textit{buffers}.
+
+Quando o utilizador pressiona a tecla para gravar ou carregar os \textit{buffers}, é mostrado ao utilizador uma \textit{dialog} para escolher o caminho onde guardar. O caminho introduzido pelo utilizador fica guardado em memória e é preenchido automaticamente da próxima vez que a \textit{dialog} for mostrada, evitando obrigar o utilizador a escrever o caminho de todas as vezes.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.87\textwidth]{img/open_buffers_dialog.png}
+\end{center}
+\caption{Janela de carregamento dos buffers}
+\end{figure}
+
+Os conteúdos do \textit{buffer} são guardados num ficheiro \texttt{.mkl}, o que é bastante interessante pois permite evitar ter de criar e implementar algum formato específico para guardar os seus conteúdos. Mas também permite, sendo um formato de texto, e sendo a sua sintaxe a da nossa linguagem \textit{Musikla}, o utilizador pode gravar os \textit{buffers}, abrir o ficheiro com algum editor de texto e efetuar alterações manualmente, e carregar essas alterações de novo para os \textit{buffers} com extrema facilidade.
+
+\begin{lstlisting}[caption={Formato do ficheiro de gravação dos \textit{buffers}.}]
+$buffers = @{};
+$buffers::set(1; (:default r2/23 [B^d^f]1/29 r1/32 [A^ce]1/32))
+\end{lstlisting}
+
+O formato do ficheiro passa pela declaração de uma variável \textbf{\$buffers} contendo um dicionário. O dicionário contém depois um par chave-valor para cada \textit{buffer} não vazio aquando da gravação do ficheiro. A chave representa o índice do \textit{buffer}, e o valor representa a sequência músical lá guardada nesse momento.
+
+Para guardar o ficheiro, é criada é memória a sua \acrshort{ast} respetiva. Esta é depois convertida em texto através da classe \texttt{CodePrinter}.
+
+O processo de carregar o ficheiro é igualmente simples, passando por executar o \textit{script} num contexto isolado. Depois o valor da variável \texttt{\$buffers} é obtido, e as entradas do dicionário são percorridas, substituindo os valores presentes nos \textit{buffers} recorrendo á funcção \texttt{keyboard\textbackslash{}Buffer.from\_music()}.
+
 \subsection{Grelhas}
 \subsection{Transformadores}
 \subsection{Editor Embutido}
