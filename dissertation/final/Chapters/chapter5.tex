@@ -316,6 +316,8 @@ if ( not is_sample_optimized( "cihat.wav" ) ) {
 
 Desta forma a conversão ocorre apenas uma vez, e de seguida o utilizador pode utilizar o ficheiro convertido e não se preocupar com a perda de performance sempre que usa o som num \textit{script}.
 
+\subsection{Grelhas}
+
 \subsection{Teclados Músicais}
 Para além de permitir construir expressões que geram sequências de eventos músicais dinâmicas, algo que esteve desde início no topo da nossa lista de prioridades foi sem dúvida adicionar suporte para a criação de teclados interativos. Sendo esta linguagem desenvolvida em computadores, não seria errado pensar que por teclado nos referimos aos teclados físicos dos computadores. E esses fazem certamente parte, mas quando nos referimos a teclados músicais, referimo-nos à possibilidade de descrever na nossa linguagem mapeamentos entre \textit{eventos} e expressões músicais ou ações a executar quando esses eventos acontecem.
 
@@ -498,7 +500,71 @@ Para guardar o ficheiro, é criada é memória a sua \acrshort{ast} respetiva. E
 
 O processo de carregar o ficheiro é igualmente simples, passando por executar o \textit{script} num contexto isolado. Depois o valor da variável \texttt{\$buffers} é obtido, e as entradas do dicionário são percorridas, substituindo os valores presentes nos \textit{buffers} recorrendo á funcção \texttt{keyboard\textbackslash{}Buffer.from\_music()}.
 
-\subsection{Grelhas}
-\subsection{Transformadores}
 \subsection{Editor Embutido}
+\subsection{Transformadores}
+Os transformadores são uma solução para um problema prático que surgiu durante o desenvolvimento do projeto, ao invés de serem uma funcionalidade pública da linguagem. No entanto a razão pela qual foram necessários, bem como a solução desenvolvida, podem ser interessantes de serem discutidas. Para compreendermos melhor a razão da sua necessidade, imaginemos o seguinte caso.
+
+\subsubsection{O Problema}
+
+Um dos tipos de dados mais importantes na nossa linguagem é o tipo música, que como já referímos várias vezes pode ser representado como uma sequência de eventos músicais. Quando pensamos em sequências, é fácil imaginar uma variedade de operações genéricas possíveis de serem aplicadas nelas, como \texttt{map} e \texttt{filter}. 
+
+Mas também existem operações mais específicas ao nosso caso que podemos querer aplicar, como dada uma sequência de eventos, separar os \texttt{NoteEvent} em dois \texttt{NoteOnEvent} e \texttt{NoteOffEvent}. Isto à primeira vista pode parecer um simples \texttt{flatMap}, em que alguns eventos são transformados em dois a serem inseridos na sequência. No entanto, uma vez que os eventos nas nossas sequências devem viajar sempre ordenados, não podemos simplesmente inserir o evento \textit{off} junto do \textit{on}, porque podem existir outros eventos que comecem ao mesmo tempo ou depois da nossa nota começar, mas antes dela acabar.
+
+Nesse caso basta construirmos uma algoritmo simples que guarde num \textit{buffer} ordenado os eventos \textit{off}, e os vá inserido imediatamente atrás do primeiro evento com um \textit{timestamp} maior que os seus.
+
+E como este, existem vários algoritmos que podem ser usados e reutilizados em diversas partes da aplicação com os mais diversos propósitos de transformar sequências de eventos.
+
+O problema surge quando a fonte da música pode ser sincrona (no caso de uma expressão da nossa linguagem) ou assíncrona (no caso de um teclado ou piano, em que os eventos vão sendo gerados em tempo real). \textit{Python} suporta assincronismo através do módulo \texttt{asyncio} que pode ser usado em conjunto com a sintaxe \textit{async/await}.
+
+Para simplificar os exemplos seguintes, tomemos o caso da operação genérica \textit{map}. As suas implementações, nas variantes síncrona e assíncrona, poderiam ser descritas como visto na listagem \ref{lst:transformers-map}.
+
+\begin{lstlisting}[caption={Exemplo de uma função \texttt{map} com versões sincronas e asíncronas},label={lst:transformers-map},language=Python]
+def map (fn):
+    for event in music:
+        yield fn(event)
+
+async def map_async (fn):
+    async for event in music:
+        yield fn(event)
+\end{lstlisting}
+
+Como podemos ver, quando a única diferença no algoritmo é se a \textbf{fonte é síncrona ou assíncrona}, a variação é mínima. Mas a diferença é sintática, por isso teríamos duas escolhas:
+\begin{itemize}
+ \item Para cada algoritmo criar duas versões, uma síncrona e outra assíncrona. Mas isto levava a duplicação de código particularmente má, porque o que iria mudar eram apenas \textbf{duas palavras} em todas as funções.
+ 
+ \item Usar sempre a versão assíncrona, mesmo quando a fonte dos dados é síncrona. Isto porque é sempre possível converter uma sequência de dados síncrona em assíncrona, mas o inverso já não é. O problema desta solução é o facto de as funções assíncronas terem \textit{cor}\footnote{\url{https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/}}, e só poderem ser chamadas por funções da mesma cor. Qualquer função que potencialmente lidasse com expressões músicais teria de passar a ser assíncrona. E como a nossa linguagem é dinamicamente tipada, potencialmente qualquer expressão pode retornar uma sequência músical, logo \textbf{todas as expressões} na nossa linguagem teriam de ser executadas em modo assíncrono, o que traria uma penalisação a nível de \textit{performance} difícil de justificar.
+\end{itemize}
+
+
+\subsubsection{A Solução Escolhida}
+A solução passou por criar uma abstração a que chamamos \textbf{Transformador}, que contém um bocado das duas opções anteriores: Os algoritmos são declarados apenas uma vez, e são depois envoltos num \textit{transformador} que disponibiliza duas interfaces públicas, uma síncrona e outra assíncrona. Cada transformador tem uma interface pública composta por 4 funções que permitem simular um iterador: \verb|add\_input( ev )|, \verb|end\_input()|, \verb|add\_output( ev )| e \verb|end\_output()|.
+
+Para evitar chamar manualmente as funções e tratar do controlo do fluxo de execução manualmente, são incluidos dois métodos de classe em todos os transformadores que permiter correr um iterador (síncrono ou assíncrono). As funções, chamadas \texttt{iter} e \texttt{aiter} recebem (e retornam) respetivamente um interador síncrono e assíncrono.
+
+Vejamos agora um exemplo do transformador \textbf{map} na listagem \ref{lst:transformers-map}. Pode parecer bastante mais verbosa do que as funções \textit{map} iniciais, mas é importante notar que este custo é fixo: só esta parte do algoritmo muda, e todo o resto seria igual. Como os transformadores utilizados no projeto são bem mais complexos do que este pequeno exemplo (podendo ter mais de uma centena de linhas de código), este custo fixo de escrever cerca de seis linhas de código \textit{boilerplate} por transformador não é um problema tão grande.
+
+\begin{lstlisting}[caption={Exemplo de um transformador \texttt{map} e da sua utilização},label={lst:transformers-map},language=Python]
+class MapTransformer(Transformer):
+    def __init__ (self, fn):
+        self.fn = fn
+    
+    def transform ( self ):
+        while True:
+            done, value = yield
+
+            if done: break
+            
+            self.add_output( self.fn( value ) )
+\end{lstlisting}
+
+Todos os transformadores implementam uma função gerador \textit{transform}, que é a peça central de tudo isto. Aí dentro, temos um ciclo responsável por emular a iteração sobre a sequência de \textit{input}. Depois utilizamos a instrução \textit{yield} para obter o próximo valor. Aqui estamos a aproveitar o facto de esta instrução não permitir apenas enviar valores para fora do gerador (que é o seu uso mais comum), mas também receber valores. Desta forma o gerador fica em pausa até receber o próximo evento. A vantagem desta pausa é que pode ser retomada logo de seguida se estivermos a trabalhar com iteradores síncronos, ou pode ficar assim até o próximo valor ficar disponível, no caso de um iterador assíncrono.
+
+\begin{lstlisting}[caption={Exemplo de um transformador \texttt{map} e da sua utilização},label={lst:transformers-map-usage},language=Python]
+# Irá imprimir 0, 2, 4, 6, 8
+for ev in MapTransformer.iter( range( 5 ), lambda e: e * 2 ):
+    print( ev )
+\end{lstlisting}
+
+Na listagem \ref{lst:transformers-map-usage} podemos ver a utilização do transformador aplicada a uma lista (já que também implementam a interface de um iterador). O método \texttt{aiter} poderia ser usado de forma análoga com um \textit{async for} e com um iterador assíncrono.
+
 
