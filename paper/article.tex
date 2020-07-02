@@ -113,7 +113,7 @@ And with the events being produced in an ordered fashion also opens up the possi
 But like we've mentioned before, this requires events to be generated in order: if the first event to be played could be the last to be generated, we could not implement laziness. We would always have to generate the full musical expression before we knew what to play first. Therefore having a total order for our events is a key feature.
 
 \begin{claim}[Total Order]
-\label{claim:total-order} To allow potentially infinite sequences to be played in realtime, music events must always be generated in the correct order: otherwise the sequence would have to be generated fully before we could be sure of what event was actually next.
+\label{claim:total-order} To allow potentially infinite sequences to be played in realtime, music events must always be generated in the correct order: otherwise the sequence would have to be generated fully before we could be sure of what event was actually next in line to play.
 \end{claim}
 
 \paragraph*{Goals}
@@ -151,37 +151,113 @@ A musical \textbf{Event} can be one of many things, such as a \textit{note}, a \
 The time unit used in the events timestamp and duration fields could be anything so long as it has a \textbf{total order}. We chose to represent it using milliseconds.
 
 \paragraph*{Syntax}
+% While we will focus more on the musical-related aspects of our language, here is a non-exhaustive list of accepted statements and expressions:
 While our goal is not to delve into every little detail of the language (because most are just similar to all popular programing languages), and we'd rather focus on how the tight integration of the Music data type into the language changes some aspects of it. Still, for the sake of making it easier to understand this paper, we will briefly discuss the syntactic features provided by the language.
 
-A non-exhaustive list of accepted expressions are:
-\begin{description}
-    \item[Variables] \verb|$var|
-    \item[Function Calls] \verb|function_name( expr, named_arg = expr )|
-    \item[Function Declaration] A function declaration is an expression (allowing higher order functions). Function names are optional. Giving a name to a function is equivalent to assigning an anonymous function to a variable with that name.
-        \begin{description}
-            \item[Anonymous] \verb|$name = fun() {}|
-            \item[Arguments] \verb|fun name($arg, ref $ref_arg, optional = expr) {}|
-            \item[Single Expression] \verb|fun name() => expr|
-            \item[Multiple Statements] \verb|fun name() {}|
-        \end{description}
-        
-    \item[Arithmetic Operators and Parenthesis Grouping] \verb|( expr + expr ) * expr|
-    \item[Literals] \verb|1, true, none, "string", @["array"], @{ "object": 1 }|
-    \item[Code Blocks] \verb|{ stmt; stmt; stmt }|
-    \item[Object and Array accessors] \verb|$var::property| and \verb|$var::[ $index ]|
-    \item[Keyboard Declarations] \verb|@keyboard { a: print("Key a"); b: print("Key b"); }|
-\end{description}
+Here is a non-exhaustive list of accepted expressions:
 
-A non-exhaustive list of accepted statements are:
-\begin{description}
-    \item[Conditionals] \verb|if (expr) {stmt} else {stmt}|
-    \item[Loops] \verb|for ($var in expr) {stmt}| and \verb|while(expr) {stmt}|
-    \item[Variable Declarations] \verb|$var = expr|
-    \item[Returns] \verb|return expr|
-    \item[Expressions] Any expression can be used anywhere a statement is expected
-\end{description}
+\begin{table}[h]
+\centering
+\def\arraystretch{1.2}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}|l|r|}
+\hline
+\textbf{EXPRESSIONS}       & \textbf{SYNTAX}                                                                         \\ \hline
+Variables                  & \verb|$var|                                                                             \\ \hline
+Function Calls             & \verb|function_name( expr, named_arg = expr )|                                         \\ \hline
+Function Declaration       & \begin{tabular}[r]{@{}r@{}}\verb|$name = fun() {}|\\ \verb|fun name($arg, ref $ref_arg, optional = expr) {}|\\\verb|fun name() => expr|\\\verb|fun name() {}|\end{tabular} \\ \hline
+Modules                    & \verb|import "file.mkl"| \\ \hline
+Arithmetic Operators       & \verb|a + b|; \verb|a * b|; \verb|a - b|; \verb|a / b|                                                                  \\ \hline
+Literals                   & \verb|1, true, none, "string"|                                  \\ \hline
+\end{tabular*}
+\caption{List of valid expressions in Musikla}
+\label{tab:syntax-expressions}
+\end{table}
 
-Statements must always end with \textbf{semicolons}, even loops and conditionals with the exception of the \textbf{last semicolon} in a list of statements, which is optional.
+A \textbf{function declaration} is an expression (allowing higher order functions). Function names are optional. Giving a name to a function is equivalent to assigning an anonymous function to a variable with that same name.
+
+\newpage
+
+\begin{table}[h]
+\centering
+\def\arraystretch{1.2}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}|l|r|}
+\hline
+\textbf{STATEMENTS}        &  \textbf{SYNTAX} \\ \hline
+Attribution                & \verb|$var = expr| \\ \hline
+Code Blocks                & \verb|{ stmt; stmt; stmt }| \\ \hline
+Conditionals               & \verb|if (expr) {stmt} else {stmt}| \\ \hline
+Loops                      & \begin{tabular}[r]{@{}r@{}}\verb|for ($var in expr) {stmt}| \\ \verb|while (expr) {stmt}|\end{tabular} \\ \hline
+Returns                    & \verb|return expr| \\ \hline
+\end{tabular*}
+\caption{List of valid statements in Musikla}
+\label{tab:syntax-statements}
+\end{table}
+
+Statements must always end with \textbf{semicolons}, even loops and conditionals, with the exception of the \textbf{last semicolon} in a list of statements, which is optional.
+
+
+\begin{table}[h]
+\centering
+\def\arraystretch{1.2}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}|l|r|}
+\hline
+\textbf{LISTS}             & \textbf{SYNTAX} \\ \hline
+Declaration                & \verb|@[ "list" ]| \\ \hline
+Indexed                    & \verb|$var::[ $index ]| \\ \hline\hline
+\textbf{OBJECTS}           &  \\ \hline
+Declaration                & \verb|@{ "object": 1 }| \\ \hline
+Attributes                 & \verb|$obj::property| \\ \hline
+Methods                    & \verb|$obj::method()| \\ \hline
+\end{tabular*}
+\caption{List and Object operations in Musikla}
+\label{tab:syntax-lists-objects}
+\end{table}
+To avoid ambiguities between chords, lists (square brackets), code blocks, objects (brackets), both list and object literals are prefixed with the \texttt{@} symbol.
+
+Also, we use two colons as separators to access lists and objects' properties and methods, because the period is used in the musical notation for indicating dotted notes, and as such could be confusing and ambiguous sometimes.
+
+
+\begin{table}[h]
+\centering
+\def\arraystretch{1.1}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}|l|r|}
+\hline
+\textbf{KEYBOARDS}         & \textbf{SYNTAX} \\ \hline
+Keyboard Declarations      & \verb|@keyboard {  }| \\ \hline
+Keyboard with Modifiers    & \verb|@keyboard hold extend {  }| \\ \hline\hline
+\textbf{KEYBOARD BODY}     &  \\ \hline
+Expression action          & \verb|key: expr| \\ \hline
+Action Block               & \verb|key: { stmt; stmt }| \\ \hline\hline
+\textbf{KEYS}\footnotemark &  \\ \hline
+Single Keys                & \verb|a, b, 1, 2, ".", up, f12, ctrl a, ctrl shift f| \\ \hline
+Composite Keys             & \verb|ctrl a, ctrl shift left| \\ \hline
+MIDI Keys                  & \verb|[c] [D,] [a'']| \\ \hline
+\end{tabular*}
+\caption{Keyboard declaration and body syntax}
+\label{tab:syntax-keyboards}
+\end{table}
+\footnotetext{Examples of the types of keys accepted. Rules for the key syntax are described below the table.}
+A keyboard can have modifiers (such as \textbf{hold} to start/stop the music when the key is pressed/released; \textbf{toggle} to start/stop the music when the key is pressed; \textbf{extend} to override the duration of the notes to last as long as the key is active;).
+
+
+Keys can be any alphanumeric character, or any character wrapped in quotes. We can also create key combinations with the modifiers \textbf{ctrl}, \textbf{shift} and \textbf{alt}. Notes can be used as keys (to program MIDI keyboards connected to the computer) by wrapping them in square brackets. Each key can have an expression associated, or a code block with a list of arbitrary statements.
+
+\begin{table}[h]
+\centering
+\def\arraystretch{1.2}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}|l|r|}
+\hline
+\textbf{MUSIC}             & \textbf{SYNTAX} \\ \hline
+Notes                      & \verb|C, C c c' A2/3 _A ^A| \\ \hline
+Chords                     & \verb|[CFG] [Cm]/2| \\ \hline
+Rests                      & \verb|r r1/2| \\ \hline
+Modifiers                  & \verb|S4/4 T60 L/2 V70 O2 I2| \\ \hline
+Parallel                   & \texttt{C E | F A} \\ \hline
+\end{tabular*}
+\caption{Music literal expressions}
+\label{tab:syntax-music}
+\end{table}
+A note's octave is expressed by the case of the note (uppercase and commas mean lower pitch, lowercase and single quotes mean higher pitch). They can be prefixed by an optional accidental (underscore for flats, caret for sharps). They can be suffixed by an optional note length (either an integer or a fraction). Chords can list each of their notes, or just the root note and a suffix (\textbf{CM} for \textit{C major} and \textbf{Cm} for \textit{C minor}, for example).
 
 \paragraph*{Operators}
 Operators are special operations defined at the syntactic level that allow \textit{music} to be composed in different ways, such as concatenated, parallelized or repeated. Many of these operators can have equivalent functions available through the language that provide more costumization (such as a parallel function that stops when the smallest operand stops, instead of the longest).
@@ -199,6 +275,11 @@ Operators are special operations defined at the syntactic level that allow \text
     \item[Arpegio] \verb'Chord * Music'
         
         \textbf{type} \verb|Chord, Music -> Music|
+    \item[Retime] \verb'Music ** MusicOrLength'
+
+        \textbf{type} \verb|Music, Union[Music, Float] -> Music|
+        
+        Stretches (or shrinks) proportionally the length of the first music expression to be the same as the length of the second.
     \item[Transpose] \verb'Music + Integer' \textit{and} \verb'Music - Integer'
     
         \textbf{type} \verb|Music, Integer -> Music|
@@ -331,7 +412,7 @@ A*11 G F*12
 \end{figure}
 
 \footnotetext{\url{https://drive.google.com/open?id=1IIm8PQkLsNFMK9MNSVubJSG6SP6KwhPL}}
-
+\newpage
 \paragraph*{Parallel}
 The parallel operator enables playing multiple sequences of musical events simultaneously. However our events are emitted as a single sequence of ordered events, thus requiring merging the multiple sequences into a single one, while maintaining the properties of laziness and order. The operator assumes that each of its operands already maintains those properties on their own, and so is only in charge of making sure the merged sequence does so as well. With this in mind, it relies on a custom \textit{merge sorted} algorithm for iterables (not related to the most common merge sort algorithm by John von Neumann).
 
@@ -376,23 +457,20 @@ There is no syntactic marker to distinguish regular functions from \textit{"musi
 
 Here in the listing \ref{lst:fugue} we can see a small snippet of the beginning of \textit{Fugue 2 in C minor in Book I of the J.S. Bach’s Well-Tempered Clavier} written in our language, and how using functions and variables can help us visualize the structure behind music.
 
-We also make use of the \texttt{stretch} function included in our standard library, which receives two arguments of type \textbf{Music}, and returns the first one but with it's duration proportionally stretched (or shrunk) to have the same total duration as the second musical expression.
-
 \begin{lstlisting}[label={lst:fugue},caption={Example of repeating the same note},captionpos=t,abovecaptionskip=-\medskipamount]
 fun fugue ( $subj, $resp ) => 
-    ( $subj $resp | stretch( r, $subj ) ( $subj + 7 ) );
+    ( $subj $resp | r ** $subj ( $subj + 7 ) );
 
 S8/4 T140 L/4 V120;
 
 $subj = r c/2 B/2 c G _A c/2 B/2 c d
         G c/2 B/2 c d F/2 G/2 _A2 G/2 F/2;
 
-$resp = E/2 c/2 B/2 A/2   G/2 F/2 _E/2 D/2   C _e d c
-        _B A _B c   ^F G _A F;
+$resp = _E/2 c/2 B/2 A/2   G/2 F/2 _E/2 D/2   C _e d c
+        _B A _B c   ^F G A ^F;
 
 play( fugue( $subj, $resp ) );
 \end{lstlisting}
-
 
 \begin{figure}[ht]
   \centering
@@ -401,10 +479,10 @@ play( fugue( $subj, $resp ) );
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/fugue.png}}%
   }%
-  \caption{Generated music sheet for fugue example, audio version available \href{https://drive.google.com/open?id=1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF}{\underline{here}}\protect\footnotemark.}
+  \caption{Generated music sheet for fugue example, audio version available \href{https://drive.google.com/file/d/1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF/view}{\underline{here}}\protect\footnotemark.}
   \label{fig:fugue}
 \end{figure}
-\footnotetext{\url{https://drive.google.com/open?id=1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF}}
+\footnotetext{\url{https://drive.google.com/file/d/1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF/view}}
 
 The music sheet generated by the code in the listing~\ref{lst:fugue} can be seen in figure~\ref{fig:fugue}. The two staves of the first system correspond to the expressions \texttt{\$subj} and \texttt{stretch( r, \$subj )}, respectively (we can identify it easily in the second staff, where there are only rests). The two staves of the second system on the other hand, correspond to the expressions \texttt{\$resp} and \texttt{( \$subj + 7 )} (the later of the two being a transposition of \texttt{\$subj} but with a higher pitch of 7 semitones).
 
@@ -415,12 +493,12 @@ Grids are highly customizable too, however. They have multiple parameters, such 
 
 Let's take a look at an example of a grid. In this example the grid has a cell size of \textbf{1}. We define the same values for both left and right sides just for the sake of this demonstration, but each side could have different values.
 
-\begin{lstlisting}[caption={Declaring a grid},label=list:8,captionpos=t,abovecaptionskip=-\medskipamount]
+\begin{lstlisting}[caption={Declaring a grid with some additional optional parameters},label=list:8,captionpos=t,abovecaptionskip=-\medskipamount]
 $grid = Grid( 1,
-    forgiveness_left = 125, # 1/8
-    range_left = 375, # 3/8
-    forgiveness_right = 125, #1/8
-    range_right = 375 # 3/8
+    forgiveness_left = 125,  # 1/8
+    range_left = 375,        # 3/8
+    forgiveness_right = 125, # 1/8
+    range_right = 375        # 3/8
 );
 \end{lstlisting}
 
