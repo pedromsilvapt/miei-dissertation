@@ -50,7 +50,10 @@ def function_play ( context : Context, expr ):
 
 def function_discard ( context : Context, *expr ):
     for e in expr:
-        e.eval( context.fork() )
+        value = e.eval( context.fork() )
+
+        if isinstance(value, Music):
+            for _ in value: pass
 
     return None
 
@@ -266,35 +269,6 @@ def function_len ( context : Context, obj : Any ):
     else:
         return len( obj )
 
-def function_stretch ( context : Context, music : Music, length_or_music : Union[Music, float, Fraction] ):
-    new_length : Fraction = Fraction( 0 )
-
-    if type( length_or_music ) is float:
-        new_length = Fraction( length_or_music )
-    elif isinstance( length_or_music, Music ):
-        new_length = length_or_music.len( context )
-    else:
-        new_length = length_or_music
-    
-    music = music.shared()
-
-    old_length = music.len( context )
-
-    factor = new_length / old_length
-
-    def _stretch ( event : MusicEvent, index : int, start_time : int ):
-        nonlocal factor
-
-        timestamp = int( ( event.timestamp - start_time ) * factor )
-
-        return event.clone(
-            timestamp = timestamp,
-            value = event.value * factor,
-            duration = context.voice.get_duration_absolute( event.value * factor )
-        )
-
-    return music.map( _stretch )
-
 class StandardLibrary(Library):
     def __init__ ( self, player : Player ):
         super().__init__()
@@ -349,8 +323,6 @@ class StandardLibrary(Library):
         context.symbols.assign( "sfunload", CallablePythonValue( function_sfunload ) )
         context.symbols.assign( "interval", Interval )
         context.symbols.assign( "scale", Scale )
-
-        context.symbols.assign( "stretch", CallablePythonValue( function_stretch ) )
 
         context.symbols.assign( "sequencers\\ABC", CallablePythonValue( seqs.ABCSequencer ) )
         context.symbols.assign( "sequencers\\PDF", CallablePythonValue( seqs.PDFSequencer ) )

@@ -153,7 +153,7 @@ class KeyboardWhileLoopMacroNode( MacroNode ):
             cast( Any, macro ).set_keyboard( keyboard )
 
 class KeyboardIfMacroNode( MacroNode ):
-    def __init__ ( self, condition : Node, shortcuts : List[MacroNode], else_shortcuts : List[MacroNode], position : Tuple[int, int] = None ):
+    def __init__ ( self, condition : Node, shortcuts : List[MacroNode], else_shortcuts : List[MacroNode] = None, position : Tuple[int, int] = None ):
         super().__init__( position )
     
         self.condition : Node = condition

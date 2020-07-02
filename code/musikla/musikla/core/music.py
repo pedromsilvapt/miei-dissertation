@@ -1,8 +1,9 @@
+from musikla.core.events.event import DurationEvent
 from .context import Context
 from .voice import Voice
 from .events import NoteEvent, MusicEvent
 from .enumerable import merge_sorted
-from typing import Any, Optional, List, Iterable, Tuple
+from typing import Any, Optional, List, Iterable, Tuple, Union
 from itertools import islice
 from fractions import Fraction
 
@@ -45,13 +46,26 @@ class Music:
     def parallel ( cls, tracks ):
         return cls( merge_sorted( tracks, lambda note: note.timestamp ) )
 
+    @classmethod
+    def of ( cls, source : Union[MusicEvent, 'Music', Iterable[MusicEvent]] ) -> 'Music':
+        if isinstance( source, Music ):
+            return source
+        elif isinstance( source, MusicEvent ):
+            return cls( [ source ] )
+        else:
+            return cls( source )
+
     def __init__ ( self, notes = [] ):
         self.notes = notes
+        self.shared_cache : Optional[SharedMusic] = None
 
-    def len ( self, context : Context ) -> Fraction:
+    def __getitem__ ( self, key ) -> MusicEvent:
+        return self.shared()[ key ]
+
+    def len ( self, context = None ) -> Union[Fraction, int]:
         range : Optional[Tuple[int, int]] = None
         
-        for ev in self.expand( context ):
+        for ev in self.shared():
             if range is None:
                 range = ( ev.timestamp, ev.end_timestamp )
             else:
@@ -62,10 +76,16 @@ class Music:
             
         start, end = range
 
+        if context is None:
+            return end - start
+
         return context.voice.from_duration_absolute( end ) - context.voice.from_duration_absolute( start )
 
     def shared ( self ) -> 'SharedMusic':
-        return SharedMusic( self )
+        if self.shared_cache is None:
+            self.shared_cache = SharedMusic( self )
+
+        return self.shared_cache
 
     def expand ( self, context : Context ):
         for note in self:
@@ -156,6 +176,38 @@ class Music:
     def filter ( self, predicate ) -> 'MusicFilter':
         return MusicFilter( self, predicate )
 
+    def __pow__ ( self, length_or_music ):
+        new_length : Union[Fraction, int] = Fraction( 0 )
+
+        if type( length_or_music ) is float:
+            new_length = Fraction( length_or_music )
+        elif isinstance( length_or_music, Music ):
+            new_length = length_or_music.len()
+        elif isinstance( length_or_music, Fraction ):
+            new_length = length_or_music
+        else:
+            return super().__pow__(length_or_music)
+
+        music = self.shared()
+
+        factor = new_length / music.len()
+
+        def _stretch ( event : MusicEvent, index : int, start_time : int ):
+            nonlocal factor
+
+            timestamp = int( ( event.timestamp - start_time ) * factor ) + start_time
+
+            if isinstance( event, DurationEvent ):
+                return event.clone(
+                    timestamp = timestamp,
+                    value = event.value * factor,
+                    duration = event.voice.get_duration_absolute( event.value * factor )
+                )
+            else:
+                return event.clone( timestamp = timestamp )
+
+        return music.map( _stretch )
+
     def __add__ ( self, other ):
         return self.map( lambda ev, i, s: ev + other )
     
@@ -171,6 +223,9 @@ class SharedMusic(Music):
     def __init__ ( self, base_music : Iterable ):
         self.base_music : Iterable = base_music
         self.shared_music : SharedIterator = SharedIterator( iter( base_music ) )
+
+    def __getitem__ ( self, key ) -> MusicEvent:
+        return self.shared_music.peek( key )
 
     def shared ( self ):
         return self
@@ -234,8 +289,23 @@ class SharedIterator():
         self.buffer : List = []
         self.stopped : bool = False
 
-    def __iter__ ( self ):
-        i : int = 0
+    def peek ( self, index : int ):
+        start = len( self.buffer )
+
+        if index < start:
+            return self.buffer[ index ]
+
+        if not self.stopped:
+            for item in self.slice( start ):
+                if start == index:
+                    return item
+                
+                start += 1
+        
+        raise IndexError(index)
+
+    def slice ( self, start : int = 0 ):
+        i : int = start
 
         while not self.stopped or i < len( self.buffer ):
             if i < len( self.buffer ):
@@ -253,6 +323,9 @@ class SharedIterator():
                     yield value
                 except StopIteration:
                     self.stopped = True
+
+    def __iter__ ( self ):
+        return self.slice()
 
     # def get_events ( self, context ):
     #     forked = self.context.fork( cursor = context.cursor )

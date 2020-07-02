@@ -82,6 +82,9 @@ class Voice:
         """Transform a not value into the real world milliseconds it takes, according to the voice's tempo and time signature"""
         return self.get_duration_absolute( self.get_value( value ) )
 
+    def get_beat_duration ( self ) -> int:
+        return int( 60 / self.tempo )
+
     def get_duration_absolute ( self, value : float = None ) -> int:
         beat_duration = 60 / self.tempo
 

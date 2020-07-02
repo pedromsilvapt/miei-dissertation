@@ -10,7 +10,7 @@ from .constant_node import ConstantNode
 from .none_literal_node import NoneLiteralNode
 from .array_literal_node import ArrayLiteralNode
 from .object_literal_node import ObjectLiteralNode, Object
-from .binary_operator_node import BinaryOperatorNode, PlusBinaryOperatorNode, MinusBinaryOperatorNode, MultBinaryOperatorNode, DivBinaryOperatorNode
+from .binary_operator_node import BinaryOperatorNode, PlusBinaryOperatorNode, MinusBinaryOperatorNode, PowBinaryOperatorNode, MultBinaryOperatorNode, DivBinaryOperatorNode
 from .binary_operator_node import AndLogicOperatorNode, OrLogicOperatorNode
 from .binary_operator_node import GreaterComparisonOperatorNode, GreaterEqualComparisonOperatorNode
 from .binary_operator_node import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode

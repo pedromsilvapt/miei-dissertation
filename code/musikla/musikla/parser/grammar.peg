@@ -185,7 +185,7 @@ binary_sum_operator_expression <- binary_mult_operator_expression _ r"[+\-]" _ b
                                 / binary_mult_operator_expression
                                 ;
 
-binary_mult_operator_expression <- unary_operator_expression _ r"[*/]" _ binary_mult_operator_expression
+binary_mult_operator_expression <- unary_operator_expression _ r"(\*\*|\*|\/)" _ binary_mult_operator_expression
                                  / unary_operator_expression
                                  ;                            
 

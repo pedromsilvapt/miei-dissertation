@@ -55,6 +55,8 @@ class Library:
         script.execute( code, context = self.context, fork = False, silent = True )
 
 class Context():
+    default : 'Context' = None
+
     @staticmethod
     def create ():
         ctx = Context(
@@ -121,6 +123,8 @@ class Context():
 
     def library ( self, library ) -> Library:
         return self.symbols.lookup( library, container = "libraries" )
+
+Context.default = Context.create()
 
 class StackFrame:
     def __init__ ( self ):

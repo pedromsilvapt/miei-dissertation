@@ -42,6 +42,20 @@ class MinusBinaryOperatorNode(BinaryOperatorNode):
 
         self.right.to_source( printer )
 
+class PowBinaryOperatorNode(BinaryOperatorNode):
+    def eval ( self, context ):
+        left_value = self.left.eval( context )
+        right_value = self.right.eval( context )
+
+        return left_value ** right_value
+    
+    def to_source ( self, printer : CodePrinter ):
+        self.left.to_source( printer )
+
+        printer.add_token( ' ** ' )
+
+        self.right.to_source( printer )
+
 class MultBinaryOperatorNode(BinaryOperatorNode):
     def get_events ( self, context, events : Music, count : int ):
         if count == 0: return

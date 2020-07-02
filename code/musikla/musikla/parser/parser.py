@@ -12,7 +12,7 @@ from .abstract_syntax_tree.expressions import VariableExpressionNode, FunctionEx
 from .abstract_syntax_tree.expressions import StringLiteralNode, NumberLiteralNode, BoolLiteralNode, NoneLiteralNode
 from .abstract_syntax_tree.expressions import ObjectLiteralNode, ArrayLiteralNode
 
-from .abstract_syntax_tree.expressions import PlusBinaryOperatorNode, MinusBinaryOperatorNode, MultBinaryOperatorNode, DivBinaryOperatorNode
+from .abstract_syntax_tree.expressions import PlusBinaryOperatorNode, MinusBinaryOperatorNode, PowBinaryOperatorNode, MultBinaryOperatorNode, DivBinaryOperatorNode
 from .abstract_syntax_tree.expressions import AndLogicOperatorNode, OrLogicOperatorNode
 
 from .abstract_syntax_tree.expressions import GreaterComparisonOperatorNode, GreaterEqualComparisonOperatorNode
@@ -90,19 +90,8 @@ class ParserVisitor(PTNodeVisitor):
         modifiers = children.expression[ 0 ]
         parent = None
 
-        # if children.function_parameters:
-        #     params = children.function_parameters[ 0 ][ 0 ]
-
-        #     instrument = params[ 0 ]
-            
-        #     if len( params ) > 1:
-        #         modifiers = params[ 1 ]
-
         if children.namespaced:
             parent = VariableExpressionNode( children.namespaced[ 0 ] ) 
-
-        # if children.integer:
-        #     instrument = NumberLiteralNode( children.integer[ 0 ] )
 
         return ( modifiers, parent )
 
@@ -371,7 +360,9 @@ class ParserVisitor(PTNodeVisitor):
 
         op = children[ 1 ]
 
-        if op == '*':
+        if op == '**':
+            return PowBinaryOperatorNode( left, right, position )
+        elif op == '*':
             return MultBinaryOperatorNode( left, right, position )
         elif op == '/':
             return DivBinaryOperatorNode( left, right, position )
