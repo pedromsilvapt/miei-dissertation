@@ -1,0 +1,6 @@
+#!musikla
+$script::player::add_sequencer( $__dir__ + "/transpose.wav" );
+# $script::player::add_sequencer( $__dir__ + "/transpose.html" );
+
+L/8;
+(A B c) (A B c) + 12;

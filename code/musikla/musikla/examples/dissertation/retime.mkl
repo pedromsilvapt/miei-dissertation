@@ -1,0 +1,10 @@
+#!musikla
+$script::player::add_sequencer( $__dir__ + "/retime.wav" );
+# $script::player::add_sequencer( $__dir__ + "/retime.html" );
+
+S2/4 L/8 T90;
+
+$chords = V90 [CeG] [Ac'e] [Fac] [CeG];
+$melody = CGde2gc2 CGdr5;
+
+$chords ** $melody | $melody;

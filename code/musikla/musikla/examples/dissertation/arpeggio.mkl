@@ -1,0 +1,12 @@
+#!musikla
+# $script::player::add_sequencer( $__dir__ + "/arpeggio.wav" );
+# $script::player::add_sequencer( $__dir__ + "/arpeggio.html" );
+
+# L/8;
+# S6/3 L/8 T60;
+
+S4/4 L/8 T85;
+
+$p = C D E D2 E C2;
+
+[CeG]*$p [Ac'e]*$p [Fac]*$p [CeG]*$p;
