@@ -428,6 +428,30 @@ A nível de leitura (\textbf{input}), o módulo disponibiliza uma função \text
 Ao escrever para ficheiros ou portas MIDI, é possível filtrar apenas os eventos de certas vozes, e mapear também os canais atribuidos a cada voz. Isto é extremamente útil para permitir ligar a aplicação a programas \acrshort{daw}, e permitir receber os eventos MIDI em faixas separadas (para aplicar efeitos ou transformações específicas a cada faixa).
 
 \subsubsection{ABC}
+Outro dos formatos de saída suportados é o formato \textbf{abc notation}. A sintaxe das notas e acordes da nossa linguagem é fortemente inspirada nesta notação, pelo que não seria estranho pensar que escrever para este formato não seria nada de especial. E em parte é verdade, na medida que gerar o texto com o formato certo não é complicado.
+
+A maior diferença é, no entanto, o facto de que o formato \textit{abc} é estático, e a sua estrutura foi desenhada para imitar de certa forma a notação das partituras músicais. Tudo isto envolve conceitos como agrupar as notas por vozes, pautas, compassos, claves, entre outros. De certa maneira, o modelo de dados que a linguagem usa para representar as notas em memória mapeaia-se de forma muito mais simples para o formato \textit{MIDI} do que para o \textit{abc}.
+
+Para colmatar este facto, os eventos, antes de serem convertidos para o formato \textit{abc}, são introduzidos numa \textit{pipeline} que executa uma série de passos de modo a tornar a conversão mais simples. De grosso modo, os passos pela ordem que são executados, são os seguintes:
+
+\begin{itemize}
+ \item Em primeiro lugar o sistema tenta converter quaisquer notas que possam estar a ser emitidas como eventos \textit{on/off} separados. Isto acontece quando, por exemplo, o teclado é usado, o que pode implicar começar a tocar as notas sem saber quando o utilizador as vai parar. Os pares de eventos são então convertidos num só evento com a informação do início e da duração da nota.
+ \item Em segundo lugar, o sistema tenta identificar as notas paralelas que possam estar a ser emitidas e que possam pertencer a um acorde. Isto acontece mais uma vez quando, ao invés de usar a sintaxe de acordes presente na linguagem, o usa o teclado para gerar o acorde através de notas/teclas diferentes ativadas ao mesmo tempo.
+ \item Em terceiro lugar, as notas que pertencam à mesma voz mas que tenham \textit{overlap} na sua duração, são colocadas em linhas diferentes. Mais uma vez, isto acontece mais frequentemente quando o teclado é usado, onde o utilizador pode estar a tocar notas concurrentemente da forma que quiser.
+ \item Em quarto lugar, são inferidos eventos pausa quando duas notas consecutivas pertencentes à mesma voz têm um intervalo. Mais uma vez, isto acontece mais frequentemente quando o utilizador toca com o teclado. Mas neste caso pode também acontecer quando as notas são declaradas pela sintaxe da linguagem, como por exemplo na seguinte situação \texttt{A ( B | C )}, onde as notas \texttt{A} e \texttt{B} ficam na mesma pauta. A nota C, no entanto, como se sobrepõe com a nota \texttt{B}, pelo passo anterior, seria movida para a sua pauta. No entanto, esta pauta não teria nada ao início, e por isso precisa de uma pausa. Seria conceptualmente equivalente ao resultado de \texttt{(A B) | (r C)}.
+ \item Finalmente em quinto lugar, são introduzidos eventos especiais na sequência músical para identificar, para cada voz em separado, quando devem ser introduzidos novos compassos, ou novas pautas na partitura. Do mesmo modo, isto implica que notas e acordes cuja duração não caiba num compasso, sejam divididos quantas vezes forem necessários, e conectados através de \gls{ligaduras}.
+\end{itemize}
+
+Estas transformações são reutilizáveis (não estão fortemente acopladas ao formato \textit{abc}) e são implementadas utilizando o conceito de transformadores, que iremos abordar mais à frente neste documento.
+
+Muitas destas transformações são, no entanto, imperfeitas por natureza: a deteção de acordes a partir de notas paralelas individuais, por exemplo, nunca pode ter 100\% de certeza se as notas que agrupou são realmente um acorde. É possível que o músico tivesse a intenção de que as várias notas pertencessem a vozes diferentes, por exemplo.
+
+Para além disto, a notação músical é tão complexa que apenas uma pequena parte é suportada pela nossa linguagem. Deste modo, é preciso ter em mente que apesar de a linguagem ser capaz de gerar ficheiros \textit{abc} válidos, e com a sua estrutura maioritariamente correta de acordo com o que o utilizador tivesse em mente, serão muitas vezes necessários pequenos ajustes manuais para personalizar os resultados aos gostos de cada um. Ainda assim, o facto de não ser necessário escrever o ficheiro todo manualmente é por si só uma vantagem enorme.
+
+Isto porque o ficheiro \textit{abc} não serve só como um formato de texto. Existem várias ferramentas para o converter para outros formatos, como \textit{PDF}. Por exemplo, o projeto \textbf{\$ABC\_UI}\footnote{\url{http://dev.music.free.fr/web-demo/\$ABC_UI.html}} é utilizado pela nossa linguagem para, em conjunto com o exportador \textit{abc}, gerar páginas \textit{HTML} com uma renderização da pauta usando SVG.
+
+Desta forma, podemos concluir que o formato \textit{abc} serve como uma espécie de ponte \textit{standard}, e nos permite apanmhar boleia para depois suportar ínumeros outros formatos que existam muito mais facilmente.
+
 
 \subsection{Ficheiros de Som}
 Como já foi mencionado no sub-capítulo sobre o \textit{output} \textbf{FluidSynth}, uma das funcionalidades que queriamos implementar na linguagem era a possibilidade de reproduzir ficheiros de som arbitrários, e integra-los com o resto da geração de eventos músicais.
