@@ -217,6 +217,159 @@ Para isso, quando o interpretador é inicializado, é criado um \textit{scope} r
 % TODO Imagem a exemplificar os scopes
 
 \subsection{Operadores Músicais}
+A sintaxe suporta os operadores aritméticos e de comparação usuais nas linguagens de programação. De modo geral, a sua sintaxe e semântica na nossa linguagem, o que seria expectável para cada um deles, pelo que não vale enumerá-los a todos nesta secção. No entanto, existem alguns operadores menos convencionais, ou até \textit{overloads} de operadores convencionais (como o operador de multiplicação e adição) que funcionam de forma diferente quando empregues junto a valores do tipo musical. São esses os casos que iremos abordar nas seguintes sub-secções.
+
+Um aspeto importante a ter em conta é que estes operadores não estão restritos gramaticalmente para aceitar apenas expressões músicais, mas aceita sim qualquer tipo de expressão. O seu tipo (e portânto a sua semântica) são apenas decididos em \textit{runtime} (emitando o modo de funcionamento do \textit{overloading} de operadores em \textit{Python}). Isto é necessário porque uma variável pode conter tanto um número como uma expressão músical, e o seu verdadeiro valor apenas é conhecido em execução.
+
+\subsubsection{Sequencial/Concatenação}
+Ao longo deste documento já vimos várias instâncias de como declarar uma nota ou um acorde. O ato de concatenar esses eventos (ou seja, reproduzi-los em sequência) é tão fundamental para a linguagem que também é algo que já vimos inúmeras vezes nos exemplos sem pensar muito nisso. Uma das razões para isso deve-se à sua sintaxe (ou falta dela, na verdade). O ato de concatenar eventos músicais é tão simples como escrevê-los uns à frente dos outros, sem nenhum tipo de separador especial (para além dos opcionais espaços em branco). O evento ficam com o seu tempo inicial sempre igual ao tempo final do evento anterior.
+
+\begin{lstlisting}[caption={Excerto da música \textit{Wet Hands} de C418},label=lst:ops-concat,belowcaptionskip=-\medskipamount]
+S4/4 T74 L/8 V90;
+A, E A B ^c B A E D ^F ^c e ^c A3;
+\end{lstlisting}
+
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/paper/concatenation2.png}}%
+  }%
+  \caption{Pauta músical gerada pela linguagem\protect\footnotemark, versão aúdio dísponível \href{https://drive.google.com/open?id=1TP4lcul81s8iMCUFmD3HKnSpeftCzKT0}{\underline{aqui}}\protect\footnotemark.}
+  \label{fig:ops-concat}
+\end{figure}
+
+\footnotetext[\numexpr\thefootnote-1]{Renderizado com a biblioteca \$ABC\_UI, com alguns ajustes manuais feitos para melhorar a clareza.}
+\footnotetext{Concatenação \url{https://drive.google.com/open?id=1TP4lcul81s8iMCUFmD3HKnSpeftCzKT0}}
+
+Também é importante salientar o facto de que as listas de instruções (\textit{statements}) seguem a mesma semântica do operador de concatenação. Cada linha só vai tocar as suas notas quando as linhas anteriores tiverem acabado. Neste exemplo portanto, ter tudo na mesma linha ou separado em duas (ou mais) tem o mesmo resultado, variando apenas a legibilidade.
+
+\subsubsection{Repetição}
+O operador de repetição é bastante similar ao operador de concatenação. E faz sentido, uma vez que repetir uma expressão músical $N$ vezes pode ser pensado como um caso particular da concatenação onde existem $N$ operandos, todos iguais, uns em frente aos outros.
+
+\begin{lstlisting}[caption={Excerto do começo do tema principal de Westworld, por Ramin Djawadi},label=lst:ops-repetition,belowcaptionskip=-\medskipamount]
+I1 S6/8 T140 L/8 V90;
+A*11 G F*12
+\end{lstlisting}
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/paper/repetition2.png}}%
+  }%
+  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/open?id=1IIm8PQkLsNFMK9MNSVubJSG6SP6KwhPL}{\underline{aqui}}\protect\footnotemark.}
+  \label{fig:ops-repetition}
+\end{figure}
+
+\footnotetext{Repetição \url{https://drive.google.com/open?id=1IIm8PQkLsNFMK9MNSVubJSG6SP6KwhPL}}
+
+Este operador, apesar de bastante simples, é também bastante útil para repetir pequenos acompanhamentos (mesmo notas singulares) muitas vezes, ou até para repetir poucas vezes acompanhamentos mais complexos. Evitando repetir os acompanhamentos no código, é possível efetuar alterações em apenas um sítio e ver essas alterações repetirem-se ao longo de toda a estrutura músical.
+
+\subsubsection{Paralelo}
+O operador paralelo permite reproduzir múltiplas sequências de eventos músicais em paralelo. Podemos dizer que conceptualmente, o operador paralelo é uma função que recebe uma lista de sequências músicais, e retorna uma única sequência com todas as sequencias combinadas. No entanto é importante que lembrar que o operador tem de respeitar os príncipios de \textit{\textbf{lazyness}} (não pedir mais eventos de cada vez do que o que os que são extritamente necessários) e \textbf{ordem} (a sequência de eventos resultantes tem de estar estritamente ordenada pelo tempo de ínicio de cada evento).
+
+\begin{lstlisting}[caption={Excerto da música \textit{Soft to Be Strong} de Marina},label=lst:ops-parallel,belowcaptionskip=-\medskipamount]
+T120 V70 L1;
+r/4 ^g/4 ^g/4 ^g/4   ^f/2 e/8 ^d3/8   ^c2 | [^Cm] [BM]  [AM] [BM] 
+\end{lstlisting}
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/paper/parallel2.png}}%
+  }%
+  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/open?id=1ENTm3hZonYHyQIOgRZ8TQ1Qz-AfRLt2I}{\underline{aqui}}\protect\footnotemark.}
+  \label{fig:ops-parallel}
+\end{figure}
+\footnotetext{Paralelo \url{https://drive.google.com/open?id=1ENTm3hZonYHyQIOgRZ8TQ1Qz-AfRLt2I}}
+
+A implementação do operador paralelo depende de um simples algoritmo de \textit{merge sorted} (não relacionado com o conhecido algoritmo de ordenação de \textit{arrays merge sort } inventado por John von Neumann).
+
+A função \textit{merge sorted} receve $N$ operandos e cria um \textit{buffer} também de tamanho $N$. Para cada operando, ela cria um \textit{fork} do seu contexto, para que cada operando possa executar concurrentemente e assim modificar apenas o seu próprio contexto. Depois, ainda durante a inicialização do algoritmo, a função pede a cada operando um evento (que são guardados nas respetivas posições do \textit{buffer}).
+
+Após o \textit{buffer} estar preenchido pela primeira vez com um evento por operando, o algoritmo procura o evento mais recente (o evento com \textit{timestamp} menor) guardado no \textit{buffer}. Vamos assumir que esse evento se encontra guardado na posição $K$ do \textit{buffer}, sendo $k < N$. O método emite esse evento \texttt{buffer[K]} para a sequência músical de saída, e de seguida pede ao operando na posição $K$ o seu próximo evento, usando-o para substituir o que estava anteriormente no \textit{buffer} nessa mesma posição (guardando o valor \texttt{null} caso o operando $K$ já tenha chegado ao fim). O algoritmo repete depois este passo até todos os operandos terem chegado ao fim.
+
+\subsubsection{Transposição}
+As operações \verb|Music + Integer| e \verb|Music - Integer| correspondem à transposição de notas (e acordes). Podem ser aplicados a notas singulares ou expressões músicais complexas, o que resulta na transposição a ser aplicada a cada uma das notas da expressão músical.
+
+\begin{lstlisting}[caption={Exemplo de transposição de um acompanhamento com três notas},label=lst:ops-transpose,belowcaptionskip=-\medskipamount]
+L/8;
+(A B c) (A B c) + 12;
+\end{lstlisting}
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/dissertation/transpose.png}}%
+  }%
+  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/file/d/1xVey6on6Q-sWjNgo__Llb3QgOF1-_axa}{\underline{aqui}}\protect\footnotemark.}
+  \label{fig:ops-transpose}
+\end{figure}
+\footnotetext{Transposição \url{https://drive.google.com/file/d/1xVey6on6Q-sWjNgo__Llb3QgOF1-_axa}}
+
+Neste simples exemplo listado em \ref{lst:ops-transpose} e ilustrado em forma de pauta músical na Figura \ref{fig:ops-transpose}, podemos ver claramente que a música é composta por dois triplos de notas, ambos com o mesmo padrão, sendo a única diferença que o segundo é tocado uma oitava acima (12 semitons).
+
+\subsubsection{Arpeggio}
+A operação \verb|Chord * Music| \footnote{Na implementação atual, o operador aceita não só acordes como primeiro operando, mas qualquer expressão músical} permite aplicar um \textbf{Arpeggio}. Esta operação consiste em pegar nas notas presentes no primeiro operador e colocá-las numa lista de $0 .. N$ não inclusivo (sendo $N$ o número de notas no acorde). De seguida é avaliada a segunda expressão músical, mantendo os seus tempos e posições, mas substituindo as notas pelas pertencentes ao acorde. O modo de substituição usa a seguinte escala: \texttt{C D E F G A B}. Isto é, assume a nota \texttt{C} como base (a que é substituida pela primeira nota do acorde), a nota \texttt{D} sendo substituida pela segunda nota do acorde, e por aí fora.
+
+\begin{lstlisting}[caption={Três acordes diferentes arpegiados com o mesmo padrão},label=lst:ops-arpeggio,belowcaptionskip=-\medskipamount]
+S4/4 L/8 T85;
+
+$p = C D E D2 E C2;
+
+[CeG]*$p [Ac'e]*$p [Fac]*$p [CeG]*$p;
+\end{lstlisting}
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/dissertation/arpeggio.png}}%
+  }%
+  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/file/d/1E6ayR6gG2CfsikWFHijnEIui0rR1cAL7}{\underline{aqui}}\protect\footnotemark.}
+  \label{fig:ops-arpeggio}
+\end{figure}
+\footnotetext{\textit{Arpeggio} \url{https://drive.google.com/file/d/1E6ayR6gG2CfsikWFHijnEIui0rR1cAL7}}
+
+No exemplo da listagem \ref{lst:ops-arpeggio} recorremos ao uso de uma variável para guardar o padrão da nossa melodia. De seguida usamos o operador de \textit{arpeggio} em cada um dos acordes, sempre com o mesmo padrão. Esta funcionalidade permite definir uma melodia e testar rapidamente múltiplas variações da mesma sem ter de alterar manualmente a melodia de cada vez.
+
+Atualmentre a definição do padrão recorre à sintaxe das músicas usuais, por conveniência. No futuro, seria interessante implementar uma sintaxe específica para a definição de \textit{arpeggios}, usando por exemplo númeração romana. Dessa forma, o padrão do exemplo na listagem \ref{lst:ops-arpeggio} ficaria algo como \verb|I II III II2 III I2|. Outra possíbilidade seria a de usar a numeração decimal, com alguma marcação para distinguir dos números inteiros, tal como \verb|1º 2º 3º 2º2 3º 1º2|.
+
+
+\subsubsection{Redimensionamento}
+O operador de \textbf{Redimensionamento}, denotado pela sintaxe \verb|Music ** Integer|, \verb|Music ** Fraction|, ou \verb|Music ** Music|, pode talvez ser o menos intuitivo, mas é algo bastante útil. Ele permite mudar o tamanho de uma expressão arbitrária já declarada, para combinar com outra duração expressa num inteiro, fração, ou inferida através da duração de uma segunda expressão músical. O seu valor de retorno é então o primeiro operando, mas com os tempos proporcionalmente esticados (ou encolhidos) de modo a, no total, ficarem com a nova duração escolhida.
+
+\begin{lstlisting}[caption={Redimensionamento da duração de uma expressão músical},label=lst:ops-retime,belowcaptionskip=-\medskipamount]
+S2/4 L/8 T90;
+
+$chords = V90 [CeG] [Ac'e] [Fac] [CeG];
+$melody = CGde2gc2 CGdr5;
+
+$chords ** $melody | $melody;
+\end{lstlisting}
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/dissertation/retime.png}}%
+  }%
+  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/file/d/1aVVXGDVQEAmHl-jadSnZ6OqIGmgqhgxR}{\underline{aqui}}\protect\footnotemark.}
+  \label{fig:ops-retime}
+\end{figure}
+\footnotetext{Redimensionamento \url{https://drive.google.com/file/d/1aVVXGDVQEAmHl-jadSnZ6OqIGmgqhgxR}}
+
+No exemplo presente na listagem \ref{lst:ops-retime}, temos duas variáveis com durações diferentes. A primeira, \textbf{\texttt{\$chords}}, tem a duração total de \textbf{$\frac{1}{2}$} ($4 \times \frac{1}{8}$). Por sua vez, a segunda variável, \textbf{\texttt{\$melody}}, tem a duração de \textbf{2} ($16 \times \frac{1}{8}$). As duas durações podiam ser ajustadas manualmente (bastando multiplicar a duração de cada acorde por 4), mas isso implicava que qualquer mudança na melodia exigia recalcular as proporções manualmente. E também nem todas as situações apresentam contas tão simples como $2 \div \frac{1}{2}$. Deste modo, os cálculos são feitos automaticamente pela aplicação e estão sempre atualizadas.
 
 \section{Biblioteca Standard}
 \subsection{Inputs \& Outputs}
@@ -317,6 +470,79 @@ if ( not is_sample_optimized( "cihat.wav" ) ) {
 Desta forma a conversão ocorre apenas uma vez, e de seguida o utilizador pode utilizar o ficheiro convertido e não se preocupar com a perda de performance sempre que usa o som num \textit{script}.
 
 \subsection{Grelhas}
+A linguagem tem dois modos de produção de música principais: expressões músicais descritas no código, e a utilização de teclados em tempo real. Em termos de propriedades temporais, de modo geral, as expressões músicais são geradas com tempos precisos. Por outro lado, como é natural, músicas criadas através dos teclados músicais vão ter tempos imperfeitos. Quando utilizadas de modo separado, as diferenças muitas vezes são tão subtis que não se notam. Mas quando queremos tocar uma expressão de música pré-definida em código ao mesmo tempo que se utiliza um teclado, as diferenças e imperfeições podem-se tornar mais óbvias.
+
+A operação conhecida como Quantization~\footnote{\url{https://en.wikipedia.org/wiki/Quantization_(music)}} é possível na nossa linguagem através da utilização de \textbf{Grelhas}. Uma vez que o objetivo das grelhas é poderem ser utilizadas em tempo real à medida que as notas vão sendo tocadas, a forma de funcionamento escolhido para as grelhas é bastante simples e determínistica, dependendo apenas do tempo (\textit{timestamp}) e tipo do evento que queremos alinhar.
+
+Uma grelha é composta por um número infínito de células, todas do mesmo tamanho, que se estendem ao longo do eixo temporal. Quando um evento músical é tocado, esse evento vai calhar algures dentro de uma dessas células. A responsabilidade da grelha passa por determinar se o evento deve ser movido no tempo, bem como para onde deve ser movido. Para isso, devemos compreender como cada célula da grelha é dividida.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.87\textwidth]{img/grids_1.png}
+\end{center}
+\caption{Representação de duas células de uma grelha}
+\label{fig:grids-1}
+\end{figure}
+
+Na figura \ref{fig:grids-1} podemos ver representadas duas células de uma grelha, cada uma com tamanho de 1 segundo. Também podemos ver que cada célula está dívidida em duas partes, direita e esquerda, e a ordem dessas partes pode parecer engano, ou que estão trocadas. Mas estão corretas, pois na verdade cada uma dessas partes é relativa não à célula, mas ao separador das células.
+
+Olhemos por exemplo para o divisor central, situado em cima da marca do 1 segundo. A parte à sua esquerda refere-se à esquerda do separador, e a parte à direita referem-se à direita do separador. Desta forma, faz mais sentido a ordem das partes.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.87\textwidth]{img/grids_2.png}
+\end{center}
+\caption{Representação de duas células de uma grelha}
+\label{fig:grids-2}
+\end{figure}
+
+Por predefinição, ambas as partes têm o tamanho igual a metade do tamanho da célula (ou seja, neste caso, tanto a parte da esquerda e da direita têm o tamanho de 0.5 segundos). No entanto, é possível customizar o tamanho das duas de forma igual, ou cada uma em particular, através das propriedades \textbf{forgiveness} e \textbf{range}.
+
+\begin{lstlisting}[caption={Código de definição da grelha representada na figura \ref{fig:grids-2}},label={lst:grids-2}]
+$grid = Grid( 1,
+    forgiveness = 125, # 1/8 of a second
+    range = 375        # 3/8 of a second
+);
+\end{lstlisting}
+
+Não nos esqueçamos que o objetivo da grelha é alinhar eventos, movendo os eventos ao longo do eixo do tempo para junto dos separadores das células. A propriedade \textit{range} tem como valor predefinido metade do tamanho da célula. Isso significa que tanto o \textbf{range\_left} como o \textbf{range\_right} cobrem de modos igual toda a célula, e dessa os eventos são movidos para o separador da grelha que estiver mais próximo. O valor predefinido da propriedade \textit{forgiveness}, por outro lado, é zero, o que significa que mesmo os eventos que se encontrem já muito perto dos separadores são movidos.
+
+Na listagem \ref{lst:grids-2} podemos ver a definição de uma grelha simétrica (as propriedades \textit{left} e \textit{right} são iguais). O valor de \textit{forgiveness} implica que eventos que estejam a mais de 372 milissegundos de distância de qualquer um dos separadores são ignorados pela grelha, isto é, o seu tempo não se mexe. O valor de \textit{forgiveness}, o que significa que eventos que estejam a menos de 125 millisegundos de um dos separadores são também ignorados pela grelha. Neste exemplo, são apenas movidos os eventos que estejam entre 125 e 375 milissegundos de distância de um dos separadores.
+
+Note-se que cada propriedade poderia ser costumizada para a esquerda e para a direita. Isto é, o exemplo a cima podia ser reescrito da seguinte forma:
+
+\begin{lstlisting}[caption={Código alternativo de definição da grelha representada na figura \ref{fig:grids-2}, com as propriedades \textit{left} e \textit{right}},label={lst:grids-3}]
+$grid = Grid( 1,
+    forgiveness_left = 125,  # 1/8 of a second
+    forgiveness_right = 125, # 1/8 of a second
+    range_left = 375,        # 3/8 of a second
+    range_right = 375        # 3/8 of a second
+);
+\end{lstlisting}
+
+Se passarmos das propriedades de configuração para a grelha resultante, na verdade cada célula passa a ter dois \textbf{effective ranges}, duas áreas (uma para a esquerda e outra para a direita) onde os eventos que aí calharem são movidos. Os eventos fora dessas áreas são ignorados.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.85\textwidth]{img/grids_3_1.png}
+\end{center}
+\vspace*{-5mm}
+\caption{Representação de duas células de uma grelha}
+\label{fig:grids-3-1}
+\end{figure}
+
+Tomemos como exemplo a seguinte situação com três eventos e a grelha definida anteriormente: o evento A, como calha dentro da área azul (devido à propriedade \textbf{range\_right}), vai ser relocado para o tempo zero. O evento B no entanto, como não calha em nenhuma área (devido devido a propriedade \textbf{forgiveness\_left}. Finalmente, o evento C como calha na área vermelha (devido à propriedade \textbf{range\_left} é relocado para o tempo 2.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.85\textwidth]{img/grids_3_2.png}
+\end{center}
+\vspace*{-5mm}
+\caption{Representação de duas células de uma grelha}
+\label{fig:grids-3-2}
+\end{figure}
+
+O modo de funcionamento das grelhas pode parecer à primeira vista um desnecessáriamente complexo, ou os exemplos um pouco artificiais, mas o objetivo foi sempre permitir ao utilizador aplicar o tipo de grelha que mais se adequar ao seu caso. Isso pode ser uma simples grelha onde só define o tamanho de cada célula, e os \textit{ranges} são cada metade de cada célula, empurrando todos os eventos para o separador que lhe esteja mais próximo, ou exemplos de grelhas assímétricas, onde possivelmente os eventos são sempre movidos só numa direção (esquerda ou direita) ou onde eventos que estejam perto dos separadores não sejam movidos.
 
 \subsection{Teclados Músicais}
 Para além de permitir construir expressões que geram sequências de eventos músicais dinâmicas, algo que esteve desde início no topo da nossa lista de prioridades foi sem dúvida adicionar suporte para a criação de teclados interativos. Sendo esta linguagem desenvolvida em computadores, não seria errado pensar que por teclado nos referimos aos teclados físicos dos computadores. E esses fazem certamente parte, mas quando nos referimos a teclados músicais, referimo-nos à possibilidade de descrever na nossa linguagem mapeamentos entre \textit{eventos} e expressões músicais ou ações a executar quando esses eventos acontecem.
@@ -446,9 +672,33 @@ Não seria invulgar pensar que ambos os números seriam iguiais sempre que fosse
 Isto significa que quando qualquer tecla for premida, o valor de \texttt{\$i} será sempre o mesmo: $4$. Isto porque a variável está declarada fora do teclado, e mais importante, fora do ciclo \texttt{for}, o que significa que todas as teclas referenciam a mesma variável. Por outro lado, a variável \texttt{\$ki} é declarada pela primeira vez dentro do ciclo, e como tal está a criar quatro símbolos diferentes que são depois cada um referenciado pela tecla respetiva.
 
 \subsubsection{Gravar e Reproduzir Performances}
+Uma vez criado um ou mais teclados, o som produzidos por eles é direcionado automaticamente para os \textit{outputs} (por predefinição as colunas de som). No entanto, é possível instruir os teclados para guardarem num ficheiro de \textit{performance} uma lista das teclas ativadas. Isto permite depois ao utilizador reproduzir uma performance gravada, ou até efetuar modificações a essa gravação.
+
+\begin{lstlisting}[caption={Gravação de uma \textit{performance}},label={lst:kb-perf-1}]
+keyboard\record( $file );
+\end{lstlisting}
+
+Através da função descrita na listagem \ref{lst:kb-perf-1}, é possível instruir os teclados para gravarem para um determinado ficheiro, cujo caminho é passado como argumento. Também é possível passar o valor \texttt{none} para a função, o que efetivamente termina a gravação da performance atual (se estiver a decorrer alguma).
+De notar que uma vez que os teclados suportam registar como ações, não só expressões músicais, mas também quaisquer blocos de códigos válidos, podemos chamar esta função na ação de uma das teclas do teclado. Desta forma é possível iniciar e parar a gravação durante a execução do programa.
+
+\begin{lstlisting}[caption={Reprodução de uma \textit{performance}},label={lst:kb-perf-2}]
+keyboard\replay( $file, $delay = 0 );
+\end{lstlisting}
+
+Da mesma maneira que é possível gravar uma \textit{performance}, é possível também reproduzir uma \textit{performance} a qualquer momento através da função referênciada em \ref{lst:kb-perf-2}. Neste caso devemos passar o caminho do ficheiro contendo a \textit{performance} gravada, bem como um parâmetro opcional (em milissegundos) para atrasar o ínicio da reprodução durante algum tempo. Isto pode ser útil se quisermos tocar alguma faixa ao vivo por cima da gravação, para alinhar a mesma ou para servir de tempo de preparação.
+
+\begin{lstlisting}[caption={Conversão de uma \textit{performance} numa sequência de eventos músicais},label={lst:kb-perf-3}]
+$music = keyboard\readperf( $file, $keyboards = [] );
+\end{lstlisting}
+
+Mas podemos não querer reproduzir diretamente uma \textit{performance}. Também é possível carregar uma \textit{performance} gravada para memória, como uma sequência de eventos músicais convencional, que podemos depois manipular com todas as funções e operadores que já vimos e que operam sobre música.
+
+Esta função aceita também, para além do usual caminho do ficheiro de \textit{performance}, uma lista opcional de teclados a usar na conversão. Quando a lista vai vazia, são utilizados todos os teclados ativos. Isto demonstra uma das funcionalidades mais interessantes da gravação de ficheiros de \textit{performance}, na medida que permitem gravar os eventos das teclas ativadas, mas podemos depois reproduzir essas \textit{performances} com teclados com notas e expressões diferentes associadas às teclas.
+
+
 
 \subsubsection{Buffers}
-Ao contrário de performances, que gravam os eventos que acionam as teclas dos teclados, é possível guardar diretamente os eventos músicais produzidos pelos teclados com a class \texttt{keyboard\textbackslash{}Buffer}. Os eventos capturados em \textit{buffers} podem ser tratados como qualquer outra sequência músical, e como tal, ser composta com outras expressões, passada a funções e tudo o resto que a linguagem possibilita. 
+Ao contrário de \textit{performances}, que gravam os eventos que acionam as teclas dos teclados, é possível guardar diretamente os eventos músicais produzidos pelos teclados com a class \texttt{keyboard\textbackslash{}Buffer}. Os eventos capturados em \textit{buffers} podem ser tratados como qualquer outra sequência músical, e como tal, ser composta com outras expressões, passada a funções e tudo o resto que a linguagem possibilita. 
 
 \begin{lstlisting}[caption={Instanciação de um \textit{buffer}}]
 $buffer = keyboard\Buffer( $keyboards = ..., $start = true );
@@ -501,6 +751,45 @@ Para guardar o ficheiro, é criada é memória a sua \acrshort{ast} respetiva. E
 O processo de carregar o ficheiro é igualmente simples, passando por executar o \textit{script} num contexto isolado. Depois o valor da variável \texttt{\$buffers} é obtido, e as entradas do dicionário são percorridas, substituindo os valores presentes nos \textit{buffers} recorrendo á funcção \texttt{keyboard\textbackslash{}Buffer.from\_music()}.
 
 \subsection{Editor Embutido}
+O modo principal de execução de código baseia-se em carregar um ficheiro \textit{Musikla} e executá-lo. Mas ao mesmo tempo, uma das funcionalidades mais importantes da linguagem é permitir descrever teclados músicais que permitem interação do utilizador enquanto a aplicação não for fechada.
+
+No entanto, muitas das funcionalidades disponibilizadas pela aplicação são accessíveis através de classes e funções que podem ser chamadas pela linguagem. Isto tipicamente involve uma de duas opções: o utilizador ter de mudar o ficheiro de código e executá-lo novamente, o que implica perder os dados que estejam em memória (como \textit{buffers} e o possível estado do teclado). Também é possível associar pedaços de código a ações do teclado para permitir chamar esses pedaços de código durante a execução do programa, mas isso implica ser necessário planear todos os possíveis casos de uso à partida antes de iniciar executar o teclado. Se nos esquecermos de alguma, temos de voltar à opção inicial de mudar o código fonte e reiniciar a aplicação.
+
+A solução passa pela inclusão de um simples editor de texto em \textit{runtime} (implementado com recurso ao módulo \textit{Python} \texttt{prompt\_toolkit}. A biblioteca dispõem de uma função para permitir abrir e fechar o editor de texto ao premir uma tecla, ou também uma função para abrir diretamente o editor quando é chamada, dando assim ao utilizador mais controlo sobre como é possível usar este editor.
+
+\begin{lstlisting}[caption={Abre o editor quando a tecla \textbackslash{} é premida},label={lst:kb-editor-1}]
+keyboard\repl( $key = "\\", $ctx = none );
+\end{lstlisting}
+
+Na listagem \ref{lst:kb-editor-1} é possível ver a função que permite abrir o editor embutido. É também possível passar um contexto através do qual as expressões do editor irão ser avaliadas. Isto pode afetar quais as variáveis que são vísíveis, ou até ter vários editores para diferentes contextos.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.87\textwidth]{img/embedded_editor.png}
+\end{center}
+\caption{Interface do editor embutido.}
+\end{figure}
+
+\begin{lstlisting}[caption={Abrir manualmente o editor},label={lst:kb-editor-2}]
+keyboard\open_repl( $cb = none );
+\end{lstlisting}
+
+Se não quisermos que o editor seja aberto simplesmente quando uma tecla é carregada, podemos chamar manualmente a função para o abrir. Isto tem a vantagem de podermos passar um \textit{callback} ao editor para sermos notificados quando o editor é fechado. 
+Isto significa que o editor pode ser usado não só como um ambiente de programação \textit{Musikla} genérico, mas também como um modo de \textit{input} de texto genérico a ser usado pelo utilizador.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.87\textwidth]{img/embedded_editor_autocomplete.png}
+\end{center}
+\caption{Implementação básica de uma solução de \textit{auto-complete}.}
+\end{figure}
+
+Como prova de conceito, também foi incorporado um sistema de \textit{auto-complete} que sugere símbolos que estejam declarados no nível base do contexto. Devido ao facto de o editor estar a correr ao mesmo tempo que a aplicação, esta funcionalidade não foi implementada através da análise dos ficheiros de código. Em vez disso, o objeto de contexto é analizado em tempo real para listar quais os símbolos que estão acessíveis.
+
+Esta funcionalidade é extremamente útil tendo em conta que a linguagem tem como público alvo músicos que podem não ser programadores experientes. Por isso mesmo, ter um ambiente que assista o utilizador a saber quais as variáveis e métodos que pode utilizar.
+
+No futuro, era interessante melhorar o \textit{auto-complete} para completar sub-propriedades de objetos e listas, bem como mostrar informações adicionais sobre as sugestões, tal como os seus tipos e no caso de serem métodos, quais os parâmetros que aceita.
+
 \subsection{Transformadores}
 Os transformadores são uma solução para um problema prático que surgiu durante o desenvolvimento do projeto, ao invés de serem uma funcionalidade pública da linguagem. No entanto a razão pela qual foram necessários, bem como a solução desenvolvida, podem ser interessantes de serem discutidas. Para compreendermos melhor a razão da sua necessidade, imaginemos o seguinte caso.
 
