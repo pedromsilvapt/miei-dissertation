@@ -365,6 +365,13 @@ class KeyboardLibrary(Library):
             fd.flush()
 
     def record ( self, file : str ):
+        fd = self.record_fd
+
+        if file is None and fd is not None:
+            fd.close()
+
+            self.assign_internal( 'record_fd', None )
+
         self.assign_internal( 'record_file', file )
 
     def readperf ( self, context : Context, file : str, keyboards : List[Keyboard] = None ) -> Music:

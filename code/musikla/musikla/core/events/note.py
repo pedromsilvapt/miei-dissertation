@@ -125,7 +125,7 @@ class NoteEvent( DurationEvent ):
     def from_pattern ( self, pattern : 'NoteEvent' ) -> 'NoteEvent':
         return cast( NoteEvent, self.clone( 
              timestamp = pattern.timestamp,
-             octave = self.octave + ( pattern.octave - pattern.voice.octave ),
+             octave = self.octave + ( pattern.octave - pattern.voice.octave ) + 1,
              value = pattern.value,
              duration = pattern.duration,
              velocity = pattern.velocity,

@@ -2,26 +2,26 @@ from typing import Tuple
 from musikla.parser.printer import CodePrinter
 from musikla.core import Context
 from ..node import Node
-from .statement_node import StatementNode
+from ..music_node import MusicSequenceBase
 
-class WhileLoopStatementNode( StatementNode ):
+class WhileLoopStatementNode( MusicSequenceBase ):
     def __init__ ( self, condition : Node, body : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
 
         self.condition : Node = condition
         self.body : Node = body
 
-    def eval ( self, context : Context ):
+    def values ( self, context : Context ):
         condition_value = self.condition.eval( context )
 
-        result = None
-
         while condition_value:
-            result = self.body.eval( context.fork( symbols = context.symbols.fork( opaque = False ) ) )
+            forked = context.fork( symbols = context.symbols.fork( opaque = False ) )
+
+            yield self.body.eval( forked )
+
+            context.join( forked )
 
             condition_value = self.condition.eval( context )
-
-        return result
 
     def to_source ( self, printer : CodePrinter ):
         printer.add_token( 'while ' )

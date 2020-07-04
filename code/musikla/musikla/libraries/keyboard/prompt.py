@@ -343,7 +343,9 @@ def create_application():
 
             now = ApplicationState.player.get_time()
 
-            val = script.eval( code, context = ApplicationState.context.fork( cursor = now ) )
+            ctx = ApplicationState.context.fork( cursor = now )
+
+            val = script.eval( code, context = ctx )
 
             if val is not None and isinstance( val, Music ):
                 pl = InteractivePlayer( lambda: val.expand( ctx ), ApplicationState.player, realtime = True )

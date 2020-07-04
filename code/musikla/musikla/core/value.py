@@ -1,6 +1,6 @@
 from typing import Any
 from typeguard import check_type
-from .music import Music
+from .music import Music, MusicGen
 
 class Value:
     @staticmethod
@@ -10,6 +10,19 @@ class Value:
             return value.shared()
         
         return value
+
+    @staticmethod
+    def forked ( value ):
+        if isinstance( value, Music ):
+            def _gen ( context ):
+                for ev in value.expand( context ):
+                    context.cursor = max( ev.end_timestamp, context.cursor )
+
+                    yield ev
+
+            return MusicGen( None, _gen )
+        else:
+            return value
 
     @staticmethod
     def expect ( value, typehint, name : str = "", soft : bool = False ) -> bool:

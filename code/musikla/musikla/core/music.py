@@ -62,7 +62,7 @@ class Music:
     def __getitem__ ( self, key ) -> MusicEvent:
         return self.shared()[ key ]
 
-    def len ( self, context = None ) -> Union[Fraction, int]:
+    def len ( self, context : Context = None ) -> Union[Fraction, int]:
         range : Optional[Tuple[int, int]] = None
         
         for ev in self.shared():
@@ -91,8 +91,12 @@ class Music:
         for note in self:
             if isinstance( note, Music ):
                 for subnote in note.expand( context ):
+                    context.join( subnote.end_timestamp )
+
                     yield subnote
             else:
+                context.join( note.end_timestamp )
+                
                 yield note
 
     def transform ( self, transformer : Any, *args, **kargs ) -> 'MusicGen':
@@ -176,6 +180,71 @@ class Music:
     def filter ( self, predicate ) -> 'MusicFilter':
         return MusicFilter( self, predicate )
 
+    def arp ( self, pattern : 'Music' = None ):
+        from musikla.core.events.transformers import DecomposeChordsTransformer
+        from musikla.core.theory import NotePitchClassesInv, NotePitchClassesIndexes
+
+        chord = self.shared().transform( DecomposeChordsTransformer )
+        pattern = pattern.shared()
+
+        def _gen ( context : Context ):
+            context = context or Context.default.fork( cursor = 0 )
+
+            if pattern == None:
+                baseline : Optional[int] = None
+                
+                for event in chord:
+                    if baseline == None:
+                        baseline = event.end_timestamp
+                    else:
+                        event = event.clone( timestamp = baseline )
+
+                    context.join( event.end_timestamp )
+
+                    yield event
+            else:
+                notes_pool : List[Any] = [ evt for evt in chord if isinstance( evt, NoteEvent ) ]
+
+                len_pool = len( notes_pool )
+
+                for event in pattern.transform( DecomposeChordsTransformer ).expand( context.fork() ):
+                    if not isinstance( event, NoteEvent ):
+                        context.join( event.end_timestamp )
+
+                        yield event
+
+                        continue
+
+                    index = NotePitchClassesIndexes[ NotePitchClassesInv[ event.pitch_class ] ]
+                    
+                    if index >= 0 and index < len_pool:
+                        archtype = notes_pool[ index ]
+
+                        event = archtype.from_pattern( event )
+            
+                        context.join( event.end_timestamp )
+
+                        yield event
+
+        return MusicGen( None, lambda c: _gen( c ) )
+
+    def repeat ( self, count : Union[int, bool] ):
+        shared = self.shared()
+
+        def _gen ( context ):
+            if count == 0 or count == False: return
+            
+            if type(count) == int:
+                for _ in range( 0, count ):
+                    for event in shared.expand( context ):
+                        yield event
+            elif count == True:
+                while True:
+                    for event in shared.expand( context ):
+                        yield event
+        
+        return MusicGen( None, lambda c: _gen(c) )
+
     def __pow__ ( self, length_or_music ):
         new_length : Union[Fraction, int] = Fraction( 0 )
 
@@ -200,13 +269,22 @@ class Music:
             if isinstance( event, DurationEvent ):
                 return event.clone(
                     timestamp = timestamp,
-                    value = event.value * factor,
+                    value = Fraction( event.value * factor ).limit_denominator(32),
                     duration = event.voice.get_duration_absolute( event.value * factor )
                 )
             else:
                 return event.clone( timestamp = timestamp )
 
         return music.map( _stretch )
+
+    def __mul__ ( self, other ):
+        if type( other ) == int or type(other) is bool:
+            return self.repeat( other )
+        elif isinstance( other, Music ):
+            return self.arp( other );
+        else:
+            # invalid
+            ...
 
     def __add__ ( self, other ):
         return self.map( lambda ev, i, s: ev + other )
@@ -273,9 +351,13 @@ class SharedMusic(Music):
                 for subnote in note.expand( context ):
                     offset, subnote = self.retime( context, offset, subnote )
 
+                    context.join( subnote.end_timestamp )
+
                     yield subnote
             else:
                 offset, note = self.retime( context, offset, note )
+
+                context.join( note.end_timestamp )
 
                 yield note
 
@@ -353,18 +435,19 @@ class TemplateMusic(Music):
             yield context.voice.revoice( note )
 
 class MusicGen(Music):
-    def __init__ ( self, base : Music, mapper ):
+    def __init__ ( self, base : Optional[Music], mapper ):
         super().__init__( [] )
 
-        self.base : Music = base
+        self.base : Optional[Music] = base
         self.mapper = mapper
+        self.auto_expand : bool = base is not None
 
     def expand ( self, context : Context ):
-        for event in self.mapper( self.base.expand( context ) ):
+        for event in self.mapper( self.base.expand( context ) if self.auto_expand else context ):
             yield event
 
     def __iter__ ( self ):
-        for event in self.mapper( self.base ):
+        for event in self.mapper( self.base if self.auto_expand else None ):
             yield event
 
 class MusicMap(Music):

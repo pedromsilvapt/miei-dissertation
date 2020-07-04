@@ -70,11 +70,11 @@ class FluidSynthSequencer ( Sequencer ):
         self.voices[ key ] = value
 
         if voice.instrument.soundfont is None and voice.instrument.bank is None:
-            self.synth.program_change( value, voice.instrument.program )
+            self.synth.program_change( value, voice.instrument.program - 1 )
         elif voice.instrument.bank is not None:
             soundfont = self.get_soundfont_id( voice.instrument.soundfont )
 
-            self.synth.program_select( value, soundfont, voice.instrument.bank, voice.instrument.program )
+            self.synth.program_select( value, soundfont, voice.instrument.bank, voice.instrument.program - 1 )
         
         return value
 
@@ -324,7 +324,6 @@ class FluidSynthSequencer ( Sequencer ):
         self.ramSoundfontId = self.synth.add_sfont( self.ramSoundfont )
         
         self.synth.cc( 0, 64, 127 )
-        self.synth.program_change( 0, 1 )
     
         self.sequencer = pyfluidsynth.Sequencer( use_system_timer = self.realtime )
         

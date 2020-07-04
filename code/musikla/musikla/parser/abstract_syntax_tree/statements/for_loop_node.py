@@ -1,10 +1,10 @@
 from musikla.parser.printer import CodePrinter
 from typing import Tuple
-from musikla.core import Context, SymbolsScope, Value
+from musikla.core import Value
 from ..node import Node
-from .statement_node import StatementNode
+from ..music_node import MusicSequenceBase
 
-class ForLoopStatementNode( StatementNode ):
+class ForLoopStatementNode( MusicSequenceBase ):
     def __init__ ( self, variable : str, it : Node, body : Node, position : Tuple[int, int] = None ):
         super().__init__( position )
 
@@ -12,17 +12,15 @@ class ForLoopStatementNode( StatementNode ):
         self.it : Node = it
         self.body : Node = body
 
-    def eval ( self, context : Context ):
-        result = None
-
-        for i in Value.eval( context.fork(), self.it ):
+    def values ( self, context ):
+        for i in Value.eval( context, self.it ):
             forked = context.fork( symbols = context.symbols.fork( opaque = False ) )
 
             forked.symbols.assign( self.variable, i, local = True )
 
-            result = Value.eval( forked, self.body )
-            
-        return result
+            yield Value.eval( forked, self.body )
+
+            context.join( forked )
 
     def to_source ( self, printer : CodePrinter ):
         printer.add_token( 'for ' )

@@ -93,8 +93,12 @@ class Context():
 
     def join ( self, *child_context ):
         for context in child_context:
-            if context.cursor > self.cursor:
-                self.cursor = context.cursor
+            if type(context) == int:
+                if context > self.cursor:
+                    self.cursor = context
+            else:
+                if context.cursor > self.cursor:
+                    self.cursor = context.cursor
     
     def get_value ( self, value : float ) -> float:
         return self.voice.get_value( value )

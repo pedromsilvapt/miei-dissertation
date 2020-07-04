@@ -29,7 +29,7 @@ class HTMLSequencer ( Sequencer ):
     </head>
     <body>
         <div class="abc-source">
-            {abc}
+{abc}
         </div>
         <script>
             $ABC_UI.init();

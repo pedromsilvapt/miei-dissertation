@@ -20,18 +20,18 @@ $g = $keyboard\Grid::compose(
 );
 
 # A much simpler equivalent
-$g = keyboard\Grid( 3, range_left = 500 );
+$g = keyboard\Grid( $e1::len()::numerator, range_left = 500 );
 
 $keyboard = @keyboard {
-    a: arpeggio( [Cm]; $pat );
-    s: arpeggio( [Fm]; $pat );
-    d: arpeggio( [Gm]; $pat );
+    a: [Cm] * $pat;
+    s: [Fm] * $pat;
+    d: [Gm] * $pat;
 
     r: $g::reset();
 
     8: { $pat = $e1 };
     9: { $pat = $e2 };
-}::with_grid( $g );
+}::with_grid( $g, mode = "global" );
 
 print( $g::length_duration ); 
 
