@@ -1,3 +1,4 @@
+from asyncio.tasks import sleep
 from musikla.libraries.keyboard_pynput import KeyboardPynputLibrary
 from musikla.libraries.keyboard_mido import KeyboardMidoLibrary
 from musikla.core import Context, Library, Music, Value
@@ -107,10 +108,14 @@ class Script:
 
                 if os.path.exists( joined_path ):
                     return joined_path
+                
+                for ext in self.import_extensions:
+                    if os.path.exists( joined_path + ext ):
+                        return joined_path + ext
 
         if local is False or local is None:
             for path in self.import_paths:
-                joined_path = str( Path( path ).join( import_path ).resolve() )
+                joined_path = str( Path( path ).joinpath( import_path ).resolve() )
 
                 if any( joined_path.endswith( ext ) for ext in self.import_extensions ):
                     if os.path.exists( joined_path ):
@@ -232,5 +237,7 @@ class Script:
     async def join ( self ):
         for task in list( self.tasks ):
             await task
+
+        await sleep(2)
 
         self.player.sequencers[ 0 ].join()

@@ -28,6 +28,7 @@ class FunctionDeclarationStatementNode( StatementNode ):
             ( name, arg_mod, default_value ) = self.arguments[ i ]
 
             arg_context = context
+            is_provided : bool = True
             
             if len( args ) > i:
                 node = args[ i ]
@@ -36,16 +37,22 @@ class FunctionDeclarationStatementNode( StatementNode ):
             elif default_value != None:
                 node = default_value
                 arg_context = forked
+                is_provided = False
             else:
                 raise Exception( f"Mandatory argument { name } was not given." )
 
             if arg_mod == 'expr':
                 forked.symbols.assign( name, node )
-            elif arg_mod == 'ref':
+            elif arg_mod == 'ref' and is_provided:
                 if not isinstance( node, VariableExpressionNode ):
                     raise BaseException( f"Only variable references can be passed to a function (function { self.name }, parameter { name })" )
-
+                
                 forked.symbols.using( context.symbols.pointer( node.name ), name )
+            elif arg_mod == 'in' and is_provided:
+                if is_provided and isinstance( node, VariableExpressionNode ):
+                    forked.symbols.using( context.symbols.pointer( node.name ), name )
+                else:
+                    forked.symbols.assign( name, Value.assignment( node.eval( arg_context.fork() ) ) )
             else:
                 forked.symbols.assign( name, Value.assignment( node.eval( arg_context.fork() ) ) )
 

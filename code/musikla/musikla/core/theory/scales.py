@@ -3,10 +3,18 @@ from .interval import Interval
 
 class Scale:
     black_keys : 'Scale'
+    black_keys_padded : 'Scale'
     white_keys : 'Scale'
+    pentatonic_major : 'Scale'
 
     def __init__ ( self, intervals : List[int] ):
         self.intervals : List[int] = intervals
+
+    def __len__ ( self ):
+        return len( self.intervals )
+
+    def __getitem__ ( self, key ) -> Interval:
+        return self.interval_at( key )
 
     def interval_at ( self, index : int ) -> Interval:
         l = len( self.intervals )
@@ -15,7 +23,11 @@ class Scale:
 
 Scale.black_keys = Scale( [ 1, 3, 6, 8, 10 ] )
 
+Scale.black_keys_padded = Scale( [ 1, 3, 3, 6, 8, 10, 10 ] )
+
 Scale.white_keys = Scale( [ 0, 2, 4, 5, 7, 9, 11 ] )
+
+Scale.pentatonic_major = Scale( [ 0, 2, 4, 7, 9 ] )
 
 # major: W W H W W W H
 # minor: W H W W H W W

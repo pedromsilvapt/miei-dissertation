@@ -15,7 +15,7 @@ class InteractivePlayer:
         self.extend : bool = extend
 
         # How many milliseconds to try and buffer, minimum
-        self.buffer_duration : int = 10
+        self.buffer_duration : int = 50
 
         self.extended_notes = []
         self.events_iterator = None

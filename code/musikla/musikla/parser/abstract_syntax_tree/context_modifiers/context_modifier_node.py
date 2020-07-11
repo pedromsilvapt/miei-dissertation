@@ -1,6 +1,9 @@
 from .. import MusicNode
 
 class ContextModifierNode( MusicNode ):
+    def apply ( self, voice ):
+        pass
+
     def modify ( self, context ):
         pass
 

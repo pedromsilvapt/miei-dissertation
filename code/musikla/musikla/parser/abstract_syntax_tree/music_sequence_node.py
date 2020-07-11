@@ -18,5 +18,8 @@ class MusicSequenceNode( MusicSequenceBase ):
         for node in self.expressions:
             yield node.eval( context )
 
+    def check_returns(self):
+        return False
+
     def __iter__ ( self ):
         return iter( self.expressions )

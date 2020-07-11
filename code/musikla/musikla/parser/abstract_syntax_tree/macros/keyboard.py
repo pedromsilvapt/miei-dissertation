@@ -208,3 +208,7 @@ class KeyboardDeclarationMacroNode(MacroNode):
         shortcuts.append( VariableExpressionNode( var_name ) )
 
         self.virtual_node = BlockNode( StatementsListNode( shortcuts, position ) )
+
+        # from musikla.parser import CodePrinter
+        
+        # print( CodePrinter().print( self.virtual_node ) )

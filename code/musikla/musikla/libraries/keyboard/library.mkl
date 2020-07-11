@@ -14,16 +14,28 @@ fun keyboard\debug ( $cb = none ) {
     }
 };
 
-fun keyboard\piano ( $layout = $_default_layout, $hshift = @{}, $scales = @{}, $row_octaves = @{}, $transpose = 0; $toggle = false ) {
+fun keyboard\piano ( $layout = $_default_layout, in $transpose = 0, in $transpose_rows = @{}, in $shift_rows = @{}, $scales = @[], $toggle = false ) {
     fun get_row_scale ( $row_index ) {
-        if ( $scales::has( $row_index ) ) {
-            return $scales::get( $row_index );
+        if ( len( $scales ) > 0 ) {
+            return $scales::[ mod( $row_index, len( $scales ) ) ];
         };
 
         if ( mod( $row_index, 2 ) == 0 ) {
             return $scale::white_keys;
         } else {
-            return $scale::black_keys;
+            return $scale::black_keys_padded;
+        };
+    };
+
+    fun get_row_scale_index ( $row_index ) {
+        if ( len( $scales ) > 0 ) {
+            return mod( $row_index, len( $scales ) );
+        };
+
+        if ( mod( $row_index, 2 ) == 0 ) {
+            return 0;
+        } else {
+            return 1;
         };
     };
 
@@ -33,32 +45,51 @@ fun keyboard\piano ( $layout = $_default_layout, $hshift = @{}, $scales = @{}, $
 
     $rows::reverse();
 
-    $row_index = $rows::__len__() - 1;
+    # Will hold the last octave that was used for a specific scale.
+    # Next time this scale is used, it's base octave will be this one
+    # This is useful when dealing with very small scales, that fit more than twice
+    # on a single row, and thus we can't just increment the octave +1 on the next row
+    # that uses this scale
+    $scale_last_octaves = @{};
 
-    while ( $row_index >= 0 ) {
+    for ( $row_index in range( len( $rows ) ) ) {
         $row_scale = get_row_scale( $row_index );
 
-        $row_transpose = $hshift::get( $row_index, default = 0 );
+        $row_scale_index = get_row_scale_index( $row_index );
 
-        $row_base_octave = $row_octaves::get( $row_index, default = div( $row_index, 2 ) );
+        # $row_base_octave = $row_octaves::get( $row_index, default = div( $row_index, 2 ) );
+        $row_base_octave = $scale_last_octaves::get( $row_scale_index, default = 0 );
 
-        $i = $row_transpose;
+        for ( $i, $letter in enumerate( $rows::[ $row_index ] ) ) {
+            $music = C + interval( octaves = $row_base_octave );
 
-        for ( $letter in $rows::[ $row_index ] ) {
-            $music = C + interval( octaves = $row_base_octave ) + $row_scale::interval_at( $i ) + $transpose;
+            keyboard\register( $kb, 
+                key = $letter, 
+                expression = {
+                    $interval = $row_scale::interval_at( $i + $shift_rows::get( $row_index, default = 0 ) );
 
-            keyboard\register( $kb, key = $letter, expression = $music, hold = not $toggle, toggle = $toggle, extend = true );
+                    $interval += $transpose_rows::get( $row_index, default = 0 );
 
-            $i = $i + 1;
+                    $interval += $transpose;
+
+                    $music + $interval;
+                },
+                hold = not $toggle, toggle = $toggle, extend = true 
+            );
         };
 
-        $row_index = $row_index - 1;
+        $d = div( len( $rows::[ $row_index ] ), len( $row_scale ) );
+        $r = mod( len( $rows::[ $row_index ] ), len( $row_scale ) );
+
+        # Increment the scale index by how many octaves the scale contains, 
+        # plus one more if the last octave of the scale was only partial
+        $scale_last_octaves::set( $row_scale_index, $row_base_octave + $d + 1 * ( $r == 0 ) );
     };
 
     return $kb;
 };
 
-fun keyboard\midi ( $toggle = false, $transpose = 0 ) {
+fun keyboard\midi ( $toggle = false, in $transpose = 0 ) {
     $kb = keyboard\create();
 
     $bottom = C,,,,::first_note();
@@ -67,9 +98,9 @@ fun keyboard\midi ( $toggle = false, $transpose = 0 ) {
     while ( $bottom <= $top ) {
         # Important to declare the music to a variable because since we are inside a loop
         # If we didn't bound to a variable, it would always be bound to the last note of the loop
-        $music = $bottom::music() + $transpose;
+        $music = $bottom::music();
 
-        keyboard\register( $kb, key = $bottom, expression = $music, hold = not $toggle, toggle = $toggle, extend = true );
+        keyboard\register( $kb, key = $bottom, expression = $music + $transpose, hold = not $toggle, toggle = $toggle, extend = true );
 
         $bottom = $bottom + 1;
     };

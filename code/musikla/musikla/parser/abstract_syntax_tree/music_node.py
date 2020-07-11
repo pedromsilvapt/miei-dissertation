@@ -5,12 +5,18 @@ from musikla.core import Music, StackFrame
 
 
 class MusicSequenceBase( Node ):
+    def check_returns ( self ):
+        return True
+
     def values ( self, context ):
         return iter(())
 
-    def _check_stack_frame ( self, stack_frame : Optional[StackFrame] ) -> bool:
+    def _check_stack_frame ( self, stack_frame : Optional[StackFrame], music_mode : bool = True ) -> bool:
+        if not self.check_returns():
+            return False
+
         if stack_frame is not None and stack_frame.returned:
-            if stack_frame.returned_value is not None:
+            if music_mode and stack_frame.returned_value is not None:
                 raise Exception( "A function that plays music cannot return value" )
             else:
                 return True
@@ -43,6 +49,9 @@ class MusicSequenceBase( Node ):
         while True:
             try:
                 value = next( iterator )
+
+                if self._check_stack_frame( stack_frame, False ):
+                    return stack_frame.returned_value
 
                 if isinstance( value, Music ):
                     return Music( self._get_events( context, stack_frame, iterator, value ) )

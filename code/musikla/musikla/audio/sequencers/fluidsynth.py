@@ -20,12 +20,13 @@ fluid_synth_get_active_voice_count = pyfluidsynth.cfunc('fluid_synth_get_active_
                                     ('synth', c_void_p, 1))
 
 class FluidSynthSequencer ( Sequencer ):
-    def __init__ ( self, output : str = None, soundfonts : Dict[str, Optional[str]] = {}, settings : Mapping[str, Any] = {}, realtime : bool = True ):
+    def __init__ ( self, output : str = None, soundfonts : Dict[str, Optional[str]] = {}, settings : Mapping[str, Any] = {}, realtime : bool = True, device : str = None ):
         super().__init__()
 
         self.realtime = realtime
 
         self.output : str = output or "pulseaudio"
+        self.device : Optional[str] = device
         self.settings : Mapping[str, Any] = settings
 
         self.synth : Optional[pyfluidsynth.Synth] = None
@@ -315,7 +316,7 @@ class FluidSynthSequencer ( Sequencer ):
             if not self.realtime:
                 raise BaseException( "Can only render audio fast to a file (not audio device)" )
 
-            self.synth.start( driver = self.output )
+            self.synth.start( driver = self.output, device = self.device )
 
         for soundfont in self.soundfonts.keys():
             self.load_soundfont( soundfont )
@@ -339,6 +340,7 @@ class FluidSynthSequencerFactory( SequencerFactory ):
     def init ( self ):
         self.name = 'fluidsynth'
         self.argparser = ArgumentParser( description = 'Synthesize notes throught the FluidSynthesizer library' )
+        self.argparser.add_argument( '-d', '--device', dest = 'device', type = str, action='store', help = 'Specify a custom device name for the sound output' )
         self.argparser.add_argument( '-s', '--setting', dest = 'settings', type = str, action='append', help = 'Pass a setting down to fluidsynth with the format <key>=<value>' )
         self.argparser.add_argument( '-c', '--audio-bufcount', dest = 'audio_buffcount', type = int, action='store', help = 'Number of audio buffers (equivalent to `audio.periods`)' )
         self.argparser.add_argument( '-g', '--gain', dest = 'gain', type = float, action='store', help = 'Set the master gain [0 < gain < 10, default = 0.2] (equivalent to `synth.gain`)' )
@@ -411,4 +413,4 @@ class FluidSynthSequencerFactory( SequencerFactory ):
         if soundfont is not None:
             soundfonts[ soundfont ] = None
 
-        return FluidSynthSequencer( uri, soundfonts, { **cli_settings, **ini_settings }, realtime = not args.fast )
+        return FluidSynthSequencer( uri, soundfonts, { **cli_settings, **ini_settings }, realtime = not args.fast, device = args.device )

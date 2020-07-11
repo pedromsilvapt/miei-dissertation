@@ -1,12 +1,13 @@
 from musikla.parser.printer import CodePrinter
 from musikla.core.events.event import MusicEvent
-from musikla.core import Context, Library, CallableValue, Voice, Instrument, Music, Value, Ref
+from musikla.core import Context, Library, CallableValue, Voice, Metronome, Instrument, Music, Value, Ref
 from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core.events import ControlChangeEvent
 from musikla.core.theory import Interval, Scale
 from musikla.parser import Parser
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
 from musikla.parser.abstract_syntax_tree.expressions import VariableExpressionNode
+from musikla.parser.abstract_syntax_tree.context_modifiers import ContextModifierNode
 from musikla.audio.sequencers.sequencer import Sequencer
 from musikla.audio import Player
 from typing import Any, List, Union, cast
@@ -242,6 +243,8 @@ def function_voices_create ( context : Context, name : str, modifiers : Node = N
         pass
 
     voice = Voice( name, Instrument( name, 1 ) )
+    forked = context.fork()
+    forked.voice = voice
 
     if inherit != None:
         voice.instrument = inherit.instrument
@@ -254,9 +257,15 @@ def function_voices_create ( context : Context, name : str, modifiers : Node = N
     if modifiers != None:
         if isinstance( modifiers, MusicSequenceNode ):
             for modifier in modifiers:
-                modifier.apply( voice )
+                if isinstance( modifier, ContextModifierNode ):
+                    modifier.apply( voice )
+                else:
+                    modifier.eval( forked )
         else:
-            modifiers.apply( voice )
+            if isinstance( modifiers, ContextModifierNode ):
+                modifiers.apply( voice )
+            else:
+                modifiers.eval( forked )
 
     return voice
 
@@ -302,6 +311,7 @@ class StandardLibrary(Library):
         context.symbols.assign( "list", list )
         context.symbols.assign( "dict", dict )
         context.symbols.assign( "range", range )
+        context.symbols.assign( "enumerate", enumerate )
         context.symbols.assign( "len", CallablePythonValue( function_len ) )
 
         context.symbols.assign( "mod", CallablePythonValue( function_mod ) )
@@ -330,5 +340,8 @@ class StandardLibrary(Library):
         context.symbols.assign( "sequencers\\Midi", CallablePythonValue( seqs.MidiSequencer ) )
         context.symbols.assign( "sequencers\\Debug", CallablePythonValue( seqs.DebugSequencer ) )
         context.symbols.assign( "sequencers\\FluidSynth", CallablePythonValue( seqs.FluidSynthSequencer ) )
+
+        context.symbols.assign( "Metronome", CallablePythonValue( Metronome ) )
+        context.symbols.assign( "met", CallablePythonValue( Metronome ) )
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )

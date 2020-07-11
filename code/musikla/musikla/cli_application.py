@@ -9,6 +9,7 @@ from musikla.audio.sequencers import Sequencer, SequencerFactory
 from musikla import Script
 from typing import List, Optional, cast
 from colorama import init
+from shlex import shlex, split
 
 class CliApplication:
     default_output = 'pulseaudio' if os.name == 'posix' else 'dsound'
@@ -98,7 +99,16 @@ class CliApplication:
 
         script = Script()
 
-        sequencers = self.parse_outputs_args( script.player, argv[ 1: ] )
+        if argv[ 1: ]:
+            sequencers = self.parse_outputs_args( script.player, argv[ 1: ] )
+        elif script.config.has_option( 'Musikla', 'output' ):
+            output_array = split( script.config.get( 'Musikla', 'output' ) )
+            
+            split_output_array = self.split_argv( output_array, [ '-o', '--output' ] )
+
+            sequencers = self.parse_outputs_args( script.player, split_output_array[ 1: ] )
+        else:
+            sequencers = []
 
         script.player.print_events = bool( options.print_events )
         
@@ -114,8 +124,6 @@ class CliApplication:
         if sequencers:
             for sequencer in sequencers:
                 script.player.add_sequencer( sequencer )
-        elif script.config.has_option( 'Musikla', 'output' ):
-            script.player.add_sequencer( script.config.get( 'Musikla', 'output' ) )
         else:
             script.player.add_sequencer( self.default_output )
 

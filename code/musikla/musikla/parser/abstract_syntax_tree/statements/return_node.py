@@ -22,7 +22,7 @@ class ReturnStatementNode( StatementNode ):
         else:
             val = Value.eval( context, self.expression )
 
-            stack_frame.ret( val )
+            stack_frame.ret( Value.assignment( val ) )
 
             return val
 

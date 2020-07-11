@@ -111,19 +111,19 @@ class ParserVisitor(PTNodeVisitor):
         return list( children.single_argument )
     
     def visit_single_argument ( self, node, children ):
-        return children[ 0 ]
+        prefix = children.single_argument_prefix[ 0 ] if children.single_argument_prefix else None
+        identifier = children.identifier[ 0 ]
 
-    def visit_single_argument_expr ( self, node, children ):
-        return ( children[ 0 ], "expr", None )
-    
-    def visit_single_argument_ref ( self, node, children ):
-        return ( children[ 0 ], "ref", None )
-
-    def visit_single_argument_eval ( self, node, children ):
         if children.expression:
-            return ( children.identifier[ 0 ], None, children.expression[ 0 ] )
+            return ( identifier, prefix, children.expression[ 0 ] )
 
-        return ( children.identifier[ 0 ], None, None )
+        return ( identifier, prefix, None )
+
+    def visit_single_argument_prefix ( self, node, children ):
+        return children[ 0 ] or None
+
+    def visit_for_variables ( self, node, children ):
+        return list( [ v.name for v in children.variable ] )
 
     def visit_for_loop_head ( self, node, children ):
         if len( children.value_expression ) == 1:
@@ -131,15 +131,15 @@ class ParserVisitor(PTNodeVisitor):
         else:
             expression = FunctionExpressionNode( VariableExpressionNode( "range" ), [ children.value_expression[ 0 ], children.value_expression[ 1 ] ] )
         
-        return ( children.namespaced[ 0 ], expression )
+        return ( children.for_variables[ 0 ], expression )
             
 
     def visit_for_loop_statement ( self, node, children ):
         position = ( node.position, node.position_end )
 
-        var_name, expression = children.for_loop_head[ 0 ]
+        variables, expression = children.for_loop_head[ 0 ]
 
-        return ForLoopStatementNode( var_name, expression, children.body[ 0 ], position )
+        return ForLoopStatementNode( variables, expression, children.body[ 0 ], position )
 
     def visit_while_loop_statement ( self, node, children ):
         position = ( node.position, node.position_end )
@@ -243,7 +243,7 @@ class ParserVisitor(PTNodeVisitor):
         position = ( node.position, node.position_end )
 
         expression = children.expression[ 0 ]
-        name = children.namespaced[ 0 ]
+        name = [ children.namespaced[ 0 ] ]
         min = children.value_expression[ 0 ]
         max = children.value_expression[ 1 ]
 

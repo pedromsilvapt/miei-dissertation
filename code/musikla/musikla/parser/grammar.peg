@@ -27,20 +27,18 @@ function_declaration <- "fun" _ namespaced? _ "(" _ arguments? _ ")" _ "{" body 
 
 arguments <- single_argument ( _ arguments_separator _ single_argument )*;
 
+single_argument <- single_argument_prefix _ "$" identifier _ "=" _ expression 
+                 / single_argument_prefix _ "$" identifier
+                 ;
+
+single_argument_prefix <- "expr" / "ref" / "in" / "";
+
 arguments_separator <- ',' / ';';
 
-single_argument <- single_argument_expr / single_argument_ref / single_argument_eval;
+for_variables <- variable ( _ arguments_separator _ variable )*;
 
-single_argument_expr <- "expr" _ "$" identifier;
-
-single_argument_ref <- "ref" _ "$" identifier;
-
-single_argument_eval <- "$" identifier _ "=" _ expression
-                      / "$" identifier
-                      ;
-
-for_loop_head <- "for" _ "(" _ "$" namespaced _ "in" _ value_expression _ ".." _ value_expression _ ")"
-               / "for" _ "(" _ "$" namespaced _ "in" _ value_expression _ ")"
+for_loop_head <- "for" _ "(" _ for_variables _ "in" _ value_expression _ ".." _ value_expression _ ")"
+               / "for" _ "(" _ for_variables _ "in" _ value_expression _ ")"
                ;
 
 for_loop_statement <- for_loop_head _ "{" _ body? _ "}";
