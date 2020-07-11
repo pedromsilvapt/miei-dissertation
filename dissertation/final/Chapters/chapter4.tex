@@ -31,9 +31,42 @@ Nas duas primeiras linhas deste exemplo podemos verifica a utilização de duas 
 Depois podemos ver a utilização de variáveis (\texttt{\$chorus} e \texttt{melody}) para estruturar e guardar conjuntos de notas, neste caso.
 É possível ver também o quão conciso fica descrever padrões ou conjuntos de notas repetidas através do operador de repetição (\texttt{*}). O operador de paralelo (\texttt{|}) permite depois tocar notas em paralelo ao mesmo tempo.
 
+\section{Simples Fuga}
+O caso de estudo anterior mostra como é possível declarar algumas notas, e aproveitar operadores simples como a repetição para reduzir a redundância no código. Neste caso de estudo vamos um pouco mais à frente e vêmos como podemos declarar uma função, que usa as suas variáveis em mais do que um sítio e de diferentes formas.
+\begin{lstlisting}[caption=Exemplo da declaração da estrutura e conteúdo de uma simples fuga de duas vozes,language=PHP]
+# Fugue 2 in C minor in Book I of the J.S. Bach’s Well-Tempered Clavier
+fun fugue ( $subj, $resp ) => 
+    ( $subj $resp | r ** $subj ( $subj + 7 ) );
+
+S8/4 T140 L/4 V120;
+
+$subj = r c/2 B/2 c G _A c/2 B/2 c d
+        G c/2 B/2 c d F/2 G/2 _A2 G/2 F/2;
+
+$resp = _E/2 c/2 B/2 A/2   G/2 F/2 _E/2 D/2   C _e d c
+        _B A _B c   ^F G A ^F;
+
+play( fugue( $subj, $resp ) );
+\end{lstlisting}
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/paper/fugue.png}}%
+  }%
+  \caption{Generated music sheet for fugue example, audio version available \href{https://drive.google.com/file/d/1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF/view}{\underline{here}}\protect\footnotemark.}
+  \label{fig:fugue}
+\end{figure}
+
+Também nos permite analizar que as músicas podem conter estruturas não imediatamente óbvias à primeira vista. A função recebe duas excertos músicais \texttt{\$subj} e \texttt{\$resp}, e toca-os em sequência. Mas para além disso, durante o terceiro e quarto compassos, também toca em paralelo uma versão do \texttt{\$subj} transposta 7 semitons. 
+
+E este é apenas um pequeno exemplo do tipo de transformações e operações que podem ser efetuadas de modo não destrutivo sobre os acompanhamentos músicais. Se quisermos mudar alguma nota em \texttt{\$subj}, quando reproduzirmos o ficheiro novamente, essa alteração irá refletir-se automaticamente na versão transposta também.
+
 \section{Definir um teclado}
 
-No início do capítulo \textbf{3.1.1} podemos ver um pequeno excerto de música que é tocada autonomamente pela linguagem. Aqui poderemos ver como construir um teclado virtual personalizado para tocar essa música, bem como a sequência de teclas a premir para a reproduzir.
+No início do capítulo \textbf{4.1.1} e \textbf{4.1.2} podemos ver um pequeno excerto de música que é tocada autonomamente pela linguagem. Aqui poderemos ver como construir um teclado virtual personalizado para tocar essa música, bem como a sequência de teclas a premir para a reproduzir.
     
 \begin{lstlisting}[caption=Exemplo da sintaxe para criação de teclados,language=PHP]
 # Title: Soft to Be Strong
@@ -49,7 +82,7 @@ fun toggle_sustain ( ref $enabled ) {
 $sustained = true;
 
 @keyboard hold extend {
-    a: ^Cm;   s: BM;    d: AM;    f: EM;   g: ^Fm;
+    a: [^Cm];   s: [BM];    d: [AM];    f: [EM];   g: [^Fm];
 };
 
 @keyboard hold extend (V120) {
@@ -72,11 +105,85 @@ O segundo teclado funciona de forma similar, atribuíndo às teclas de 1 a 9 not
 
 Outro ponto a notar sobre o segundo teclado é a declaração entre parênteses \texttt{(V120)} que permite modificar o volume das notas tocadas por este teclado (que se sobrepõe ao volume global \texttt{V70} indicado no início do código). Isto é uma forma simples de prefixar configurações a todas as notas do teclado, evitando ter de copiar essas configurações para todas as notas.
 
+\section{Teclado de \textit{Arpeggios}}
+Neste caso vamos construir um teclado mais dinâmico. Vamos associar a algumas teclas diferentes acordes. Mas em vez de tocar simplesmente esses acordes, vamos tocá-los como arpeggios aplicados a um padrão.
+
+É importante notar que o padrão não está escrito estáticamente, mas sim guardado na variável \texttt{\$pat}. Isto significa que podemos depois usar um segundo \textit{keyboard} para controlar qual o padrão ativo. E para tornar o exemplo ainda mais divertido, usamos as setas \textit{up} e \textit{down} para aumentar ou diminuir a transposição das notas resultantes, dando assim mais variadade aos quatro acordes definidos.
+
+É fácil de ver também como este teclado é extremamente versátil, e pode ser facilmente adaptado para um qualquer número de acordes e \textit{arpeggios} que se queira utilizar.
+
+\begin{lstlisting}[caption=Definição de um teclado de acordes,language=PHP]
+S4/4 L/4 T132 V120;
+
+$patterns = @[
+    C D E D2 E C2;
+    C r d' e2 r c2;
+];
+
+$t = 0; $pat = $patterns::[ 0 ];
+
+@keyboard {
+    a: [CM];
+    s: [Am];
+    d: [FM];
+    f: [Dm];
+}::map(fun($k, $m) => $m * $pat + $t);
+
+@keyboard {
+    1: { $pat = $patterns::[ 0 ] };
+    2: { $pat = $patterns::[ 1 ] };
+
+    up: { $t += 1 };
+    down: { $t -= 1 };
+};
+\end{lstlisting}
+
+\section{Teclado Geral com MIDI}
+Os dois teclados vistos até agora são interessantes quando temos um sub-conjunto específico de notas e acordes com os quais queremos tocar. Mas às vezes é interessante ter uma ferramenta mais generalizada para experimentar.
+
+Este exemplo faz uso de funções disponibilizadas na biblioteca \textit{standard} da linguagem para fazer isso mesmo. 
+
+\begin{itemize}
+ \item \texttt{keyboard\textbackslash{}piano()} Cria um teclado a simular um piano com as teclas do computador. A primeira linha de teclas corresponde às teclas brancas, a segunda às teclas pretas e a terceira novamente às brancas mas uma oitava acima.
+ \item \texttt{keyboard\textbackslash{}midi()} Cria um teclado que está à escuta dos eventos MIDI (possivelmente de um piano externo ligado ao computador).
+ \item De seguida também vemos que é possível fazermos \textit{override} a algumas teclas se quisermos algo mais específico. Isto é opcional e pode ser ignorado se quisermos.
+ \item \texttt{keyboard\textbackslash{}bufpad()} Aqui criamos um teclado que está à escuta das teclas numéricas (de 1 até 9) e cria um \textit{buffer} em cada uma delas. Podemos usar esses \textit{buffers} para guardar em memória melodias que toquemos com os teclados, para depois as reproduzir quando quisermos.
+ \item \texttt{keyboard\textbackslash{}repl()} Finalmente criamos um último teclado que faz a tecla "\textbackslash{}" ativar o editor embutido. Assim conseguimos alterar o nosso programa enquanto ele está a correr, alterar teclas, mexer nos \textit{buffers}, declarar variáveis ou gravar os resultados das nossas experiências para disco.
+\end{itemize}
+
+
+\begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
+# Use a "standard" keyboard piano
+$piano = keyboard\piano();
+# Maybe even add a MIDI piano?
+$piano -= keyboard\midi();
+# Or declare a custom piano
+$piano -= @keyboard hold extend {
+    a: [^Cm];       s: [BM];        d: [AM];
+    f: [EM];        g: [^Fm];       
+};
+
+# Declares an array that will contain our buffers
+$bf = none;
+# Creates a keyboard that declares a set of buffers. By default, 
+# the numpad keys are used (creating 10 available buffer slots)
+# Save key is F8, Load key is F7
+$piano -= keyboard\bufpad( $bf );
+# Creates a keyboard that associates the interpreter accessible by the "\" key
+$piano -= keyboard\repl( ctx = getctx() );
+\end{lstlisting}
+
 \section{QWERTY Keyboard}
-A função \texttt{qwertyboard} é uma função planeada a ser incluída na biblioteca \textit{standard} da linguagem. Aqui temos um exemplo simplificado do que essa função irá ser.
-Neste exemplo podemos observar funcionalidades mais genéricas da linguagem. Muitas dessas funcionalidades (arrays, métodos de objetos, funções anónimas) ainda não se encontram implementadas na versão atual do protótipo, mas servem como exemplo para o que a linguagem irá no fim permitir.
+% A função \texttt{qwertyboard} é uma função planeada a ser incluída na biblioteca \textit{standard} da linguagem. Aqui temos um exemplo simplificado do que essa função irá ser.
+% Neste exemplo podemos observar funcionalidades mais genéricas da linguagem. Muitas dessas funcionalidades (arrays, métodos de objetos, funções anónimas) ainda não se encontram implementadas na versão atual do protótipo, mas servem como exemplo para o que a linguagem irá no fim permitir.
+No exemplo anterior utilizamos as funções fornecidas pela biblioteca \textit{standard}. Aqui vamos ver um exemplo de como poderíamos programar as nossas próprias funções, utilizando funcionalidades mais dinâmicas (como ciclos \texttt{for}) do que simplesmente declarar cada tecla manualmente.
+
+Neste caso estamos a criar um teclado em que cada linha de teclas começa uma oitava acima de onde a linha de baixo começou, e as teclas na mesma linha sobem um semitom cada uma.
 \begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
 fun qwertyboard () {
+    # Small shortcut function
+    fun ivl ($o, $s) => interval( octaves = $o, semitones = $i );
+
     # Maps the lines on a keyboard to semitone offsets to List[ List[ str ] ]
     $lines = @[
         "qwertyuiop"::split(),
@@ -88,31 +195,38 @@ fun qwertyboard () {
     $semitone = 0;
     
     $keyboard = @keyboard hold extend {
-        [ $c for $c, $i in $lines::[ 0 ] ]: transpose( c; $i );
-        [ $c for $c, $i in $lines::[ 1 ] ]: transpose( C; $i ); 
-        [ $c for $c, $i in $lines::[ 2 ] ]: transpose( C,; $i );
-        
-        up => { $octave = $octave + 1 };
-        down => { $octave = $octave - 1 };
-        right => { $semitone = $semitone + 1 };
-        left => { $semitone = $semitone - 1 };
-    };
+        for ( $oct, $chars in enumerate( $lines ) ) {
+            for ( $sem, $c in enumerate( $chars ) ) {
+                [ $c ]: c + ivl( -$oct, $sem );
+            };
+        };
+    }::map( fun( $k, $events ) => $events + ivl( $octave, $semitone ) );
     
-    $keyboard::set_transform( $events => $events + interval( 
-        semitone = $semitone, 
-        octave = $octave 
-    ) );
+    $keyboard += @keyboard {
+        up => { $octave += 1 };
+        down => { $octave -= 1 };
+        right => { $semitone += 1 };
+        left => { $semitone -= 1 };
+    };
     
     return $keyboard;
 }
 \end{lstlisting}
-A primeira parte da função declara um \textit{array} com as três linhas de caracteres presentes num teclado \textit{QUERTY}. Isto permite-nos ao declarar as teclas no \textit{keyboard}, fazê-lo de forma dinâmica (ao invés de associar a cada tecla uma nota manualmente).
+A primeira parte da função declara um \textit{array} com as três linhas de caracteres presentes num teclado \textit{QUERTY}. Isto permite-nos ao declarar as teclas no \textit{keyboard}, e fazê-lo de forma dinâmica (ao invés de associar a cada tecla uma nota manualmente).
 
-Essa declaração, inspirada nas listas por compreensão do \textit{Python}, funciona através de uma construção similar a um ciclo \textit{for}. A variável \texttt{\$c} corresponde a cada item do \textit{array} (neste caso, casa tecla), a variável \texttt{\$i} (opcional) permite-nos obter o índice da letra atual no \textit{array}. A cada letra é associada a nota \texttt{C} transposta pelo índice da tecla.
+Essa declaração, inspirada nas listas por compreensão do \textit{Python}, funciona através de uma construção similar a um ciclo \textit{for}. A variável \texttt{\$c} corresponde a cada item da \textit{linha} (neste caso, casa tecla), a variável \texttt{\$sem} permite-nos obter o índice da letra atual na \textit{linha}. A cada letra é associada a nota \texttt{c} transposta pelo índice da tecla e da linha a que pertence.
 
-Para além disso também podemos ver a declaração de mais quatro teclas (correspondentes às quatro setas do teclado) que permitem desclocar as notas tocadas por oitavas completas ou por semitons. Para isso, estas teclas têm associadas uma expressão de bloco (identificada peloas chavetas \texttt{\{} e \texttt{\}}). Lá dentro é possível meter uma instrução (ou opcionalmente várias, separadas por pontos e vírgulas \textbf{;}). O valor da última expressão é o valor de retorno da expressão de bloco toda, pelo que é possível que uma tecla faça mais que uma coisa (altere o estado e no fim retorne ainda notas para serem tocadas, por exemplo).
+Para além disso também podemos ver a declaração de mais quatro teclas (correspondentes às quatro setas do teclado) que permitem desclocar as notas tocadas por oitavas completas ou por semitons. Para isso, estas teclas têm associadas uma expressão de bloco (identificada peloas chavetas \texttt{\{} e \texttt{\}}). Lá dentro é possível meter uma instrução (ou opcionalmente várias, separadas por pontos e vírgulas \textbf{;}). O valor da última expressão é o valor de retorno da expressão de bloco toda, pelo que seria possível que uma tecla fizesse mais que uma coisa (alterar o estado e no fim retornar ainda notas para serem tocadas, por exemplo).
 
-Finalmente vemos também um exemplo do método \texttt{set\_transform}, um dos vários métodos que o objeto \texttt{Keyboard} irá ter e que permitem modificar ainda mais o comportamento dos teclados, desde transformar as teclas, definir grelhas de alinhamento, gravar as teclas premidas ou reproduzir uma dessas gravações, entre muitos outros.
+Finalmente vemos também um exemplo do método \texttt{map}, um dos vários métodos que o objeto \texttt{Keyboard} disponibiliza e que permitem modificar ainda mais o comportamento dos teclados, alterando o valor emitido por cada tecla de acordo com a função passada.
 
-Este método, que aceita uma função como argumento, permite transformar cada evento músical que o teclado emita. Neste caso, estamos a usá-lo em conjunto com as variáveis de estado que declaramos anteriormente, para a cada evento, somar-lhe um intervalo composto pelos semitons e oitavas definidos.
+\needspace{.2\textheight}
 
+\section{Conclusão}
+Com estes exemplos pudemos ver como ter uma sintaxe declarativa torna bastante compacta a descrição de acompanhamentos músicais. Mas mais do que poder descrevê-los estáticamente, o facto de podermos repetir e transformar sequências músicais aumenta ainda mais a produtividade do utilizador.
+
+Para além disso também conseguimos observar que a integração dos teclados abre portas para situações bastante interessantes, principalmente quando usados em conjunto com as ferramentas de programação dinâmica disponíveis. Um exemplo disso é o caso do nosso teclado de \textit{arpeggios}, onde podemos definir apenas um conjunto de acordes, e depois aplicar uma transformação comum a todos eles para produzirem expressões mais complexas (que podem ser depender de variáveis que vão mudando ao longo da execução).
+
+Para além disso, também concluímos que é importante que a biblioteca \textit{standard} inclua ferramentas genéricas e prontas a utilizar, tais como teclados com as teclas já preenchidas para os casos de uso mais comuns. Isto é útil para facilitar a utilização da linguagem por pessoas que possam sentir-se à vontade com pequenos \textit{scripts} que mudem algumas variáveis e chamem algumas funções, mas não tenham experiência suficiente para criar tudo de raiz.
+
+Por fim, é também algo importante permitir a execução de código (nem que seja apenas de expressões ou instruções singulares, uma de cada vez) em \textit{runtime}. Isto permite ir refinando o programa, principalmente os teclados que possam estar ativos, sem ser necessário terminar a execução do programa. Tal ação, para além de ser mais incomodativo e diminuir a produtividade do utilizador, também apresenta a desvantagem de fazer a aplicação perder a memória, e como tal o estado das variáveis e dos \textit{buffers} que pudessem estar a ser usados.

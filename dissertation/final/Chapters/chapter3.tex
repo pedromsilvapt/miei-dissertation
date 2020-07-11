@@ -13,6 +13,19 @@ O primeiro desses desafios é a introdução de um novo tipo de dados primitivo 
 
 Ainda relacionado com o tipo de dados \textit{Música}, também é importante pensar em como o representar, e os casos que deve cobrir. Para este fim, acho que é importante a linguagem permitir gerar sons \textbf{potêncialmente infinitos}. Esta funcionalidade não é tão útil no campo da geração de música \textit{offline}, mas é extremamente útil quando a música está a ser gerada em tempo real, e possivelmente a ser controlada por um utilizador através do teclado, permitindo começar a tocar música gerada proceduralmente, e deixá-la tocar durante o tempo que for necessário. Como tal é necessário pensar em como a implementação de todo o código depende deste ponto.
 
+\section{Objetivos}
+Nós podemos assim sumarizar os objetivos principais para a nossa linguagem da seguinte forma:
+\begin{itemize}
+ \item \textbf{Declarativa} As sequências músicais devem ser descritas de uma forma declarativa (em vez de imperativa).
+ \item \textbf{Dinâmica} Introduzir conceitos mamemáticos ou de programação, tais como funções e variáveis, para a área músical.
+ \item \textbf{Interatividade} Tornar possivel criar teclados interativos diretamente a partir da linguagem, e que integrem facilmente com o resto  das funcionalidades  disponibilizadas.
+ \item \textbf{\textit{Lazyness}} Tornar \textit{lazyness} a predefinição para as sequências músicais, gerando apenas os eventos estritamente necessários quando são necessários.
+ \item \textbf{Eventos Variados} As sequências músicais devem poder descreber acompanhamentos musicais complexos, contento notas singulares, pausas, acordes, \textit{arpeggios}, vozes, e mais.
+ \item \textbf{Multiplos \textit{Inputs}} Para além de permitir que os acompanhamentos musicais sejam descritos na nossa linguagem, também deve ser possível que eles sejam importados ou convertidos de diferentes fontes, como dispositivos ou ficheiros \textit{MIDI}.
+ \item \textbf{Multiplos \textit{Outputs}} Guardar ou escrever para differentes \textit{outputs}, os eventos que forem gerados pela nossa aplicação.
+ \item \textbf{Extensibilidade} Tornar simples o processo de extender e costumizar o projeto, sem ser necessário passos como clonar o projeto, recompilar ou modificar o seu código interno.
+\end{itemize}
+
 \section{Solução Proposta}
 A linguagem irá ser desenvolvida em \textit{Python}. A linguagem irá ser extensível, permitindo ao utilizador definir objetos ou funções em \textit{Python} e expô-los para dentro da linguagem, dando assim acesso à grande quantidade de módulos já existentes para os mais variados fins.
 
@@ -25,7 +38,7 @@ A existência deste \textbf{contexto} implícito significa que as funções \tex
 O tipo de dados \textbf{Música} irá ser implementado sobre o conceito de iteradores (e mais especificamente geradores) fornecido pelo \textit{Python} para tornar a criação de música \textit{lazy}. No entanto, este paradigma deve ser completamente opaco para o utilizador da linguagem: a decisão de usar o modelo de execução normal, ou funções geradores deve ser tomado em segundo plano pelo motor de execução da linguagem, sempre que este for necessário. Isto é, ao contrário da maioria das linguagens que exigem para a utilização de geradores que o utilizador declare explicitamente que quer "emitir" um valor através de alguma \textit{keyword}, geralmente \texttt{yield}, na nossa linguagem sempre que alguma função produzir um valor do tipo de música que não seja consumido de alguma forma (atribuido a uma variável ou passado a uma função, por exemplo), esse valor músical é \textbf{implicitamente emitido} para o gerador, uma vez que esse caso será o mais comum. Para evitar que o valor seja emitido, é necessário \textbf{descartá-lo manualmente} onde for caso disso. Se por outro lado a função lidar apenas com valores não-músicais, a sua execução irá seguir o modelo tradicional (onde a função termina a sua execução antes de retornar o controlo ao local onde foi chamada).
 \newpage
 \subsection{Gramática da Linguagem}
-A gramática completa da linguagem pode ser vista em \ref{grammar}. MAs antes de abordarmos em mais detalhe como irá der desenhada a gramática da linguagem, podemos aborar dois pequenos exemplos que demonstram a geração de notas músicais.
+A gramática completa da linguagem pode ser vista no Anexo \ref{grammar}. Mas antes de abordarmos em mais detalhe como irá der desenhada a gramática da linguagem, podemos abordar dois pequenos exemplos que demonstram a geração de notas músicais.
 \begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
 V70 L1 T120;
 
@@ -65,11 +78,11 @@ As instruções e expressões da gramática são baseadas nas linguagens como C 
 Em termos de instruções suportadas, a linguagem irá ter as usuais:
 \begin{description}
     \item[Declaração de Funções] \verb|fun function_name ( $arg1, $arg2, <...> ) {  }|
-    \item[Ciclos While] \verb|while <condition> {  }|
-    \item[Ciclos For] \verb|for $var in <expr> {  }|
-    \item[Condicionais If] \verb|if <condition> {  } else {  }|
+    \item[Ciclos While] \verb|while (<condition>) {  }|
+    \item[Ciclos For] \verb|for ($var in <expr>) {  }|
+    \item[Condicionais If] \verb|if (<condition>) {  } else {  }|
     \item[Atribuições a Variáveis] \verb|$var = <expr>;|
-    \item[Chamada de Funções] \verb|function_name( <arg1>, <arg2>, <...> );|
+    \item[Chamada de Funções] \verb|function_name( <arg1>, <arg2>, <...>, named_arg = <arg_n> );|
 \end{description}
 
 \subsubsection{Acompanhamentos Musicais}
@@ -98,7 +111,9 @@ Os modificadores disponíveis são:
 \item[Velocity] A velocidade das notas, tendo o formato \texttt{[vV][0-9]+}.
 \item[Duração] A duração das notas, tendo o formato \texttt{[lL][0-9]+} ou \\ \texttt{[lL][0-9]+/[0-9]+}.
 \item[Tempo] O número de batidas por minuto (BPM) que definem a velocidade a que as notas são tocadas, tendo o formato \texttt{[tT][0-9]+}.
-\item[Assinatura de Tempo] Define a assinatura de tempo, que define o tipo de batida da música e o comprimento de uma barra na pauta musical. Tem o formato \texttt{[sS][0-9]+/[0-9]}.
+\item[Assinatura de Tempo] Define a assinatura de tempo, que define o tipo de batida da música e o comprimento de uma barra na pauta musical. Tem o formato \texttt{[sS][0-9]+/[0-9]+}.
+\item[Oitava] Permite mudar qual a oitava base (por predefinição 4). Tem o formato \texttt{[oO][0-9]}.
+\item[Instrumento] Qual o identificador numérico do instrumento (a começar em um) a utilizar (regra geral, seguindo o standart General MIDI). Segue o formato \texttt{[iI][0-9]+}.
 \end{description}
 
 É também poossível definir qual o instrumento a ser utilizado para as notas. Todas as notas pertencentes ao mesmo contexto depois do modificador utilizarão esse instrumento.
@@ -122,18 +137,18 @@ Para além de permitir declarar acompanhamentos músicais para serem tocados aut
 $octave = 0;
 
 $keyboard = @keyboard hold extend (v120) {
-# Keys can be declared to play notes
-a: C; s: D; d: E; f: F; g: G; h: A; j: B;
-# Or chords
-1: ^Cm; 2: BM; 3: AM;
+    # Keys can be declared to play notes
+    a: C; s: D; d: E; f: F; g: G; h: A; j: B;
+    # Or chords
+    1: [^Cm]; 2: [BM]; 3: [AM];
     
-# Or any other expression, including code blocks that change the state
-z: { $octave = $octave - 1; };
-x: { $octave = $octave + 1; };
+    # Or any other expression, including code blocks that change the    state
+    z: { $octave -= 1; };
+    x: { $octave += 1; };
 }
 
 # The set_transform function allows changing all events before they are emitted by this keyboard
-$keyboard::set_transform( $events => transpose( $events, octave = $octave ) );
+$keyboard::map( fun ( $k, $events ) => $events + interval( octave = $octave ) );
 \end{lstlisting}
 
 Cada\label{modifiers} teclado aceita opcionalmente uma lista de modificadores, tais como:
@@ -197,3 +212,47 @@ O facto de a linguagem ser desenvolvida em \textit{Python} significa que é extr
     \item Sintaxe e expressividade da linguagem (apesar de vezes isso incorrer num custo de performance);
     \item Existência de \textit{bindings} para bibliotecas desenvolvidas em C/C++ (como \textit{numpy}), optimizadas para inúmeras tarefas que necessitem de maior \textit{performance}/menor latência, que mesmo assim expôem uma interface agradável de usar em \textit{Python};
 \end{itemize}
+
+\subsection{Álgebra Musical}
+Dentro da própria linguagem, e acompanhado das construções de programação como ciclos, variáveis, condicionais e tudo o resto, queremos disponibilizar uma \textit{álgebra} que envolva tanto a parte músical como dos teclados e que permita de certa forma manipulá-los. Para isso, a linguagem tem os seguintes tipos de dados (entre outros):
+
+\medskip
+
+\noindent
+\textbf{Descrição}  \hfill  \textbf{Tipo} \ \  \\
+Sequências de Notas, Acordes, WAVEs, etc \dotfill  \texttt{Music}  \\
+Oitavas, tons, semitons \dotfill  \texttt{Interval} \\
+Metadados (compasso, batidas por minutos, etc) \dotfill  \texttt{Voice} \\
+Dicionário de Tecla \texttt{->} Música ou Função \dotfill  \texttt{Keyboard} \\
+
+Para operar entre estes tipos, existem um conjunto de operações que são tão comuns que merecem ser implementadas através de operadores sintáticos. Devemos notar que o mesmo operador pode ser usado para ações diferentes com base nos tipos dos seus operandos. Sendo a nossa linguagem dinâmica, este tipo de \textit{overloading} deve acontecer em \textit{runtime}.
+
+\medskip
+
+\noindent
+\textbf{Função} \hfill \textbf{Operador} \ \ \\
+\texttt{concat ( Music, Music ) -> Music} \dotfill \texttt{a b} \\
+\texttt{parallel ( Music, Music ) -> Music} \dotfill \texttt{a | b} \\
+\texttt{arpeggio ( Chord, Pattern ) -> Music} \dotfill \texttt{a * b} \\
+\texttt{repeat ( Music, Int | Bool ) -> Music} \dotfill \texttt{a * b} \\ 
+\texttt{transpose ( Music, Interval | Int ) -> Music} \dotfill \texttt{a + b} \\
+\texttt{retime ( Music, Music | Float ) -> Music} \dotfill \texttt{a ** b} \\
+\texttt{union ( Keyboard, Keyboard ) -> Keyboard} \dotfill \texttt{a + b} \\
+\texttt{exclusion ( Keyboard, Keyboard ) -> Keyboard} \dotfill \texttt{a - b} \\
+
+Para além dos operadores disponibilizados, existe um conjunto de funções que permite transformar e compor de maneiras mais avançadas objetos dos variados tipos. Algumas dessas funções (com as assinaturas simplificada relativamente à sua função real, para efeitos de claridade) são listadas de seguida:
+
+\medskip
+
+\noindent
+\textbf{Descrição} \hfill \textbf{Função} \ \ \\
+Leitura de MIDI \dotfill \texttt{readmidi( File | Port ) -> Music} \\
+Gravação de uma \textit{performance} \dotfill \texttt{keyboard\textbackslash{}record( File )} \\
+Reprodução de uma \textit{performance} \dotfill \texttt{keyboard\textbackslash{}replay( File )} \\
+Leitura de uma \textit{performance} \dotfill \texttt{keyboard\textbackslash{}readperf( File ) -> Music} \\
+Gravação de Música \dotfill \texttt{save( Music, File... )} \\
+Transformar Teclados \dotfill \texttt{map( Keyboard, Fn ) -> Keyboard} \\
+Filtrar Teclados \dotfill \texttt{filter( Keyboard, Fn ) -> Keyboard} \\
+Transformar Música \dotfill \texttt{map( Music, Fn ) -> Music} \\
+Filtrar Música \dotfill \texttt{filter( Music, Fn ) -> Music} \\
+Cortar Música \dotfill \texttt{slice( Music, Start, End ) -> Music} \\

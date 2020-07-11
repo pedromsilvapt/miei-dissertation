@@ -2,8 +2,14 @@
     title        = "SoundFont Technical Specification",
     year         = "2006",
     month        = "February",
-    url          = "{http://www.synthfont.com/sfspec24.pdf}",
+    url          = "http://www.synthfont.com/sfspec24.pdf",
     howpublished = "\url{http://www.synthfont.com/sfspec24.pdf}"
+}
+@article{rossum1995soundfont,
+  title={The SoundFont{\textregistered} 2.0 File Format},
+  author={Rossum, Dave and Joint, E},
+  journal={Joint E-Mu/Creative Tech Center white paper},
+  year={1995}
 }
 @MISC {nfluidsynth,
     author       = "Eno, Atsushi",
@@ -50,9 +56,11 @@
     howpublished = "\url{http://abcnotation.com/}",
     url          = "http://abcnotation.com/"
 }
+% howpublished = "\url{http://abcnotation.com/wiki/abc:standard:v2.1}",
 @MISC {abc-notation-standard,
     title        = "ABC Notation Standard v2.1",
-    howpublished = "\url{http://abcnotation.com/wiki/abc:standard:v2.1}",
+    day = 15,
+    month        = "Jan",
     year         = "2011",
     url          = "http://abcnotation.com/wiki/abc:standard:v2.1"
 }
@@ -133,6 +141,12 @@
     eprint = {https://doi.org/10.1162/COMJ_a_00324},
     abstract = { ChucK is a programming language designed for computer music. It aims to be expressive and straightforward to read and write with respect to time and concurrency, and to provide a platform for precise audio synthesis and analysis and for rapid experimentation in computer music. In particular, ChucK defines the notion of a strongly timed audio programming language, comprising a versatile time-based programming model that allows programmers to flexibly and precisely control the flow of time in code and use the keyword now as a time-aware control construct, and gives programmers the ability to use the timing mechanism to realize sample-accurate concurrent programming. Several case studies are presented that illustrate the workings, properties, and personality of the language. We also discuss applications of ChucK in laptop orchestras, computer music pedagogy, and mobile music instruments. Properties and affordances of the language and its future directions are outlined. }
 }
+@inproceedings{wang2003chuck,
+  title={ChucK: A concurrent, on-the-fly, audio programming language},
+  author={Wang, Ge and Cook, Perry R and others},
+  booktitle={ICMC},
+  year={2003}
+}
 @article{doi:SuperCollider,
     author = {McCartney, James},
     title = {Rethinking the Computer Music Language: SuperCollider},
@@ -144,6 +158,20 @@
     doi = {10.1162/014892602320991383},
     URL = {https://doi.org/10.1162/014892602320991383},
     eprint = {https://doi.org/10.1162/014892602320991383}
+}
+
+@inproceedings{orlarey:hal-02158894,
+  TITLE = {{DSP Programming with Faust, Q and SuperCollider}},
+  AUTHOR = {Orlarey, Yann and Graef, Albert and Kersten, Stefan},
+  URL = {https://hal.archives-ouvertes.fr/hal-02158894},
+  BOOKTITLE = {{Linux Audio Conference}},
+  ADDRESS = {Karlsruhe, Germany},
+  EDITOR = {LAC},
+  YEAR = {2006},
+  KEYWORDS = {Computer ; digital ; FAUST ; functional ; language ; music ; processing ; programming ; Q ; signal ; SuperCollider},
+  PDF = {https://hal.archives-ouvertes.fr/hal-02158894/file/lac06.pdf},
+  HAL_ID = {hal-02158894},
+  HAL_VERSION = {v1},
 }
 
 @article{doi:SonicPi,
@@ -173,4 +201,26 @@
     title        = "FluidSynth",
     howpublished = "\url{http://www.fluidsynth.org/}",
     url          = "http://www.fluidsynth.org/"
+}
+
+@inproceedings{henningsson2011fluidsynth,
+  title={FluidSynth real-time and thread safety challenges},
+  author={Henningsson, David and Team, FD},
+  booktitle={Proceedings of the 9th International Linux Audio Conference, Maynooth University, Ireland},
+  pages={123--128},
+  year={2011}
+}
+
+@article{doi:10.1177/1029864913486793,
+	title        = {Music on the timing grid: The influence of microtiming on the perceived groove quality of a simple drum pattern performance},
+	author       = {Jan Frühauf and Reinhard Kopiez and Friedrich Platz},
+	year         = 2013,
+	journal      = {Musicae Scientiae},
+	volume       = 17,
+	number       = 2,
+	pages        = {246--260},
+	doi          = {10.1177/1029864913486793},
+	url          = {https://doi.org/10.1177/1029864913486793},
+	eprint       = {https://doi.org/10.1177/1029864913486793},
+	abstract     = {In general, microtiming is considered to be an important factor for the perceived quality of rhythms. Our experiment analyzed the influence of early or late time shift of both bass drum and snare drum on the perceived musical quality of a short, simple drum pattern in rock style. In a web-based study, music students (N = 93) listened to a simple drum pattern played on a snare and a bass drum and evaluated the musical quality (in terms of the “groove quality”) of five degrees of microtiming deviations (early and late time shifts of the two instruments by −25 ms, −15 ms, 0 ms, +15 ms, and +25 ms). We found 5 significant results: (a) The highest ratings of perceived drum pattern quality were given for the rhythmically accurate (quantized) version; (b) the increasing deviation in microtiming resulted in lower quality ratings; (c) the evaluation of drum pattern quality showed a characteristic asymmetry of ratings for the two directions of deviations: early time shift was rated more negatively than the comparable late time shift; (d) in general, microtiming deviations on the snare drum were rated worse than comparable deviations on the bass drum; (e) the subjects’ degree of expertise in rock and pop music had no influence on the ratings. We conclude that at least some styles of modern groove-oriented music are characterized by an aesthetics of “exactitude” and a groove effect independent of microtiming deviations. Consequences for the aesthetic appreciation of different styles of music are discussed.}
 }

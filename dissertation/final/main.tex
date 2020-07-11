@@ -39,7 +39,7 @@
 \documentclass[
   docdegree=msc,        % phd(*), phdplan, phdprop, msc, mscplan, bsc
   school=um/eeng,      % nova/fct(*), nova/fcsh, nova/ims, ul/ist, ul/fc, ipl/isel
-  lang=en,              % en(*), fr, it, pt
+  lang=pt,              % en(*), fr, it, pt
   %coverlang=en,         % defaults to main language
   %copyrightlang=en,     % defaults to main language
   fontstyle=newsgott,    % baskervaldx bookman charter ebgaramond fbb fourier garamond
@@ -272,8 +272,9 @@
 \addlisttofrontmatter{\listoffigures}  % The List of Figures. Comment to omit.
 \addlisttofrontmatter{\listoftables}   % The List of Tables. Comment to omit.
 \addlisttofrontmatter{\lstlistoflistings}  % The List of Code Listings. Comment to omit.
-\addlisttofrontmatter{\lstlistofalgorithms}  % The List of Algorithms. Comment to omit.
+% \addlisttofrontmatter{\lstlistofalgorithms}  % The List of Algorithms. Comment to omit.
 \addlisttofrontmatter{\glsnogroupskiptrue\setlength{\glsdescwidth}{0.8\textwidth}\printnoidxglossaries}  % The Glossary and List of Acrnonyms
+\addlisttofrontmatter{\input{Chapters/publication1.tex}}
 
 
 % Text chapters
@@ -331,7 +332,7 @@
 \printtoc         % Always print the table of contents
 \printotherlists   % If option 'otherlistsat=front', print other lists of contents according
                   % to instructions given above, otherwise do nothing
-
+%\input{Chapters/publication1.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \thesismainmatter  % The main text

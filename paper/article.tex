@@ -70,7 +70,7 @@ The project can be partitioned in three different, modular layers: inputs, the l
   {%
   \setlength{\fboxsep}{0pt}%
   \setlength{\fboxrule}{0pt}%
-  \fbox{\includegraphics[width=.65\linewidth]{../dissertation/rpd/img/diagram_architecture_en_vertical.png}}%
+  \fbox{\includegraphics[width=.65\linewidth]{./img/diagram_architecture_en_vertical.png}}%
   }%
   \caption{The three main layers of the project.}
   \label{fig:architecture}
@@ -382,7 +382,7 @@ A, E A B ^c B A E D ^F ^c e ^c A3;
   {%
   \setlength{\fboxsep}{0pt}%
   \setlength{\fboxrule}{0pt}%
-  \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/concatenation2.png}}%
+  \fbox{\includegraphics[width=.85\linewidth]{./img/concatenation2.png}}%
   }%
   \caption{Generated music sheet for concatenation\protect\footnotemark, audio version available \href{https://drive.google.com/open?id=1TP4lcul81s8iMCUFmD3HKnSpeftCzKT0}{\underline{here}}\protect\footnotemark.}
   \label{fig:concatenation}
@@ -405,7 +405,7 @@ A*11 G F*12
   {%
   \setlength{\fboxsep}{0pt}%
   \setlength{\fboxrule}{0pt}%
-  \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/repetition2.png}}%
+  \fbox{\includegraphics[width=.85\linewidth]{./img/repetition2.png}}%
   }%
   \caption{Generated music sheet for repetition, audio version available \href{https://drive.google.com/open?id=1IIm8PQkLsNFMK9MNSVubJSG6SP6KwhPL}{\underline{here}}\protect\footnotemark.}
   \label{fig:repetition}
@@ -426,7 +426,7 @@ r/4 ^g/4 ^g/4 ^g/4   ^f/2 e/8 ^d3/8   ^c2 | [^Cm] [BM]  [AM] [BM]
   {%
   \setlength{\fboxsep}{0pt}%
   \setlength{\fboxrule}{0pt}%
-  \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/parallel2.png}}%
+  \fbox{\includegraphics[width=.85\linewidth]{./img/parallel2.png}}%
   }%
   \caption{Generated music sheet for parallel, audio version available \href{https://drive.google.com/open?id=1ENTm3hZonYHyQIOgRZ8TQ1Qz-AfRLt2I}{\underline{here}}\protect\footnotemark.}
   \label{fig:parallel}
@@ -457,7 +457,7 @@ There is no syntactic marker to distinguish regular functions from \textit{"musi
 
 Here in the listing \ref{lst:fugue} we can see a small snippet of the beginning of \textit{Fugue 2 in C minor in Book I of the J.S. Bach’s Well-Tempered Clavier} written in our language, and how using functions and variables can help us visualize the structure behind music.
 
-\begin{lstlisting}[label={lst:fugue},caption={Example of repeating the same note},captionpos=t,abovecaptionskip=-\medskipamount]
+\begin{lstlisting}[label={lst:fugue},caption={Using variables and functions to compose musical arrangements},captionpos=t,abovecaptionskip=-\medskipamount]
 fun fugue ( $subj, $resp ) => 
     ( $subj $resp | r ** $subj ( $subj + 7 ) );
 
@@ -477,7 +477,7 @@ play( fugue( $subj, $resp ) );
   {%
   \setlength{\fboxsep}{0pt}%
   \setlength{\fboxrule}{0pt}%
-  \fbox{\includegraphics[width=.85\linewidth]{../code/musikla/musikla/examples/paper/fugue.png}}%
+  \fbox{\includegraphics[width=.85\linewidth]{./img/fugue.png}}%
   }%
   \caption{Generated music sheet for fugue example, audio version available \href{https://drive.google.com/file/d/1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF/view}{\underline{here}}\protect\footnotemark.}
   \label{fig:fugue}

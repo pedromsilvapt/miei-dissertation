@@ -8,11 +8,11 @@
 \chapter{Desenvolvimento}
 O desenvolvimento do projeto pode ser dividido de grosso modo em três camadas. Nelas são cobertos um grupo abrangente de aspetos tanto da área do processamento de linguagens e do desenvolvimento de \acrshort{dsl}'s, da teoria músical, e do processamento digital de audio. 
 
-Na camada da linguagem esteve mais proeminente a área de processamento de linguagens, por motivos óbvios. Mas nas decisões tomadas durante o desenvolvimento desta camada, estiveram sempre presentes também as necessidades específicas que a teoria músical (e a sua notação) impõeem numa linguagem de programação.
+Na camada da linguagem esteve mais proeminente a área de processamento de linguagens, por motivos óbvios. Mas nas decisões tomadas durante o desenvolvimento desta camada, estiveram sempre presentes também as necessidades específicas que a teoria músical (e a sua notação) impõem numa linguagem de programação.
 
 Do mesmo modo, o interpretador faz claramente uso de tópicos do domínio do processamento de linguagens, mas é ainda mais fortemente influencidado pelas restrições  e requisitos impostos pela componente músical da linguagem. Esta influencia a forma e a semântica da execução dos vários operadores disponibilizados.
 
-A última camada, de desenvolvimento de uma biblioteca, composta pelos objetos e procedimentos que têm como objetivo facilitar a utilização da linguagem. Para isso foi necessário identificar os casos de utilização mais comuns e prioritários, de modo a guiar a construção destas interfaces para refletirem uma utilização real da aplicação.
+A última camada, de desenvolvimento de uma biblioteca, afeta composta pelos objetos e procedimentos que têm como objetivo facilitar a utilização da linguagem. Para isso foi necessário identificar os casos de utilização mais comuns e prioritários, de modo a guiar a construção destas interfaces para refletirem uma utilização real da linguagem e da aplicação.
 
 \section{Linguagem}
 A camada sintática da aplicação pode ser conceptualmente dividida em duas fases:
@@ -22,32 +22,33 @@ A camada sintática da aplicação pode ser conceptualmente dividida em duas fas
 \end{description}
 
 No entanto, a realidade é que a abordagem seguida (não só nesta camada mas como em todo o projeto) foi mais iterativa, dividindo cada faze em porções semi-independentes e intercalando as várias porções das diversas fases. Esta abordagem tem a vantagem de permitir ir testando e experimentando com o projeto mais cedo do que seria possível com um modelo de desenvolvimento em cascata.
+
 \subsection{Sintaxe}
-A sintaxe da linguagem é bastante inspirada nas usualmente chamadas linguagens da família C, com recurso a parênteses curvos e chavetas para delínear os vários blocos da linguagem. No entanto, as expressões são complementadas com um novo conjunto de literais e operadores dedicados a componente músical da linguagem. Conseguir juntar estes dois mundos trás consigo alguns desafios que serão discutidos mais em detalhe em cada umas das secções seguintes.
+A sintaxe da linguagem é fortemente inspirada nas usualmente chamadas linguagens da família C, com recurso a parênteses curvos e chavetas para delínear os vários blocos da linguagem. No entanto, as expressões são complementadas com um novo conjunto de literais e operadores dedicados à componente músical da linguagem. Conseguir juntar estes dois mundos traz consigo alguns desafios que serão discutidos mais em detalhe em cada umas das secções seguintes.
 
 \subsubsection{\textbf{Literais}}
-Literais referem-se ao conceito de sintaxe desenhada com o propósito de descrever data (literal) no código. São usados em quase todas as linguagens de programação (e na nossa também) para descrever números, \textit{strings} e booleanos.
+Literais referem-se ao conceito de sintaxe desenhada com o propósito de descrever dados (literais) no código. São usados em quase todas as linguagens de programação (e na nossa também) para descrever números, \textit{strings} e booleanos.
 
-A maior diferença nesta área entre a nossa linguagem foi a adição de literais responsáveis por modelar conceitos músicais, como notas, pausas e acordes. Esta sintaxe, tal como já foi mencionado anteriormente, foi inspirada pelo projecto \textit{abc notation}, com algumas modificações.
+A maior diferença nesta área entre a nossa linguagem e as restantes, foi a adição de literais responsáveis por modelar conceitos músicais, como notas, pausas e acordes. Esta sintaxe, tal como já foi mencionado anteriormente, foi inspirada pelo projecto \textit{abc notation}, com algumas modificações.
 
 \subsubsection{\textbf{Notas e Pausas}}
 A sintaxe de notas descrição de notas é composta por quatro componentes: \textbf{acidentais}, \textbf{\textit{pitch}} (obrigatório), \textbf{oitava} e \textbf{duração}.
 
-\begin{lstlisting}[caption=Expressão regular que identifica uma nota (quebras de linha apenas para claridade de leitura)]
+\begin{lstlisting}[caption=Expressão Regular que identifica uma nota (quebras de linha adicionadas apenas para claridade de leitura)]
 [_^]*
 [a-gA-G]
 [',]*
 ([0-9]*\/)?[0-9]*
 \end{lstlisting}
 
-O \textit{pitch} refere-se à nota (ou frequência) que deve ser tocada. O \textbf{C médio} (também conhecido como C4) é descrito simplesmente como \texttt{C}. É possível descer uma ou mais oitavas acrescentando uma ou mais vírgulas \texttt{,}. Para subir uma oitava, podemos primeiro substituir as letras maíusculas por minúsculas. Para subir mais oitavas, podemos acrescentar uma ou mais pelicas \texttt{'}. Para subir ou descer semitons, podemos preceder a notas com os acidentais \texttt{\_} e \texttt{\^}.
+O \textit{pitch} refere-se à nota (ou frequência) que deve ser tocada. O \textbf{C médio} (também conhecido como C4) é descrito simplesmente como \texttt{C}. É possível descer uma ou mais oitavas acrescentando uma ou mais vírgulas \texttt{,}. Para subir uma oitava, podemos primeiro substituir as letras maíusculas por minúsculas. Para subir ainda mais oitavas, podemos acrescentar uma ou mais pelicas \texttt{'}. Para subir ou descer semitons, podemos prefixar as notas com os acidentais \textbf{\texttt{\textasciicircum{}}} e \textbf{\texttt{\_}}, respetivamente.
 
 As pausas são mais simples, sendo compostas simplesmente pela letra \texttt{r} seguida da sua \textbf{duração} (usando as mesma sintaxe das notas).
 
 \subsubsection{\textbf{Acordes}}
 Para definir acordes na linguagem, colocam-se várias notas dentro de parenteses retos. A notação usada para cada nota inclui os seus três primeiros componentes (acidentais, \textit{pitch} e oitava), mas exclui a duração. Em vez de definir a duração em cada nota, esta é definida globalmente no acorde após fechar os parenteses retos.
 
-Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de um acorde manualmente, temos uma sintaxe abreviada para os tipos de acordes mais comuns, onde é apenas necessário introduzir a nota base seguido do tipo de acorde.
+Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de um acorde manualmente, temos uma sintaxe abreviada para os tipos de acordes mais comuns, onde é apenas necessário introduzir a nota base seguido do tipo de acorde. Esta sintaxe irá suportar mais tipos no futuro, sendo atualmente possível usar os seguintes suffixos:
 
 \begin{table}[h]
 \centering
@@ -73,11 +74,11 @@ A decisão de envolver cada acorde com parênteses retos deveu-se ao facto de mu
 
 Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar certas propriedades das notas e acordes. Duas destas propriedades (duração e oitava) podem ser depois customizadas em cada nota ou acorde, como já vimos. No entanto, em vez de estes valores substituirem simplesmente os valores predefinidos, eles ``complementam-se''.
 
-Ou seja, se declarar-mos por exemplo que a duração base das notas é $\frac{1}{4}$. Quando definirmos alguma nota a seguir com a duração de $\frac{1}{2}$, a sua duração real irá ser calculada da seguinte forma $\frac{1}{4} \times \frac{1}{2} = \frac{1}{8}$.
+Ou seja, se declararmos por exemplo que a duração base das notas é $\frac{1}{4}$. Quando definirmos alguma nota a seguir com a duração de $\frac{1}{2}$, a sua duração real irá ser calculada da seguinte forma $\frac{1}{4} \times \frac{1}{2} = \frac{1}{8}$.
 
-Do mesmo modo, quando definimos por exemplo a oitava base como $5$ (o valor predefinido é $4$), a nota \texttt{C,} passa a representar a oitava $5 - 1 = 4$ (por predefinição seria $4 - 1 = 3$).
+Do mesmo modo, quando definimos por exemplo a oitava base como $5$ (o valor predefinido é $4$), a nota \texttt{C,} passa a representar a oitava $5 - 1 = 4$ (por predefinição seria $4 - 1 = 3$) (nota que aqui estamos a falar de oitavas indexadas a zero. No mundo da música elas são geralmente indexadas a um).
 
-Podemos então ver a lista dos modificadores aceites pela linguagem, bem como exemplos de utilização e os seus respetivos valores predefinidos (usados quando nenhum modificador é aplicado).
+Podemos então ver a lista dos modificadores aceites pela linguagem, bem como exemplos de utilização e os seus respetivos valores predefinidos (usados quando nenhum modificador desse tipo é aplicado).
 
 \begin{table}[h]
 \centering
@@ -97,22 +98,22 @@ Compasso      & S$D$/$N$                                                        
 \end{table}
 
 \subsubsection{\textbf{Variáveis e Funções}}
-Uma das consequências da introdução da sintaxe de notas literais foi a impossibilidade de ter variáveis com certos nomes. Uma variável chamada \texttt{a}, por exemplo, iria entrar em conflito com a nota do mesmo nome. Do mesmo modo, uma variável chamada \texttt{i1} iria entrar em conflito com o modificador de instrumento. 
+Uma das consequências da introdução da sintaxe de notas literais foi a impossibilidade de ter variáveis com certos nomes. Uma variável chamada \textbf{\texttt{a}}, por exemplo, iria entrar em conflito com a nota do mesmo nome. Do mesmo modo, uma variável chamada \texttt{i1} iria entrar em conflito com o modificador de instrumento. 
 
 Em vez de criar casos de excepção para as variáveis que possam ter nomes que conflitam com outros construtores sintáticos, seguimos o exemplo de outras linguagems como \textit{PHP}, \textit{Perl} ou \textit{Powershell}, e decidimos prefixar as nossas variáveis com o caracter \texttt{\$}.
 
-No caso das funções foi possível evitar a ambiguidade (e do mesmo modo a obrigatoriedade de as prefixar com um caracter) devido ao facto de as funções terem obriugatoriamente um par de parênteses (sem espaço entre o nome da função) quando são chamadas.
+No caso das funções foi possível evitar a ambiguidade (e do mesmo modo a obrigatoriedade de as prefixar com um caracter) devido ao facto de as funções terem obriugatoriamente um par de parênteses (sem espaço entre os mesmos e o nome da função) quando são chamadas.
 
-No entanto não quer dizer que as funções passaram imunes à introdução das literais de música. Uma vez que a vírgula é usada para mudar a oitava de uma nota (e foi escolhida de forma a manter compatibilidade com a sintaxe do projeto \textit{abc notation}, existem casos em que esta não pode ser utilizada para separar os argumentos passados a uma função.
+No entanto não quer dizer que as funções passaram imunes à introdução das literais de música. Uma vez que a vírgula é usada para mudar a oitava de uma nota (e foi escolhida de forma a manter compatibilidade com a sintaxe do projeto \textit{abc notation}), existem casos em que esta não pode ser utilizada para separar os argumentos passados a uma função.
 
-Por exemplo, dada a expressão \texttt{function\_name(C, A, \$a, 2)}, podemos concluir que a mesma tem quantos argumentos? A resposta correta seria dois, pois as duas primeiras vírgulas poderiam pertencer à nota ou ao separador da função. Mas neste caso a nota teria prioridade, pelo que \texttt{C, A, \$a} seria o primeiro argumento, e \texttt{2} seria o segundo.
+Por exemplo, dada a expressão \texttt{function\_name(C, A, \$a, 2)}, quantos argumentos podemos concluir que a mesma tem? Quatro? A resposta correta seria dois, pois as duas primeiras vírgulas poderiam pertencer à nota ou ao separador da função. Mas neste caso a nota teria prioridade na nossa gramática, pelo que \texttt{C, A, \$a} seria o primeiro argumento, e \texttt{2} seria o segundo.
 
-A solução tomada inicialmente foi utilizar ponto-e-vírgula para substituir a vírgula como separador de argumentos  nas funções. E enquanto iso resolveu os problemas de ambiguidade, tornou-se óbvio à medida que que a linguagem foi avançando, que a prevalência da vírgula como separador em quase todas as linguagens de programação mais populares fazia com que houvesse um custo mental de mudança de contexto sempre que alguém mudava de alguma linguagem para a nossa, e vice-versa.
+A solução tomada inicialmente foi utilizar ponto-e-vírgula para substituir a vírgula como separador de argumentos nas funções. E enquanto iso resolveu os problemas de ambiguidade, tornou-se óbvio à medida que que a linguagem foi avançando, que a prevalência da vírgula como separador de argumentos em quase todas as linguagens de programação mais populares fazia com que houvesse um custo mental de mudança de contexto sempre que alguém mudava de alguma linguagem para a nossa, e vice-versa.
 
 A solução escolhida no final foi um compromisso entre as duas opções: tanto a vírgula como o ponto-e-vírgula podem ser usados como separadores de argumentos, com a exceção de quando o argumento é uma nota músical, onde o ponto-e-vírgula tem de ser obrigatoriamente usado. Assim sendo, poderiamos rescrever o exemplo anterior da seguinte forma \texttt{function\_name(C; A; \$a, 2)}, passando a função a receber agora os quatro argumentos como seria inicialmente esperado.
 
 \subsection{Parser}
-Para implementar o parser da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} descendente recursivo como recurso a \textit{memoization} para melhora da performance. A gramática utilizada pode ser vista em maior detalhe no apêndice \ref{grammar}.
+Para implementar o parser da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} descendente recursivo com recurso a \textit{memoization} para melhorar a \textit{performance}. A gramática utilizada pode ser vista em maior detalhe no Apêndice \ref{grammar}.
 
 \begin{lstlisting}[caption={Excerto da gramática desenvolvida}]
 main <- body EOF;
@@ -141,22 +142,23 @@ def visit_var_declaration ( self, node, children ): ...
 \end{lstlisting}
 
 \section{Interpretador}
-As linguagens compiladas usualmente recorrem à compilação \acrfull{aot}, em que o código é transformado em código máquina com antecedência (durante a fase de compilação). Esta é a solição que consegue geralmente oferecer melhor \textit{performance}, menor consumo de memória e tempos de \textit{startup} mais rápido. Por outro lado, obriga a um passo de compilação separado sempre que o código fonte é alterado, e regra geral necessita de tipos de dados estáticos.
-No que toca a linguagens interpretadas temos mais opções. Podemos então dividir os seus modos de execução em três categorias distintas, cada uma com possíveis vantagens e desvantagens, bem como diferenças de dificuldade de implementação bastante salientes.
+As linguagens compiladas usualmente recorrem à compilação \acrfull{aot}, onde o código é transformado em código máquina antes de ser executado (durante a fase de compilação). Esta é a solução que consegue geralmente oferecer melhor \textit{performance}, menor consumo de memória e tempos de \textit{startup} mais rápido. Por outro lado, obriga a um passo de compilação separado sempre que o código fonte é alterado, e regra geral necessita de tipos de dados estáticos para melhor tirar partido das vantagens de \textit{performance}.
+
+No que toca a linguagens interpretadas temos mais opções. Podemos então dividir os seus modos de execução em três categorias distintas, cada uma com possíveis vantagens e desvantagens, bem como diferenças na dificuldade de implementação que são bastante salientes.
 \begin{description}
  \item[Interpretadores] Também chamados por vezes como interpretadores \textit{tree walk}, são usualmente os mais simples de implementar (mas também os mais lentos a executar). O seu conceito baseia-se no \textit{design pattern} homónimo, em que as operações da linguagem são modeladas numa árvore, geralmente igual ou similar à estrutura da \acrshort{ast}. Para executar uma expressão é chamado um método na raiz da árvore, e esse método irá chamar recursivamente os métodos das suas sub-expressões, passando o estado como argumentos da função, e recebendo o resultado pelo valor retornado da função.
- \item[Bytecode VM] São chamadas máquinas virtuais (VM) porque o seu comportamento assemelha-se mais ao comportamento dos processadores reais dos computadores. As expressões da árvore de sintaxe abstrata são previamente convertidas numa sequência linear de instruções mais simples (geralmente compactadas em binário para melhor \textit{performance}, também referido como \textit{bytecode}. Cada instrução é depois executada dentro de um ciclo. Esta solução fornece um balanço entre facilidade de implementação e velocidade de execução (evitando a grande quantidade de chamadas recursivas de funções presentes nos interpretadores).
+ \item[Bytecode VM] São chamadas máquinas virtuais (VM) porque o seu comportamento assemelha-se mais ao comportamento dos processadores reais dos computadores. As expressões da árvore de sintaxe abstrata são previamente convertidas numa sequência linear de instruções mais simples (geralmente compactadas em binário para melhor \textit{performance}), também referidas como \textit{bytecode}. Cada instrução é depois executada dentro de um ciclo. Esta solução fornece um balanço entre facilidade de implementação e velocidade de execução (evitando a grande quantidade de chamadas recursivas de funções presentes nos interpretadores \textit{tree walk}).
  \item[Just In Time] O método mais complexo (mas também o que oferece melhor \textit{performance} para tarefas pesadas). O código é executado inicialmente por um dos dois métodos anteriores, de modo a recolher estatísticas sobre qual o tipo de execução mais comum do código. Após esta recolha, é gerado código máquina optimizado para os tipos de dados mais comuns de uma variável, ou para os caminhos de execução mais prevalentes, para que seja possível da próxima vez que o mesmo pedaço de código seja executado, isso ocorra com recurso ao código máquina. Este processo é gerlamente repetido ao longo da execução do programa, sendo que caso a versão de código máquina gerada fique desatualizado (o tipo de dados usualmente passados a uma função mudem), essa porção de código seja invalidada e eventualmente substituida por uma nova versão mais adequada.
  \end{description}
 
  É possível ver que a solução ideal seria sempre a compilação \acrfull{jit}, que evita uma fase de compilação explícita e forçada ao utilizador, mas ao mesmo tempo consegue fornecer \textit{performance} competitiva para tarefas mais exigentes. No entanto é inevitável concluir que esta solução impõe custos de desenvolvimento astronómicos, e implica equipas de grande dimensão e tempos de desenvolvimento extremamente longos.
  
- Desta forma a nossa escolha reside logicamente entre a solução de \textbf{Interpretador} e um simples \textbf{Bytecode}. Acabamos por escolher a primeira opção pelas seguintes razões:
+ Desta forma a nossa escolha reside logicamente entre a solução de \textbf{Interpretador} e uma simples \textbf{Bytecode VM}. Acabamos por escolher a primeira opção pelas seguintes razões:
  \begin{itemize}
-  \item A geração de eventos músicais é relativamente computacionalmente barata (mesmo admitindo algumas dezenas de eventos músicais por segundo).
-  \item A componente mais pesada geralmente reside na sintetização dos eventos músicais (\textit{note on, note off}) em \textit{streams} de audio, mas esta tarefa é encaminhada para bibliotecas desenvolvidas em linguagens de baixo nível.
-  \item A possibilidade de correr código \textit{Python} no meio de qualquer parte da nossa linguagem já fornece um bom meio termo para quando é necessária mais alguma \textit{performance} (sem sacrificar demasiado a simplicidade de uma linguagem destinada primariamente a músicos e não engenheiros informáticos).
-  \item Também a facilidade de implementação de um interpretador significou uma velocidade de ordens de magnitude superior durante a implementação da linguagem e da prototipação de funcionalidades.
+  \item A geração de eventos músicais é relativamente barata em termos computacionais (mesmo admitindo algumas dezenas de eventos músicais por segundo).
+  \item A componente mais pesada geralmente reside na sintetização dos eventos músicais (\textit{note on, note off}) em \textit{streams} de audio, mas esta tarefa é encaminhada para bibliotecas mais optimizadas e desenvolvidas em linguagens de baixo nível.
+  \item A possibilidade de correr código \textit{Python} em qualquer parte da nossa linguagem já fornece um bom meio termo para quando é necessária mais alguma \textit{performance} em caminhos de execução críticos (\textit{hot paths}), sem sacrificar demasiado a simplicidade de uma linguagem destinada primariamente a músicos e não engenheiros informáticos.
+  \item Também a facilidade de implementação de um interpretador significou uma velocidade ordens de magnitude superior do que seria possível de outra forma, durante a implementação da linguagem e da prototipação de funcionalidades.
   \item Uma posterior modificação do interpretador para uma \textit{bytecode VM} mais eficiente seria possível estando a linguagem mais estabilizada, e seria simples manter uma \acrshort{api} virtualmente 100\% compatível.
  \end{itemize}
 
@@ -391,7 +393,7 @@ Para implementar este \textit{output}, utilizamos o projeto \textit{pyfluidsynth
 
 O objeto principal disponibilizado pelo \textit{FluidSynth} é o objeto \texttt{Synth}. Este disponibiliza inúmeros métodos (baseados no \textit{standard} MIDI) para ativar e desativar uma nota, mudar o instrumento, definir o valor de um controlo, entre muitas outras. Os métodos chamados neste objetos são aplicados imediatamente, pelo que se tivermos uma lista de ações (eventos músicais) a tomar com \textit{timestamps} variados, temos de tratar do seu correto agendamento.
 
-Felizmente a biblioteca também providencia um objeto para isso: \texttt{Sequencer}.  Para o efeito registamos um \textit{callback} na nossa aplicação que recebe o evento e é responsável por o aplicar ao \texttt{Synth}. Depois, sempre que algum evento é gerado, chamamos a função \texttt{Sequencer.timer()} e passamos-lhe o \textit{timestamp} em que deve ser executado o evento, bem como o evento em si e o \textit{callback} a chamar quando o temporizador concluir.
+Felizmente a biblioteca também providencia um objeto para isso: \texttt{Sequencer}.  Para o efeito registamos um \textit{callback} na nossa aplicação que recebe o evento e é responsável por o aplicar ao \texttt{Synth}. Depois, sempre que algum evento é gerado, chamamos a função \texttt{Sequencer.timer()} e passamos-lhe o \textit{timestamp} em que deve ser executado o evento, bem como o evento em si e o \textit{callback} a chamar quando o temporizador concluir. Uma das vantagens é o facto de o FluidSynth já disponibilizar uma interface segura de acesso entre \textit{threads}\cite{henningsson2011fluidsynth}.
 
 A maioria dos eventos da nossa linguagem são inspirados pelo \textit{standard} MIDI, tal como a é desenhada a \acrshort{api} do sintetizador do \textit{FluiSynth}, pelo que aplicação dos eventos passa geralmente apenas por chamar a função correta e fornecer-lhe os parâmetros carregados pelo evento. Há no entanto uma exceção à regra, algo que iremos aprofundar mais à frente, e que é a possibilidade de reproduzir, para além de notas músicais, mas ficheiros músicais também. Infelizmente o \textit{FluidSynth} não suporta diretamente este tipo de utilização, mas com alguma criatividade foi possível implementá-la usando as ferramentas que nos eram disponibilizadas.
 
@@ -448,7 +450,7 @@ Muitas destas transformações são, no entanto, imperfeitas por natureza: a det
 
 Para além disto, a notação músical é tão complexa que apenas uma pequena parte é suportada pela nossa linguagem. Deste modo, é preciso ter em mente que apesar de a linguagem ser capaz de gerar ficheiros \textit{abc} válidos, e com a sua estrutura maioritariamente correta de acordo com o que o utilizador tivesse em mente, serão muitas vezes necessários pequenos ajustes manuais para personalizar os resultados aos gostos de cada um. Ainda assim, o facto de não ser necessário escrever o ficheiro todo manualmente é por si só uma vantagem enorme.
 
-Isto porque o ficheiro \textit{abc} não serve só como um formato de texto. Existem várias ferramentas para o converter para outros formatos, como \textit{PDF}. Por exemplo, o projeto \textbf{\$ABC\_UI}\footnote{\url{http://dev.music.free.fr/web-demo/\$ABC_UI.html}} é utilizado pela nossa linguagem para, em conjunto com o exportador \textit{abc}, gerar páginas \textit{HTML} com uma renderização da pauta usando SVG.
+Isto porque o ficheiro \textit{abc} não serve só como um formato de texto. Existem várias ferramentas para o converter para outros formatos, como \textit{PDF}. Por exemplo, o projeto \textbf{\$ABC\_UI}\footnote{\url{http://dev.music.free.fr/web-demo/\$ABC_UI.html}} é utilizado pela nossa linguagem para, em conjunto com o exportador \textit{abc}, gerar páginas \acrshort{html} com uma renderização da pauta usando \acrfull{svg}.
 
 Desta forma, podemos concluir que o formato \textit{abc} serve como uma espécie de ponte \textit{standard}, e nos permite apanmhar boleia para depois suportar ínumeros outros formatos que existam muito mais facilmente.
 
@@ -494,7 +496,7 @@ if ( not is_sample_optimized( "cihat.wav" ) ) {
 Desta forma a conversão ocorre apenas uma vez, e de seguida o utilizador pode utilizar o ficheiro convertido e não se preocupar com a perda de performance sempre que usa o som num \textit{script}.
 
 \subsection{Grelhas}
-A linguagem tem dois modos de produção de música principais: expressões músicais descritas no código, e a utilização de teclados em tempo real. Em termos de propriedades temporais, de modo geral, as expressões músicais são geradas com tempos precisos. Por outro lado, como é natural, músicas criadas através dos teclados músicais vão ter tempos imperfeitos. Quando utilizadas de modo separado, as diferenças muitas vezes são tão subtis que não se notam. Mas quando queremos tocar uma expressão de música pré-definida em código ao mesmo tempo que se utiliza um teclado, as diferenças e imperfeições podem-se tornar mais óbvias.
+A linguagem tem dois modos de produção de música principais: expressões músicais descritas no código, e a utilização de teclados em tempo real. Em termos de propriedades temporais, de modo geral, as expressões músicais são geradas com tempos precisos. Por outro lado, como é natural, músicas criadas através dos teclados músicais vão ter tempos imperfeitos. Quando utilizadas de modo separado, as diferenças muitas vezes são tão subtis que não se notam. Mas quando queremos tocar uma expressão de música pré-definida em código ao mesmo tempo que se utiliza um teclado, as diferenças e imperfeições podem-se tornar mais óbvias\cite{doi:10.1177/1029864913486793}.
 
 A operação conhecida como Quantization~\footnote{\url{https://en.wikipedia.org/wiki/Quantization_(music)}} é possível na nossa linguagem através da utilização de \textbf{Grelhas}. Uma vez que o objetivo das grelhas é poderem ser utilizadas em tempo real à medida que as notas vão sendo tocadas, a forma de funcionamento escolhido para as grelhas é bastante simples e determínistica, dependendo apenas do tempo (\textit{timestamp}) e tipo do evento que queremos alinhar.
 
@@ -516,7 +518,7 @@ Olhemos por exemplo para o divisor central, situado em cima da marca do 1 segund
 \begin{center}
     \includegraphics[width=0.87\textwidth]{img/grids_2.png}
 \end{center}
-\caption{Representação de duas células de uma grelha}
+\caption{As várias áreas configuráveis de uma grelha}
 \label{fig:grids-2}
 \end{figure}
 
@@ -551,7 +553,7 @@ Se passarmos das propriedades de configuração para a grelha resultante, na ver
     \includegraphics[width=0.85\textwidth]{img/grids_3_1.png}
 \end{center}
 \vspace*{-5mm}
-\caption{Representação de duas células de uma grelha}
+\caption{Áreas em que a grelha irá mover os eventos, e qual o separador a que pertencem.}
 \label{fig:grids-3-1}
 \end{figure}
 
@@ -562,7 +564,7 @@ Tomemos como exemplo a seguinte situação com três eventos e a grelha definida
     \includegraphics[width=0.85\textwidth]{img/grids_3_2.png}
 \end{center}
 \vspace*{-5mm}
-\caption{Representação de duas células de uma grelha}
+\caption{Posição dos eventos após o alinhamento com a grelha ter sido aplicado.}
 \label{fig:grids-3-2}
 \end{figure}
 
@@ -850,13 +852,13 @@ Como podemos ver, quando a única diferença no algoritmo é se a \textbf{fonte 
 
 
 \subsubsection{A Solução Escolhida}
-A solução passou por criar uma abstração a que chamamos \textbf{Transformador}, que contém um bocado das duas opções anteriores: Os algoritmos são declarados apenas uma vez, e são depois envoltos num \textit{transformador} que disponibiliza duas interfaces públicas, uma síncrona e outra assíncrona. Cada transformador tem uma interface pública composta por 4 funções que permitem simular um iterador: \verb|add\_input( ev )|, \verb|end\_input()|, \verb|add\_output( ev )| e \verb|end\_output()|.
+A solução passou por criar uma abstração a que chamamos \textbf{Transformador}, que contém um bocado das duas opções anteriores: Os algoritmos são declarados apenas uma vez, e são depois envoltos num \textit{transformador} que disponibiliza duas interfaces públicas, uma síncrona e outra assíncrona. Cada transformador tem uma interface pública composta por 4 funções que permitem simular um iterador: \verb|add_input( ev )|, \verb|end_input()|, \verb|add_output( ev )| e \verb|end_output()|.
 
 Para evitar chamar manualmente as funções e tratar do controlo do fluxo de execução manualmente, são incluidos dois métodos de classe em todos os transformadores que permiter correr um iterador (síncrono ou assíncrono). As funções, chamadas \texttt{iter} e \texttt{aiter} recebem (e retornam) respetivamente um interador síncrono e assíncrono.
 
 Vejamos agora um exemplo do transformador \textbf{map} na listagem \ref{lst:transformers-map}. Pode parecer bastante mais verbosa do que as funções \textit{map} iniciais, mas é importante notar que este custo é fixo: só esta parte do algoritmo muda, e todo o resto seria igual. Como os transformadores utilizados no projeto são bem mais complexos do que este pequeno exemplo (podendo ter mais de uma centena de linhas de código), este custo fixo de escrever cerca de seis linhas de código \textit{boilerplate} por transformador não é um problema tão grande.
 
-\begin{lstlisting}[caption={Exemplo de um transformador \texttt{map} e da sua utilização},label={lst:transformers-map},language=Python]
+\begin{lstlisting}[caption={Implementação da função \texttt{map} usando a nossa abordagem de transformadores},label={lst:transformers-map},language=Python]
 class MapTransformer(Transformer):
     def __init__ (self, fn):
         self.fn = fn
