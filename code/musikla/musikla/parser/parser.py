@@ -67,7 +67,7 @@ class ParserVisitor(PTNodeVisitor):
 
         operator = children.var_declaration_infix[ 0 ] if children.var_declaration_infix else None
 
-        return VariableDeclarationStatementNode( children.namespaced[ 0 ], children.expression[ 0 ], operator = operator, position = position )
+        return VariableDeclarationStatementNode( children.expression[ 0 ], children.expression[ 1 ], operator = operator, position = position )
 
     def visit_var_declaration_infix ( self, node, children ):
         if not children:
@@ -398,16 +398,20 @@ class ParserVisitor(PTNodeVisitor):
     def visit_property_accessor ( self, node, children ):
         identifier = None
 
+        as_attr : bool = False
+
         if children.identifier:
             position = ( node.position, node.position_end )
 
             identifier = StringLiteralNode( children.identifier[ 0 ], position = position )
+
+            as_attr = True
         else:
             identifier = children.expression[ 0 ]
 
         position = ( node.position, node.position_end )
 
-        return PropertyAccessorNode( cast( Any, None ), identifier, position = position )
+        return PropertyAccessorNode( cast( Any, None ), identifier, as_attr, position = position )
         
     def visit_property_call ( self, node, children ):
         position = ( node.position, node.position_end )

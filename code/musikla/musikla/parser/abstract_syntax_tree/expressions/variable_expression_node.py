@@ -9,6 +9,16 @@ class VariableExpressionNode( ExpressionNode ):
 
         self.name = name
 
+    def assign ( self, context, value, local : bool = False ):
+        context.symbols.assign( self.name, value, local = local )
+
+    def lookup_assign ( self, context, value_fn, local : bool = False ):
+        value = context.symbols.lookup( self.name, recursive = not local )
+
+        value = value_fn( value )
+
+        context.symbols.assign( self.name, value, local = local )
+
     def eval ( self, context ):
         value = context.symbols.lookup( self.name )
         

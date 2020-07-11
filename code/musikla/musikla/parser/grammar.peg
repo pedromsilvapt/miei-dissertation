@@ -11,7 +11,7 @@ import <- "import" _ namespaced
         / "import" _ string_value
         ;
 
-var_declaration <- "$" namespaced _ var_declaration_infix? "=" _ expression;
+var_declaration <- expression _ var_declaration_infix? "=" _ expression;
 
 var_declaration_infix <- "+" / "-" / "/" / "*" / "|" / "&";
 

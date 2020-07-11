@@ -1,38 +1,55 @@
 from musikla.parser.printer import CodePrinter
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 from .statement_node import StatementNode
+from ..expressions.variable_expression_node import VariableExpressionNode
+from ..node import Node
 from musikla.core import Value, Context
 
 class VariableDeclarationStatementNode( StatementNode ):
-    def __init__ ( self, name, expression, operator : Optional[str] = None, local : bool = False, position : Tuple[int, int] = None ):
+    def __init__ ( self, left : Union[Node, str], right : Node, operator : Optional[str] = None, local : bool = False, position : Tuple[int, int] = None ):
         super().__init__( position )
 
-        self.name : str = name
-        self.expression = expression
+        if type( left ) is str:
+            self.left : Any = VariableExpressionNode( left )
+        else:
+            self.left : Any = left
+
+        self.right : Any = right
         self.operator : Optional[str] = operator
         self.local : bool = local
 
+        if self.operator is None and not hasattr( self.left, 'assign' ):
+            raise BaseException( f"Left hand side \"{CodePrinter().print(self.left)}\" cannot be used in an attribution" )
+        elif self.operator is not None and not hasattr( self.left, 'lookup_assign' ):
+            raise BaseException( f"Left hand side \"{CodePrinter().print(self.left)}\" cannot be used in an attribution" )
+
     def eval ( self, context : Context ):
-        val = Value.assignment( self.expression.eval( context.fork() ) )
+        val = Value.assignment( self.right.eval( context.fork( cursor = 0 ) ) )
 
         if self.operator is None:
-            context.symbols.assign( self.name, val, local = self.local )
+            self.left.assign( context, val, local = self.local )
         else:
-            value = context.symbols.lookup( self.name, recursive = not self.local )
+            def _set ( value ):
+                nonlocal val
 
-            if self.operator == '*': value *= val
-            elif self.operator == '/': value /= val
-            elif self.operator == '+': value += val
-            elif self.operator == '-': value -= val
-            elif self.operator == '&': value &= val
-            elif self.operator == '|': value |= val
-            else: raise Exception( "Invalid operator: " + self.operator )
+                # value = context.symbols.lookup( self.name, recursive = not self.local )
+                if self.operator == '*': value *= val
+                elif self.operator == '/': value /= val
+                elif self.operator == '+': value += val
+                elif self.operator == '-': value -= val
+                elif self.operator == '&': value &= val
+                elif self.operator == '|': value |= val
+                else: raise Exception( "Invalid operator: " + self.operator )
 
-            context.symbols.assign( self.name, value, local = self.local )
+                return value
+
+            self.left.lookup_assign( context, _set, local = self.local )
 
         return None
 
     def to_source ( self, printer : CodePrinter ):
-        printer.add_token( f"${ self.name } { self.operator if self.operator is not None else '' }= " )
+        self.left.to_source( printer )
+
+        printer.add_token( f" { self.operator if self.operator is not None else '' }= " )
         
-        self.expression.to_source( printer )
+        self.right.to_source( printer )

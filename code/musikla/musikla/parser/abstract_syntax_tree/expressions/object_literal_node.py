@@ -50,6 +50,6 @@ class ObjectLiteralNode( ExpressionNode ):
                 
                 key, node = self.values[ i ]
 
-                printer.add_token( key + ' = ' )
+                printer.add_token( str( key ) + ' = ' )
 
                 node.to_source( printer )            
