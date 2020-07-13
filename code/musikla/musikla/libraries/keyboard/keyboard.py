@@ -175,6 +175,16 @@ class Keyboard:
         
         return self
 
+    def open ( self ) -> 'Keyboard':
+        from .library import KeyboardLibrary
+
+        lib : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
+        
+        if self not in lib.keyboards:
+            lib.keyboards.append( self )
+
+        return self
+
     def _assert_keyboard ( self, obj ):
         if obj is None:
             raise InvalidOperation( "Cannot combine a keyboard with 'None'" )

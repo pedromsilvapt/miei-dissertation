@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="musikla", # Replace with your own username
-    version="0.4.0",
+    version="0.6.0",
     author="Pedro M. Silva",
     author_email="pemiolsi@hotmail.com",
     description="A programming environment for music accompaniements and keyboards",
@@ -20,18 +20,22 @@ setuptools.setup(
     ],
     scripts=['bin/musikla'],
     python_requires='>=3.7',
-    package_data={ 'musikla': ['parser/grammar.peg'] },
+    package_data={ 'musikla': ['parser/grammar.peg', 'libraries/keyboard/library.mkl'] },
     install_requires=[
         'typeguard',
         'pynput',
         'mido',
         'python-rtmidi',
-        'imgui[glfw]',
         'arpeggio',
         'colorama',
         'typing_extensions',
         'prompt_toolkit',
         'pygments',
-        'pyfluidsynth-musikla @ http://github.com/pedromsilvapt/pyfluidsynth/archive/master.tar.gz'
-    ]
+        'pyFluidSynth-musikla'
+    ],
+    entry_points={
+        "console_scripts": [
+            "musikla=musikla.__main__:main",
+        ]
+    },
 )

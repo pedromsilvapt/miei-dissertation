@@ -1,0 +1,77 @@
+import "./slate-helper";
+import "./slate-arpeggio";
+
+$slate\samples = @keyboard toggle {
+    a: {
+        piano() cc( 64, 127 ) S4/4 T74 L/8 V90;
+        A, E A B ^c B A E D ^F ^c e ^c A3;
+    };
+
+    s: {
+        piano() cc( 64, 127 ) S6/8 T140 L/8 V120;
+        A*11 G F*12;
+    };
+
+    d: {
+        piano() cc( 64, 127 ) V110 L1 T120 V120;
+        V80 [^Cm] [BM] [AM] [BM] | r/4 ^g/4 ^g/4 ^g/4  ^f/2 e/8 ^d3/8  ^c2;
+    };
+
+    f: {
+        piano() cc( 64, 127 ) S4/4 L/8 T85 V120;
+        $p = C D E D2 E C2;
+        [CeG]*$p [Ac'e]*$p [Fac]*$p [CeG]*$p;
+    };
+
+    g: {
+        chateau() cc( 64, 127 ) S2/4 L/8 T90 V120;
+
+        $chords = V90 [CeG] [Ac'e] [Fac] [CeG];
+        $melody = CGde2gc2 CGdr5;
+
+        $chords ** $melody | $melody;
+    };
+
+    h: {
+        chateau(2) cc( 64, 0 ) S8/4 L/4 T140 V120;
+
+        fun fugue ( $subj, $resp ) => 
+            ( $subj $resp | r ** $subj ( $subj + 7 ) );
+
+        # Flat: A B e
+        $subj = r c/2 B/2 c G _A c/2 B/2 c d
+                G c/2 B/2 c d F/2 G/2 _A2 G/2 F/2;
+
+        $resp = _E/2 c/2 B/2 A/2   G/2 F/2 _E/2 D/2   C _e d c
+                _B A _B c   ^F G A ^F;
+
+        play( fugue( $subj, $resp ) );
+    };
+};
+
+$keyboards = @[
+    $slate\samples,
+    $slate\arpeggio
+];
+
+$keyboards\active = 0;
+
+@keyboard {
+    p: {
+        # Deactivate the current keyboard
+        $keyboards::[ $keyboards\active ]::close();
+
+        $keyboards\active = mod( $keyboards\active + 1, len( $keyboards ) );
+
+        # And activate the next
+        print( ">> Activating keyboard " + str( $keyboards\active ) );
+
+        $keyboards::[ $keyboards\active ]::open();
+    };
+    
+    ".": { 
+        $keyboards::[ $keyboards\active ]::stop_all();
+
+        panic();
+    };
+};

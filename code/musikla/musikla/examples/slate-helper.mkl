@@ -1,0 +1,7 @@
+sfload( "C:\Users\PedroSilva\Downloads\freepiano_2.2.2.1_win64\freepiano\sf2\FluidR3_GM.sf2", "fluid" );
+sfload( "C:\Users\PedroSilva\Downloads\freepiano_2.2.2.1_win64\freepiano\sf2\Chateau Grand-v1.8.sf2", "chateau" );
+
+fun piano () => setinstrument( 1, 0, "fluid" );
+fun chateau ($i = 1) => setinstrument( $i, 0, "chateau" );
+
+fun panic () => cc( 120, 127 );

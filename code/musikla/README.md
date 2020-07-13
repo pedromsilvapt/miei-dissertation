@@ -1,12 +1,29 @@
-# SoundPlaygroundPy
-Python port of the experiments that were started in the .NET project.
+# Musikla
+A DSL for describing and composing musical arrangements, as well as creating custom musical keyboards.
+
+## Installation
+```shell
+pip install musikla
+```
+
+## Usage
+To launch the graphical application, run:
+To run the app in the terminal:
+```shell
+python3 __main__.py file.mkl
+python3 __main__.py file.mkl -o pulseaudio -o minecraft.abc
+```
+
+For a more detailed view of the available options, check:
+```shell
+python3 __main__.py -h
+```
 
 ## Python Dependencies
  - `typeguard`
  - `pynput`
  - `mido`
  - `python-rtmidi` (requires `libasound2-dev` (or `--install-option="--no-alsa"`) and `libjack-dev` (or `--install-option="--no-jack"`))
- - `imgui[glfw]` (requires `libglfw3` and `libglfw3-dev`
  - `arpeggio`
  - `colorama`
  - `pyFluidSynth` (required `fluidsynth >=1.1.9`)
@@ -16,26 +33,4 @@ Python port of the experiments that were started in the .NET project.
  >sudo python3.7 -m pip install git+http://github.com/pedromsilvapt/pyfluidsynth
  >```
  
-## Usage
-To launch the graphical application, run:
-```shell
-python3 __init__.py --gui
-```
 
-To run the app in the terminal:
-```shell
-python3 __init__.py examples/westworld.ml
-python3 __init__.py examples/minecraft.ml -o pulseaudio -o minecraft.abc
-python3 __init__.py examples/keyboard.ml -i keyboard
-```
-
-For a more detailed view of the available options, check:
-```shell
-python3 __init__.py -h
-```
-
-## Porting
- - [x] Abstract Syntax Tree
- - [x] Grammar & Parser
- - [ ] Graphical Interface
- - [x] FluidSynth
