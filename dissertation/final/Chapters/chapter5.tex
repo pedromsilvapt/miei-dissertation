@@ -882,4 +882,77 @@ for ev in MapTransformer.iter( range( 5 ), lambda e: e * 2 ):
 
 Na listagem \ref{lst:transformers-map-usage} podemos ver a utilização do transformador aplicada a uma lista (já que também implementam a interface de um iterador). O método \texttt{aiter} poderia ser usado de forma análoga com um \textit{async for} e com um iterador assíncrono.
 
+\chapter{Manual de Utilização}
+O resultado final do processo de desenho e desenvolvimento descrito a cima foi um módulo \textit{Python} publicado no repositório \textit{PyPi} chamado \texttt{musikla}. Este módulo pode ser usado através da linha de comandos, ou os seus sub-modulos podem ser usados diretamente num projeto \textit{Python}.
+
+Nesta secção vamos fazer uma pequena \textit{overview} dos diversos modos de como o módulo pode ser utilizado (versão da documentação mais completa disponível em na \href{https://github.com/pedromsilvapt/miei-dissertation}{web}).
+
+A instalação é bastante simples, sendo suficiente correr o comando seguinte comando:
+
+\begin{lstlisting}[caption={Processo de instalação do \textit{package} musikla},label={lst:install-musikla},language=Bash]
+pip install musikla
+\end{lstlisting}
+
+É importante notar que uma dependência central da linguagem é a biblioteca nativa \textit{FluidSynth}. Apesar de existir uam versão \texttt{2.x}, essa não é suportada, pelo que é necessário o utilizador certeficar-se que o seu sistema tem a versão \texttt{1.x} instalada.
+
+\section{Módulos}
+O projeto musikla está dividido em bastantes sub-módulos, os mais importantes dos quais são listados aqui:
+
+\begin{description}
+ \item[musikla.core.theory] Contém classes e funções auxiliares relativas à teoria músical, utilizadas por diveros outros sub-módulos.
+ \item[musikla.core.events.transformers] Alberga os transformadores responsáveis por separar notas músicais em eventos On/Off, por exemplo, ou por tentar agrupar notas concurrentes em acordes, se for o caso disso, entre muitos mais.
+ \item[musikla.core.events] Contém as classes que representam os eventos musicais em memória, desde os mais óbvios, como o \texttt{NoteEvent}, \texttt{ChordEvent} ou \texttt{RestEvent}, mas também outros menos óbvios como o \texttt{ControlChangeEvent}, por exemplo.
+ \item[musikla.core] Disponibiliza muitas das classes mais fundamentais para o funcionamento da linguagem, tais como \texttt{Context}, \texttt{Music}, \texttt{Instrument}, \texttt{Voice}, \texttt{SymbolsScope}, entre outros.
+ \item[musikla.parser.abstract\_syntax\_tree] Contém as classes que representam os diversos nós da \acrshort{ast}.
+ \item[musikla.parser] Disponibiliza as classes \texttt{Parser}, responsáveis por criar uma \acrshort{ast} com base numa \textit{string} ou num ficheiro contendo código Musikla, bem como a classe \texttt{CodePrinter} responsável pelo processo oposto, transformando de volta uma \acrshort{ast} numa \textit{string} usando a sintaxe da linguagem.
+ \item[musikla.audio.sequencers] Alberga os diversos sequênciadores (formatos de saída) suportados nativamente pela linguagem.
+ \item[musikla.audio] Contém as classes \texttt{Player} e \texttt{InteractivePlayer} que permitem reproduzir sequências musícais para os sequenciadores.
+ \item[musikla.libraries] Disponibilizam as várias classes que definem as funções e símbolos expostos para a linguagem Musikla pela biblioteca \textit{standard}.
+ \item[musikla] O módulo  principal, contém as duas classes responsáveis por inicializar todos os sistemas necessários para a linguagem funcionar, \texttt{CliApplication} e \texttt{Script}.
+\end{description}
+
+\section{Configuração}
+Quando a aplicação é inicializada, é opcionalmente carregado um ficheiro \texttt{musikla.ini} se este se encontrar na pasta \textit{Home} do computador do utilizador. Este ficheiro permite configurar diversos dos valores por predefinição utilizados pela linguagem. A maioria destas propriedades pode ser substituida e costumizada em cada execução quando a linguagem é executada pelo terminal.
+
+\begin{lstlisting}[caption={Exemplo de um ficheiro de configuração da linguagem},label={lst:configuration-file}]
+[Musikla]
+soundfont = /path/to/soundfont.sf2
+output = -o alsa
+midi_input = midi input port name
+path = colon : separated list of paths to search for when importing files
+prelude = colon : separated list of paths to include in the prelude (what is available to all modules)
+autoload = colon : separated list of paths to execute before the main file does
+
+[FluidSynth.Settings]
+audio.periods = 2
+audio.period-size = 64
+synth.sample-rate = 44100
+\end{lstlisting}
+
+O valor da propriedade \textbf{soundfont} indica o caminho do ficheiro \texttt{.sf2} a usar pela linguagem para sintetizar os sons.
+
+A propriedade \textbf{output} permite indicar qual ou quais os sequênciadores (e os seus parâmetros) a serem por predefinição utilizados quando o utilizador não especifica nenhum em particular. A sua sintaxe é explicada em mais detalhe no capítulo seguinte.
+
+A propriedade \textbf{midi\_input} permite indicar o nome da porta \textit{MIDI} a usar quando algum teclado está à escuta de eventos \textit{MIDI}.
+
+A propriedade \textbf{path} permite listar um conjunto de caminhos que serão procurados sempre que o utilizador importe algum ficheiro global nos seus \textit{scripts}.
+
+A propriedade \textbf{prelude} indica uma lista de \textit{scripts} Musikla a serem executados e carregados, e cujos símbolos exportados devem ficar disponíveis para todos os outros módulos.
+
+A propriedade \textbf{autoload} é similar à \texttt{prelude}, mas os símbolos apenas são disponibilizados para o ficheiro que o utilizador estiver a correr diretamente (o ficheiro \textit{entry point}, podemos dizer).
+
+Na secção \textbf{FluidSynth.Settings} podemos alterar manualmente as propriedades passadas ao sequênciador \textit{FluidSynth}. A lista de propriedades e valores suportados está disponível \href{http://www.fluidsynth.org/api/fluidsettings.xml}{aqui}\footnote{FluidSettings.xml \url{http://www.fluidsynth.org/api/fluidsettings.xml}}.
+
+
+\section{Linha de Comandos}
+A linha de comandos pode ser executada através do comando \texttt{musikla}. Podemos executar um ficheiro passando o seu caminho como argumento. Também podemos correr \texttt{musikla --help} para vermos uma listagem dos argumentos suportados.
+
+\begin{lstlisting}[caption={Exemplo de um ficheiro de configuração da linguagem},label={lst:configuration-file},language=Bash]
+musikla file.mkl --soundfont custom_soundfont.sf2
+    -o alsa --gain 1
+    -o music.wav
+    -o musikla_port -f midi --port
+\end{lstlisting}
+
+O comando pode ter uma lista de seuquênciadores (ou \textit{outputs}) para utilizar. Estes devem vir sempre no fim do comando, depois de todos os argumentos e opções globais, e são identificados pela opção \texttt{-o} ou \texttt{--output}. O tipo do sequênciador é geralmente inferido pelo valor passado ao output, mas caso haja ambiguidade, é possível identificar manualmente o formato com a opção \texttt{-f} out \texttt{--format}. Também são passadas a esse \textit{output} todas as opções que estiverem depois do \texttt{-o} e até ao fim do comando, ou até ao próximo \texttt{-o} encontrado. As opções aceites variam com o formato do \textit{output}.
 
