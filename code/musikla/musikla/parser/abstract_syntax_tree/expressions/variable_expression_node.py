@@ -4,7 +4,7 @@ from .expression_node import ExpressionNode
 from musikla.core import Music
 
 class VariableExpressionNode( ExpressionNode ):
-    def __init__ ( self, name, position : Tuple[int, int] = None ):
+    def __init__ ( self, name, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.name = name
@@ -19,7 +19,7 @@ class VariableExpressionNode( ExpressionNode ):
 
         context.symbols.assign( self.name, value, local = local )
 
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         value = context.symbols.lookup( self.name )
         
         if isinstance( value, Music ):

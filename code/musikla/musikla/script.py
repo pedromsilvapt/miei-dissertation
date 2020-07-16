@@ -2,11 +2,11 @@ from asyncio.tasks import sleep
 from musikla.libraries.keyboard_pynput import KeyboardPynputLibrary
 from musikla.libraries.keyboard_mido import KeyboardMidoLibrary
 from musikla.core import Context, Library, Music, Value
-from musikla.parser import Parser, Node
+from musikla.parser import Parser, Node, ParserError, MusiklaExecutionError
 from musikla.audio import Player, InteractivePlayer
 from musikla.audio.sequencers import FluidSynthSequencerFactory, ABCSequencerFactory, PDFSequencerFactory, HTMLSequencerFactory, MidiSequencerFactory, DebugSequencerFactory
 from musikla.libraries import StandardLibrary, MusicLibrary, KeyboardLibrary, MidiLibrary
-from typing import Optional, Union, Set, Dict, List, Any, cast
+from typing import Optional, Tuple, Union, Set, Dict, List, Any, cast
 from pathlib import Path
 from configparser import ConfigParser
 import asyncio
@@ -42,7 +42,10 @@ class Script:
         self.import_paths : List[str] = load_paths( self.config, "Musikla", "path" )
         self.import_cache : Dict[str, Context] = {}
         self.import_extensions : List[str] = [ '.py', '.mkl' ]
-        
+        self.files_cache : List[Tuple[str, str]] = []
+
+        self.player.custom_error_printer = self.print_error
+
         self.prelude_context.symbols.assign( 'script', self, local = True )
         # Some core code may depend on the script variable to get a hold of it at runtime
         # But in some child context, the user might have locally binded a custom value to the symbol named "script"
@@ -190,47 +193,82 @@ class Script:
         return context
 
     def eval ( self, code : Union[str, Node], context : Context = None, fork : bool = False, locals : Dict[str, Any] = {} ) -> Any:
-        if type( code ) is str:
-            code = self.parse( code )
+        try:
+            if type( code ) is str:
+                code = self.parse( code )
 
-        if context is None:
-            context = self.create_subcontext( None, fork = fork, **locals )
-        elif locals:
-            context = self.create_subcontext( context, fork = fork, **locals )
+            if context is None:
+                context = self.create_subcontext( None, fork = fork, **locals )
+            elif locals:
+                context = self.create_subcontext( context, fork = fork, **locals )
 
-        return Value.eval( context, code )
+            return Value.eval( context, code )
+        except BaseException as err:
+            self.print_error( err )
     
     def execute ( self, code : Union[str, Node], context : Context = None, fork : bool = False, silent : bool = False, sync : bool = False, realtime : bool = True ):
-        value = self.eval( code, context = context, fork = fork )
+        try:
+            value = self.eval( code, context = context, fork = fork )
 
-        if value and isinstance( value, Music ):
-            if not silent:
-                return self.play( value, sync = sync, realtime = realtime )
-            else:
-                # Since code can be lazy, we need to make sure we actually execute the file even
-                # when we have no intention of handling it's events
-                for _ in value.expand( context ): pass
+            if value and isinstance( value, Music ):
+                if not silent:
+                    return self.play( value, sync = sync, realtime = realtime )
+                else:
+                    # Since code can be lazy, we need to make sure we actually execute the file even
+                    # when we have no intention of handling it's events
+                    for _ in value.expand( context ): pass
 
-        return None
+            return None
+        except BaseException as err:
+            self.print_error( err )
     
-    def execute_file ( self, file : str, context : Context = None, fork : bool = False, silent : bool = False, sync : bool = False, realtime : bool = True, locals : Dict[str, Any] = {} ):
-        code = self.parser.parse_file( file )
-        
-        absolute_file : str = os.path.abspath( file )
+    def print_error ( self, err : BaseException ):
+        if isinstance( err, ParserError ):
+            print( err )
+        elif isinstance( err, MusiklaExecutionError ):
+            file : Optional[str] = None
+            contents : Optional[str] = None
 
-        value = self.eval( code, context = context, fork = fork, locals = {
-            '__file__': absolute_file,
-            '__dir__': str( Path( absolute_file ).parent ),
-            **locals
-        } )
-        
-        if value and isinstance( value, Music ):
-            if not silent:
-                return self.play( value, sync = sync, realtime = realtime )
-            else:
-                # Since code can be lazy, we need to make sure we actually execute the file even
-                # when we have no intention of handling it's events
-                for _ in value.expand( context ): pass
+            if err.reporter is None and err.position is not None and err.position[ 0 ] >= 0 and err.position[ 0 ] < len( self.files_cache ):
+                file, contents = self.files_cache[ err.position[ 0 ] ]
+
+                err.create_reporter( file, contents )
+
+            print( err )
+        else:
+            print( str( err ) )
+            print( err.stacktrace )
+
+    def execute_file ( self, file : str, context : Context = None, fork : bool = False, silent : bool = False, sync : bool = False, realtime : bool = True, locals : Dict[str, Any] = {} ):
+        try:
+            with open( file, 'r' ) as f:
+                file_id = len( self.files_cache )
+
+                file_contents = f.read()
+
+                self.files_cache.append( ( file, file_contents ) )
+
+                code = self.parser.parse( file_contents, file = file, file_id = file_id )
+            
+            # code = self.parser.parse_file( file, file_id = file_id )
+            
+            absolute_file : str = os.path.abspath( file )
+
+            value = self.eval( code, context = context, fork = fork, locals = {
+                '__file__': absolute_file,
+                '__dir__': str( Path( absolute_file ).parent ),
+                **locals
+            } )
+            
+            if value and isinstance( value, Music ):
+                if not silent:
+                    return self.play( value, sync = sync, realtime = realtime )
+                else:
+                    # Since code can be lazy, we need to make sure we actually execute the file even
+                    # when we have no intention of handling it's events
+                    for _ in value.expand( context ): pass
+        except BaseException as err:
+            self.print_error( err )
 
         return None
 

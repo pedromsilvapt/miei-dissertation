@@ -8,3 +8,4 @@ from .value import Value, CallableValue
 from .music import Music, TemplateMusic, MusicBuffer
 from .clock import Clock
 from .scheduler import Scheduler
+from .metronome import Metronome

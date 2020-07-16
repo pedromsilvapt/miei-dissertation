@@ -175,7 +175,7 @@ binary_logic_operator_expression <- binary_comparison_operator_expression _ ("an
                                   / binary_comparison_operator_expression
                                   ;
 
-binary_comparison_operator_expression <- binary_sum_operator_expression _ (">=" / ">" / "==" / "!=" / "<=" / "<") _ binary_comparison_operator_expression
+binary_comparison_operator_expression <- binary_sum_operator_expression _ (">=" / ">" / "==" / "!=" / "<=" / "<" / "is" / "isnot" / "in" / "notin") _ binary_comparison_operator_expression
                                        / binary_sum_operator_expression
                                        ;
 

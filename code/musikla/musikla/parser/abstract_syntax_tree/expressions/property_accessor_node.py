@@ -4,7 +4,7 @@ from musikla.core import Context
 from ..node import Node
 
 class PropertyAccessorNode( Node ):
-    def __init__ ( self, expression : Node, name : Node, as_attr : bool, position : Tuple[int, int] = None ):
+    def __init__ ( self, expression : Node, name : Node, as_attr : bool, position : Tuple[int, int, int] = None ):
         super().__init__( position )
         
         self.expression : Node = expression
@@ -36,7 +36,7 @@ class PropertyAccessorNode( Node ):
         else:
             expr[ name ] = value
 
-    def eval ( self, context : Context ):
+    def __eval__ ( self, context : Context ):
         expr = self.expression.eval( context )
         name = self.name.eval( context )
 

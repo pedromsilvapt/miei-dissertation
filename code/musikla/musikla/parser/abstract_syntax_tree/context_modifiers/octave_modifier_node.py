@@ -5,7 +5,7 @@ from musikla.core.events import ContextChangeEvent
 from musikla.core import Context, Voice
 
 class OctaveModifierNode( ContextModifierNode ):
-    def __init__ ( self, octave, position : Tuple[int, int] = None ):
+    def __init__ ( self, octave, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.octave = octave

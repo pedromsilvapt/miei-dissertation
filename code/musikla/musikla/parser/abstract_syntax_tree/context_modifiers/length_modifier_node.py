@@ -5,7 +5,7 @@ from musikla.core.events import ContextChangeEvent
 from musikla.core import Context, Voice
 
 class LengthModifierNode( ContextModifierNode ):
-    def __init__ ( self, length, position : Tuple[int, int] = None ):
+    def __init__ ( self, length, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.length = length

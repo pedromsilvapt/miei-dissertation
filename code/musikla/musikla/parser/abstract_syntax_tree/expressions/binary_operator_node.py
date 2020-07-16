@@ -1,3 +1,4 @@
+from musikla.core.value import CallableValue
 from musikla.parser.printer import CodePrinter
 from ..node import Node
 from .expression_node import ExpressionNode
@@ -5,17 +6,17 @@ from musikla.core import Value, Music
 from typing import Optional, Tuple, Union
 
 class BinaryOperatorNode( ExpressionNode ):
-    def __init__ ( self, left : Node, right : Node, position : Tuple[int, int] = None ):
+    def __init__ ( self, left : Node, right : Node, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.left : Node = left
         self.right : Node = right
 
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         return None
 
 class PlusBinaryOperatorNode(BinaryOperatorNode):
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         left_value = self.left.eval( context )
         right_value = self.right.eval( context )
 
@@ -29,7 +30,7 @@ class PlusBinaryOperatorNode(BinaryOperatorNode):
         self.right.to_source( printer )
 
 class MinusBinaryOperatorNode(BinaryOperatorNode):
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         left_value = self.left.eval( context )
         right_value = self.right.eval( context )
 
@@ -43,7 +44,7 @@ class MinusBinaryOperatorNode(BinaryOperatorNode):
         self.right.to_source( printer )
 
 class PowBinaryOperatorNode(BinaryOperatorNode):
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         left_value = self.left.eval( context.fork(cursor = 0) )
         right_value = self.right.eval( context.fork(cursor = 0) )
 
@@ -57,7 +58,7 @@ class PowBinaryOperatorNode(BinaryOperatorNode):
         self.right.to_source( printer )
 
 class MultBinaryOperatorNode(BinaryOperatorNode):
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         left_value = self.left.eval( context.fork( cursor = 0 ) )
         right_value = self.right.eval( context.fork( cursor = 0 ) )
 
@@ -71,7 +72,7 @@ class MultBinaryOperatorNode(BinaryOperatorNode):
         self.right.to_source( printer )
 
 class DivBinaryOperatorNode(BinaryOperatorNode):
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         left_value = self.left.eval( context )
         right_value = self.right.eval( context )
 
@@ -85,7 +86,7 @@ class DivBinaryOperatorNode(BinaryOperatorNode):
         self.right.to_source( printer )
 
 class AndLogicOperatorNode(BinaryOperatorNode):
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         left_value = self.left.eval( context )
 
         if not left_value: return False
@@ -102,7 +103,7 @@ class AndLogicOperatorNode(BinaryOperatorNode):
         self.right.to_source( printer )
 
 class OrLogicOperatorNode(BinaryOperatorNode):
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         left_value = self.left.eval( context )
 
         if left_value:
@@ -122,13 +123,13 @@ class OrLogicOperatorNode(BinaryOperatorNode):
 class ComparisonOperatorNode(BinaryOperatorNode):
     operator : Optional[str] = None
 
-    def __init__ ( self, left : Node, right : Node, position : Tuple[int, int] = None ):
+    def __init__ ( self, left : Node, right : Node, position : Tuple[int, int, int] = None ):
         super().__init__( left, right, position )
 
     def compare ( self, a, b ):
         pass
 
-    def eval ( self, context, assignment : bool = False ):
+    def __eval__ ( self, context, assignment : bool = False ):
         left_value = self.left.eval( context )
         right_value = self.right.eval( context )
 
@@ -171,3 +172,35 @@ class LesserComparisonOperatorNode(ComparisonOperatorNode):
 
     def compare ( self, a, b ): 
         return a < b
+
+class IsComparisonOperatorNode(ComparisonOperatorNode):
+    operator : str = 'in'
+
+    def compare ( self, a, b ): 
+        if isinstance( a, CallableValue ): a = a.raw()
+        
+        if isinstance( b, CallableValue ): b = b.raw()
+
+        return a is b or type(a) is b
+
+class IsNotComparisonOperatorNode(ComparisonOperatorNode):
+    operator : str = 'notin'
+
+    def compare ( self, a, b ): 
+        if isinstance( a, CallableValue ): a = a.raw()
+        
+        if isinstance( b, CallableValue ): b = b.raw()
+
+        return a is not b and type(a) is not b
+
+class InComparisonOperatorNode(ComparisonOperatorNode):
+    operator : str = 'in'
+
+    def compare ( self, a, b ): 
+        return a in b
+
+class NotInComparisonOperatorNode(ComparisonOperatorNode):
+    operator : str = 'notin'
+
+    def compare ( self, a, b ): 
+        return a not in b

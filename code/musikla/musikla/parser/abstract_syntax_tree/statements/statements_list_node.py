@@ -3,7 +3,7 @@ from ..music_node import MusicSequenceBase
 from musikla.parser.printer import CodePrinter
 
 class StatementsListNode( MusicSequenceBase ):
-    def __init__ ( self, nodes, position : Tuple[int, int] = None ):
+    def __init__ ( self, nodes, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.statements = nodes

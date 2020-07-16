@@ -81,7 +81,7 @@ class Note:
         return self
 
     def transpose ( self, semitones : int ) -> 'Note':
-        return self.with_pitch( self.to_pitch() + semitones )
+        return self.with_pitch( self.to_pitch() + int( semitones ) )
     
     def timeless ( self ):
         if self.value != None and self.value != 1:

@@ -3,5 +3,5 @@ from ..node import Node
 from musikla.core import Context
 
 class ExpressionNode( Node ):
-    def eval ( self, context : Context ) -> Any:
+    def __eval__ ( self, context : Context ) -> Any:
         raise BaseException("Abstract Expression cannot be evaluated")

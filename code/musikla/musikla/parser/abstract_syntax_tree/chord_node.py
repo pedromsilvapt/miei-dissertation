@@ -5,7 +5,7 @@ from musikla.core.events import ChordEvent
 from typing import Tuple
 
 class ChordNode( MusicNode ):
-    def __init__ ( self, chord : Chord, position : Tuple[int, int] = None ):
+    def __init__ ( self, chord : Chord, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.chord : Chord = chord

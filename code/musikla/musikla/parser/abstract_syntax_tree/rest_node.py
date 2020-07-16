@@ -4,7 +4,7 @@ from .music_node import MusicNode
 from musikla.core.events import RestEvent
 
 class RestNode( MusicNode ):
-    def __init__ ( self, value = None, visible = False, position : Tuple[int, int] = None ):
+    def __init__ ( self, value = None, visible = False, position : Tuple[int, int, int] = None ):
         super().__init__( position )
         
         self.value = value

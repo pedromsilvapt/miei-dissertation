@@ -16,6 +16,8 @@ class PlayerLike(Protocol):
     
     def play_more ( self, events : Iterable[MusicEvent] ): ...
 
+    def print_error ( self, err : BaseException ): ...
+
 class Player():
     def __init__ ( self, sequencers : List[Sequencer] = [], events = [] ):
         self.events = events
@@ -23,8 +25,13 @@ class Player():
         self.started : bool = False
         self.start_time : Optional[int] = None
         self.print_events = False
+        self.custom_error_printer : Any = None
         
         self.sequencer_factories : List[SequencerFactory] = []
+
+    def print_error ( self, err : BaseException ):
+        if self.custom_error_printer is not None:
+            self.custom_error_printer( err )
 
     def add_sequencer_factory ( self, factory : Any, context : Context, config : ConfigParser ):
         self.sequencer_factories.append( factory( context, config ) )

@@ -6,7 +6,7 @@ from ..node import Node
 from musikla.core import Value, Context
 
 class VariableDeclarationStatementNode( StatementNode ):
-    def __init__ ( self, left : Union[Node, str], right : Node, operator : Optional[str] = None, local : bool = False, position : Tuple[int, int] = None ):
+    def __init__ ( self, left : Union[Node, str], right : Node, operator : Optional[str] = None, local : bool = False, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         if type( left ) is str:
@@ -23,7 +23,7 @@ class VariableDeclarationStatementNode( StatementNode ):
         elif self.operator is not None and not hasattr( self.left, 'lookup_assign' ):
             raise BaseException( f"Left hand side \"{CodePrinter().print(self.left)}\" cannot be used in an attribution" )
 
-    def eval ( self, context : Context ):
+    def __eval__ ( self, context : Context ):
         val = Value.assignment( self.right.eval( context.fork( cursor = 0 ) ) )
 
         if self.operator is None:

@@ -6,7 +6,7 @@ from ..expressions import ExpressionNode
 # Since returns values of kind OBJECT, this node is not ready for primetime yet.
 # Used as a placeholder for the keyboard creation macro
 class ListComprehensionNode(ExpressionNode):
-    def __init__ ( self, expression : Node, variable : List[str], min : Node, max : Node, condition : Node = None, position : Tuple[int, int] = None ):
+    def __init__ ( self, expression : Node, variable : List[str], min : Node, max : Node, condition : Node = None, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.expression : Node = expression
@@ -15,5 +15,5 @@ class ListComprehensionNode(ExpressionNode):
         self.max : Node = max
         self.condition : Optional[Node] = condition
     
-    def eval ( self, context, assignment : bool = False ): 
+    def __eval__ ( self, context, assignment : bool = False ): 
         return None

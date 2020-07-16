@@ -52,6 +52,9 @@ class CallablePythonValue(CallableValue):
 
         super().__init__( self.wrapper )
 
+    def raw ( self ):
+        return self.callable
+
     def eval_argument ( self, context : Context, parameter : Parameter, node : Node, arg_name : str ):
         if is_type_of( parameter.annotation, Node ):
             return node

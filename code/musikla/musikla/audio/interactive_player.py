@@ -94,12 +94,15 @@ class InteractivePlayer:
         else:
             iterator = iter_to_aiter( sync_iterator )
 
-        async for event in iterator:
-            self.player.play_more( [ event ] )
+        try:
+            async for event in iterator:
+                self.player.play_more( [ event ] )
 
-            if self.buffers is not None:
-                for buf in self.buffers: 
-                    buf.append( event )
+                if self.buffers is not None:
+                    for buf in self.buffers: 
+                        buf.append( event )
+        except BaseException as ex:
+            self.player.print_error( ex )
 
         if self.extend and self.extended_notes:
             await self.cancel_token.future

@@ -1,7 +1,3 @@
-$_default_layout = "qwertyuiop+´
-asdfghjklçº~
-<zxcvbnm,.-";
-
 fun keyboard\debug ( $cb = none ) {
     return @keyboard {
         [ keyboard\KeyEvent() ] ( $key, $value, $pressed ): {
@@ -14,7 +10,23 @@ fun keyboard\debug ( $cb = none ) {
     }
 };
 
-fun keyboard\piano ( $layout = $_default_layout, in $transpose = 0, in $transpose_rows = @{}, in $shift_rows = @{}, $scales = @[], $toggle = false ) {
+fun keyboard\build_layout ( $layout ) {
+    $lines = $layout::splitlines();
+
+    return @py { [ list( l ) for l in lines ] };
+};
+
+$keyboard\piano_layout = keyboard\build_layout( "qwertyuiop+´
+asdfghjklçº~
+<zxcvbnm,.-" );
+
+# While this function accepts a list of custom scales to be provided, it only works if each scale spans at most, one octave
+fun keyboard\piano ( 
+    $layout = $keyboard\piano_layout, $scales = @[],
+    in $transpose = 0, in $transpose_rows = @{}, in $shift_rows = @{},
+    $map = none,
+    $toggle = false, $ctrl = false, $alt = false, $shift = false
+) {
     fun get_row_scale ( $row_index ) {
         if ( len( $scales ) > 0 ) {
             return $scales::[ mod( $row_index, len( $scales ) ) ];
@@ -41,7 +53,11 @@ fun keyboard\piano ( $layout = $_default_layout, in $transpose = 0, in $transpos
 
     $kb = keyboard\create();
 
-    $rows = $layout::splitlines();
+    if ( $layout is $str ) {
+        $rows = $layout::splitlines();
+    } else {
+        $rows = $layout;
+    };
 
     $rows::reverse();
 
@@ -57,14 +73,13 @@ fun keyboard\piano ( $layout = $_default_layout, in $transpose = 0, in $transpos
 
         $row_scale_index = get_row_scale_index( $row_index );
 
-        # $row_base_octave = $row_octaves::get( $row_index, default = div( $row_index, 2 ) );
         $row_base_octave = $scale_last_octaves::get( $row_scale_index, default = 0 );
 
         for ( $i, $letter in enumerate( $rows::[ $row_index ] ) ) {
             $music = C + interval( octaves = $row_base_octave );
-
+            
             keyboard\register( $kb, 
-                key = $letter, 
+                key = keyboard\KeyStroke( $letter, $ctrl, $alt, $shift ), 
                 expression = {
                     $interval = $row_scale::interval_at( $i + $shift_rows::get( $row_index, default = 0 ) );
 
@@ -72,7 +87,11 @@ fun keyboard\piano ( $layout = $_default_layout, in $transpose = 0, in $transpos
 
                     $interval += $transpose;
 
-                    $music + $interval;
+                    if ( $map is none ) {
+                        $music + $interval;
+                    } else {
+                        $map( $music, $i + $shift_rows::get( $row_index, default = 0 ), $row_scale ) + $interval;
+                    };
                 },
                 hold = not $toggle, toggle = $toggle, extend = true 
             );

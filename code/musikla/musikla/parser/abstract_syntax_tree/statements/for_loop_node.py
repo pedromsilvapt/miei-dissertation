@@ -5,7 +5,7 @@ from ..node import Node
 from ..music_node import MusicSequenceBase
 
 class ForLoopStatementNode( MusicSequenceBase ):
-    def __init__ ( self, variable : List[str], it : Node, body : Node, position : Tuple[int, int] = None ):
+    def __init__ ( self, variable : List[str], it : Node, body : Node, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.variables : List[str] = variable

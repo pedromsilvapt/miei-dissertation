@@ -34,12 +34,12 @@ class Object(dict):
         self[ key ] = value
 
 class ObjectLiteralNode( ExpressionNode ):
-    def __init__ ( self, values : List[Tuple[str, ExpressionNode]], position : Tuple[int, int] = None ):
+    def __init__ ( self, values : List[Tuple[str, ExpressionNode]], position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.values : List[Tuple[str, ExpressionNode]] = values
 
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         return Object( [ ( key, Value.assignment( Value.eval( context.fork(), node ) ) ) for key, node in self.values ] )
 
     def to_source ( self, printer : CodePrinter ):

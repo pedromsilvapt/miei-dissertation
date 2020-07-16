@@ -1,9 +1,11 @@
+import sys
 from pathlib import Path
 from arpeggio.peg import ParserPEG
-from arpeggio import PTNodeVisitor, visit_parse_tree
-from typing import Any, List, cast
+from arpeggio import PTNodeVisitor, visit_parse_tree, NoMatch
+from typing import Any, List, Optional, Tuple, cast
 from musikla.core.events import NoteEvent
 from musikla.core.theory import NoteAccidental, Note, Chord
+from .error_reporter import ErrorReporter
 from .abstract_syntax_tree import Node, PythonNode
 from .abstract_syntax_tree import NoteNode, ChordNode, MusicSequenceNode, MusicParallelNode, RestNode
 from .abstract_syntax_tree.context_modifiers import LengthModifierNode, OctaveModifierNode, SignatureModifierNode, VelocityModifierNode, InstrumentModifierNode, TempoModifierNode, VoiceBlockModifier
@@ -18,6 +20,8 @@ from .abstract_syntax_tree.expressions import AndLogicOperatorNode, OrLogicOpera
 from .abstract_syntax_tree.expressions import GreaterComparisonOperatorNode, GreaterEqualComparisonOperatorNode
 from .abstract_syntax_tree.expressions import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode
 from .abstract_syntax_tree.expressions import LesserComparisonOperatorNode, LesserEqualComparisonOperatorNode
+from .abstract_syntax_tree.expressions import IsComparisonOperatorNode, IsNotComparisonOperatorNode
+from .abstract_syntax_tree.expressions import InComparisonOperatorNode, NotInComparisonOperatorNode
 
 from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockNode, PropertyAccessorNode
 
@@ -30,13 +34,22 @@ from .abstract_syntax_tree.macros import VoiceDeclarationMacroNode
 from fractions import Fraction
 
 class ParserVisitor(PTNodeVisitor):
+    def __init__(self, file : str = None, file_id : int = None, defaults=True, **kwargs):
+        super().__init__(defaults, **kwargs)
+
+        self.file : Optional[str] = file
+        self.file_id : Optional[int] = file_id
+
+    def _get_position ( self, node ) -> Tuple[int, int, int]:
+        return ( self.file_id if self.file_id is not None else -1, node.position, node.position_end )
+
     def visit_body ( self, node, children ):
         children = children.statement
         
         if len( children ) == 1:
             return children[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         children = list( children )
 
@@ -55,7 +68,7 @@ class ParserVisitor(PTNodeVisitor):
         return children[ 0 ]
 
     def visit_import ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         if children.namespaced:
             return ImportStatementNode( children.namespaced[ 0 ], False, position = position )
@@ -63,7 +76,7 @@ class ParserVisitor(PTNodeVisitor):
         return ImportStatementNode( children.string_value[ 0 ].value, True, position = position )
 
     def visit_var_declaration ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         operator = children.var_declaration_infix[ 0 ] if children.var_declaration_infix else None
 
@@ -76,7 +89,7 @@ class ParserVisitor(PTNodeVisitor):
         return children[ 0 ]
 
     def visit_voice_declaration ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         name = children.namespaced[ 0 ]
         args = children.voice_declaration_body[ 0 ]
@@ -96,7 +109,7 @@ class ParserVisitor(PTNodeVisitor):
         return ( modifiers, parent )
 
     def visit_function_declaration ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         name = children.namespaced[ 0 ] if children.namespaced else None
 
@@ -135,19 +148,19 @@ class ParserVisitor(PTNodeVisitor):
             
 
     def visit_for_loop_statement ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         variables, expression = children.for_loop_head[ 0 ]
 
         return ForLoopStatementNode( variables, expression, children.body[ 0 ], position )
 
     def visit_while_loop_statement ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return WhileLoopStatementNode( children.expression[ 0 ], children.body[ 0 ], position )
     
     def visit_if_statement ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         if len( children.body ) == 2:
             return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], children.body[ 1 ], position )
@@ -155,7 +168,7 @@ class ParserVisitor(PTNodeVisitor):
         return IfStatementNode( children.expression[ 0 ], children.body[ 0 ], position = position )
 
     def visit_return_statement ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         if children.expression:
             return ReturnStatementNode( children.expression[ 0 ], position = position )
@@ -175,31 +188,31 @@ class ParserVisitor(PTNodeVisitor):
         return children[ 0 ]
 
     def visit_keyboard_for ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
         
         var_name, expression = children.for_loop_head[ 0 ]
 
         return KeyboardForLoopMacroNode( var_name, expression, children.keyboard_body[ 0 ], position = position )
     
     def visit_keyboard_while ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return KeyboardWhileLoopMacroNode( children.expression[ 0 ], children.keyboard_body[ 0 ], position = position )
     
     def visit_keyboard_if ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
         
         else_body = children.keyboard_body[ 1 ] if len( children.keyboard_body ) > 1 else None
 
         return KeyboardIfMacroNode( children.expression[ 0 ], children.keyboard_body[ 0 ], else_body, position = position )
     
     def visit_keyboard_block ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
         
         return KeyboardBlockMacroNode( children.body[ 0 ], position = position )
 
     def visit_keyboard_shortcut ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         kind, key, flags = children.keyboard_shortcut_key[ 0 ]
 
@@ -240,7 +253,7 @@ class ParserVisitor(PTNodeVisitor):
             )
 
     def visit_list_comprehension ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         expression = children.expression[ 0 ]
         name = [ children.namespaced[ 0 ] ]
@@ -266,7 +279,7 @@ class ParserVisitor(PTNodeVisitor):
         return children.identifier[ 0 ]
 
     def visit_python_expression ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return PythonNode( children.python_expression_body[ 0 ], True, position = position )
 
@@ -274,7 +287,7 @@ class ParserVisitor(PTNodeVisitor):
         return node.value
 
     def visit_python_statement ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return PythonNode( children.python_statement_body[ 0 ], False, position = position )
 
@@ -291,7 +304,7 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         left = children.binary_comparison_operator_expression[ 0 ]
         right = children.binary_logic_operator_expression[ 0 ]
@@ -309,7 +322,7 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         left = children.binary_sum_operator_expression[ 0 ]
         right = children.binary_comparison_operator_expression[ 0 ]
@@ -328,6 +341,14 @@ class ParserVisitor(PTNodeVisitor):
             return LesserEqualComparisonOperatorNode( left, right, position )
         elif op == '<':
             return LesserComparisonOperatorNode( left, right, position )
+        elif op == 'is':
+            return IsComparisonOperatorNode( left, right, position )
+        elif op == 'isnot':
+            return IsNotComparisonOperatorNode( left, right, position )
+        elif op == 'in':
+            return InComparisonOperatorNode( left, right, position )
+        elif op == 'notin':
+            return NotInComparisonOperatorNode( left, right, position )
         else:
             raise BaseException( "Unknown binary operator: %s" % op )
 
@@ -335,7 +356,7 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         left = children.binary_mult_operator_expression[ 0 ]
         right = children.binary_sum_operator_expression[ 0 ]
@@ -353,7 +374,7 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         left = children.unary_operator_expression[ 0 ]
         right = children.binary_mult_operator_expression[ 0 ]
@@ -373,7 +394,7 @@ class ParserVisitor(PTNodeVisitor):
         if children[ 0 ] == '':
             return children.expression_single[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return NotOperatorNode( children.expression_single[ 0 ], position =  position )
 
@@ -401,7 +422,7 @@ class ParserVisitor(PTNodeVisitor):
         as_attr : bool = False
 
         if children.identifier:
-            position = ( node.position, node.position_end )
+            position = self._get_position( node )
 
             identifier = StringLiteralNode( children.identifier[ 0 ], position = position )
 
@@ -409,19 +430,19 @@ class ParserVisitor(PTNodeVisitor):
         else:
             identifier = children.expression[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return PropertyAccessorNode( cast( Any, None ), identifier, as_attr, position = position )
         
     def visit_property_call ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         parameters = children.function_parameters[ 0 ]
         
         return FunctionExpressionNode( None, parameters[ 0 ], parameters[ 1 ], position = position )
 
     def visit_array_value ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         if children.expression:
             return ArrayLiteralNode( list( children.expression ), position )
@@ -429,7 +450,7 @@ class ParserVisitor(PTNodeVisitor):
         return ArrayLiteralNode( [], position )
     
     def visit_object_value ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
         
         if children.object_value_item:
             return ObjectLiteralNode( list( children.object_value_item ), position )
@@ -446,7 +467,7 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return MusicParallelNode( list( children ), position = position )
 
@@ -457,27 +478,27 @@ class ParserVisitor(PTNodeVisitor):
         if len( children ) == 1:
             return children[ 0 ]
 
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return MusicSequenceNode( list( children ), position )
 
     def visit_group ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return GroupNode( children[ 0 ], position )
 
     def visit_block ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return BlockNode( children.body[ 0 ], position )
 
     def visit_variable ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return VariableExpressionNode( children[ 0 ], position )
 
     def visit_function ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         parameters = children.function_parameters[ 0 ]
         
@@ -506,7 +527,7 @@ class ParserVisitor(PTNodeVisitor):
         return ( children.identifier[ 0 ], children.expression[ 0 ] )
 
     def visit_note ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         accidental, ( pitch_class, octave ) = children.note_pitch[ 0 ]
         
@@ -525,7 +546,7 @@ class ParserVisitor(PTNodeVisitor):
         return NoteNode( note, position )
 
     def visit_chord ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
         
         value = Fraction( 1 )
 
@@ -562,7 +583,7 @@ class ParserVisitor(PTNodeVisitor):
         return children[ 0 ]
 
     def visit_rest ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         if len( children ) == 1:
             return RestNode( value = children[ 0 ], visible = True, position = position )
@@ -596,7 +617,7 @@ class ParserVisitor(PTNodeVisitor):
         return Note.parse_pitch_octave( ''.join( children ) )
 
     def visit_modifier ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         c = children[ 0 ].lower()
         
@@ -612,13 +633,13 @@ class ParserVisitor(PTNodeVisitor):
         elif c == 'o': return OctaveModifierNode( children[ 1 ], position )
 
     def visit_instrument_modifier ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return VoiceBlockModifier( children[ 1 ], children[ 0 ], position )
 
     # Strings
     def visit_string_value ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return StringLiteralNode( children[ 0 ], position )
 
@@ -645,17 +666,17 @@ class ParserVisitor(PTNodeVisitor):
             return node.value
 
     def visit_number_value ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
         
         return NumberLiteralNode( children[ 0 ], position )
 
     def visit_bool_value ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return BoolLiteralNode( children[ 0 ] == "true", position )
 
     def visit_none_value ( self, node, children ):
-        position = ( node.position, node.position_end )
+        position = self._get_position( node )
 
         return NoneLiteralNode( position )
 
@@ -687,13 +708,29 @@ class Parser():
         with open( Path( __file__ ).parent / "grammar.peg", "r" ) as f:
             self.internal_parser = ParserPEG( f.read(), "main", skipws=False, debug = False, memoization = True, comment_rule_name = "comment" )
 
-    def parse ( self, expression ) -> Node:
-        tree = self.internal_parser.parse( expression )
-        
-        result = visit_parse_tree( tree, ParserVisitor( debug = self.debug ) )
-        
-        return result
+    def parse ( self, expression, file : str = None, file_id : int = None ) -> Node:
+        try:
+            tree = self.internal_parser.parse( expression )
+            
+            visitor = ParserVisitor( file = file, file_id = file_id, debug = self.debug )
+            
+            return visit_parse_tree( tree, visitor )
+        except NoMatch as err:
+            raise ParserError( err, expression, file )
+            raise err from None
 
     def parse_file ( self, file ) -> Node:
         with open( file, 'r' ) as f:
-            return self.parse( f.read() )
+            return self.parse( f.read(), file = file )
+
+class ParserError(Exception):
+    def __init__ ( self, err : NoMatch, contents : str, file : str = None ):
+        super().__init__()
+        
+        self.reporter = ErrorReporter( "ParseError", str( err ), contents, ( err.position, err.position + 1 ), file )
+
+    def __repr__ ( self ):
+        return str( self.reporter )
+
+    def __str__ ( self ):
+        return str( self.reporter )

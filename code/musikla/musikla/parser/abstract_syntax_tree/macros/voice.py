@@ -5,7 +5,7 @@ from .macro import MacroNode
 from musikla.core import Instrument
 
 class VoiceDeclarationMacroNode( MacroNode ):
-    def __init__ ( self, name, modifiers = None, parent = None, position : Tuple[int, int] = None ):
+    def __init__ ( self, name, modifiers = None, parent = None, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.name = name

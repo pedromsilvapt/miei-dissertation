@@ -40,7 +40,7 @@ class KeyAction:
 
             forked_context = self.context.fork( cursor = now, symbols = forked_symbols )
 
-            value = self.expr.eval( forked_context )
+            value = forked_context.script.eval( self.expr, context = forked_context )
 
             if isinstance( value, Music ):
                 return value.expand( forked_context )

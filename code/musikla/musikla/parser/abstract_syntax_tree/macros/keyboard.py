@@ -23,7 +23,7 @@ def handle_modifiers ( modifiers : List[str] ) -> Tuple[Dict[str, bool], Optiona
     return (props, rest)
 
 class KeyboardShortcutMacroNode(MacroNode):
-    def __init__ ( self, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int] = None ):
+    def __init__ ( self, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.modifiers : List[str] = modifiers
@@ -48,7 +48,7 @@ class KeyboardShortcutMacroNode(MacroNode):
         cast( FunctionExpressionNode, self.virtual_node ).parameters[ 0 ] = keyboard
 
 class KeyboardShortcutDynamicMacroNode(MacroNode):
-    def __init__ ( self, shortcut : Node, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int] = None ):
+    def __init__ ( self, shortcut : Node, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.shortcut : Node = shortcut
@@ -77,7 +77,7 @@ class KeyboardShortcutDynamicMacroNode(MacroNode):
         cast( FunctionExpressionNode, self.virtual_node ).parameters[ 0 ] = keyboard
 
 class KeyboardShortcutComprehensionMacroNode(MacroNode):
-    def __init__ ( self, comprehension : ListComprehensionNode, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int] = None ):
+    def __init__ ( self, comprehension : ListComprehensionNode, modifiers : List[str], args : List[str], expression : Node, position : Tuple[int, int, int] = None ):
         super().__init__( position )
         
         self.comprehension : ListComprehensionNode = comprehension
@@ -122,7 +122,7 @@ class KeyboardShortcutComprehensionMacroNode(MacroNode):
         cast( FunctionExpressionNode, node ).parameters[ 0 ] = keyboard
 
 class KeyboardForLoopMacroNode( MacroNode ):
-    def __init__ ( self, variable : str, iterator : Node, shortcuts : List[MacroNode], position : Tuple[int, int] = None ):
+    def __init__ ( self, variable : str, iterator : Node, shortcuts : List[MacroNode], position : Tuple[int, int, int] = None ):
         super().__init__( position )
     
         self.variable : str = variable
@@ -138,7 +138,7 @@ class KeyboardForLoopMacroNode( MacroNode ):
             cast( Any, macro ).set_keyboard( keyboard )
 
 class KeyboardWhileLoopMacroNode( MacroNode ):
-    def __init__ ( self, condition : Node, shortcuts : List[MacroNode], position : Tuple[int, int] = None ):
+    def __init__ ( self, condition : Node, shortcuts : List[MacroNode], position : Tuple[int, int, int] = None ):
         super().__init__( position )
     
         self.condition : Node = condition
@@ -153,7 +153,7 @@ class KeyboardWhileLoopMacroNode( MacroNode ):
             cast( Any, macro ).set_keyboard( keyboard )
 
 class KeyboardIfMacroNode( MacroNode ):
-    def __init__ ( self, condition : Node, shortcuts : List[MacroNode], else_shortcuts : List[MacroNode] = None, position : Tuple[int, int] = None ):
+    def __init__ ( self, condition : Node, shortcuts : List[MacroNode], else_shortcuts : List[MacroNode] = None, position : Tuple[int, int, int] = None ):
         super().__init__( position )
     
         self.condition : Node = condition
@@ -174,7 +174,7 @@ class KeyboardIfMacroNode( MacroNode ):
                 cast( Any, macro ).set_keyboard( keyboard )
 
 class KeyboardBlockMacroNode( MacroNode ):
-    def __init__ ( self, body : Node, position : Tuple[int, int] = None ):
+    def __init__ ( self, body : Node, position : Tuple[int, int, int] = None ):
         super().__init__( position )
     
         self.body : Node = body
@@ -185,7 +185,7 @@ class KeyboardBlockMacroNode( MacroNode ):
         pass
 
 class KeyboardDeclarationMacroNode(MacroNode):
-    def __init__ ( self, shortcuts : List[Node], flags : List[str] = None, prefix : Node = None, position : Tuple[int, int] = None ):
+    def __init__ ( self, shortcuts : List[Node], flags : List[str] = None, prefix : Node = None, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         var_name = '__keyboard'

@@ -5,7 +5,7 @@ from musikla.core import Context
 import inspect
 
 class PythonNode( Node ):
-    def __init__ ( self, code : str, is_expression : bool = False, position : Tuple[int, int] = None ):
+    def __init__ ( self, code : str, is_expression : bool = False, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.code : str = code
@@ -43,7 +43,7 @@ class PythonNode( Node ):
 
         return export
 
-    def eval ( self, context : Context ):
+    def __eval__ ( self, context : Context ):
         globals = {}
 
         if not self.is_expression:

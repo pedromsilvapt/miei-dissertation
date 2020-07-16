@@ -5,7 +5,7 @@ from musikla.core.events import ProgramChangeEvent
 from musikla.core import Value, Voice, Context, TemplateMusic
 
 class VoiceBlockModifier( BlockContextModifierNode ):
-    def __init__ ( self, body, voice_name : str, position : Tuple[int, int] = None ):
+    def __init__ ( self, body, voice_name : str, position : Tuple[int, int, int] = None ):
         super().__init__( body, position )
 
         self.voice_name : str = voice_name
@@ -20,7 +20,7 @@ class VoiceBlockModifier( BlockContextModifierNode ):
     def restore ( self, context ):
         pass
 
-    def eval ( self, context : Context ):
+    def __eval__ ( self, context : Context ):
         if self.voice_name == '?':
             return TemplateMusic( self.body )
         else:

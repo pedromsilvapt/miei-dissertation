@@ -7,14 +7,14 @@ from musikla.core.callable_python_value import CallablePythonValue
 from typing import Callable, Tuple, cast
 
 class FunctionExpressionNode( ExpressionNode ):
-    def __init__ ( self, expression, parameters = [], named_parameters = dict(), position : Tuple[int, int] = None ):
+    def __init__ ( self, expression, parameters = [], named_parameters = dict(), position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.expression : ExpressionNode = expression
         self.parameters = parameters
         self.named_parameters = named_parameters
 
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         value = self.expression.eval( context )
         
         if value == None: 

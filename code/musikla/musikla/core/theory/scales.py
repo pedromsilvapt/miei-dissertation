@@ -1,5 +1,7 @@
-from typing import List
+from typing import Any, Callable, List, Optional
 from .interval import Interval
+
+ScaleMapper = Callable[[Interval, int, 'Scale'], Any]
 
 class Scale:
     black_keys : 'Scale'
@@ -7,8 +9,24 @@ class Scale:
     white_keys : 'Scale'
     pentatonic_major : 'Scale'
 
-    def __init__ ( self, intervals : List[int] ):
+    # major: W W H W W W H
+    # minor: W H W W H W W
+    @classmethod
+    def steps ( cls, steps ):
+        notes = [ 0 ]
+
+        acc = 0
+
+        for s in steps:
+            acc += s
+
+            notes.append( acc )
+
+        return cls( notes )
+
+    def __init__ ( self, intervals : List[int], mapper : ScaleMapper = None ):
         self.intervals : List[int] = intervals
+        self.mapper : Optional[ScaleMapper] = mapper
 
     def __len__ ( self ):
         return len( self.intervals )
@@ -16,10 +34,22 @@ class Scale:
     def __getitem__ ( self, key ) -> Interval:
         return self.interval_at( key )
 
+    def __iter__ ( self ):
+        for i in range( len( self ) ):
+            yield self[ i ]
+
+    def map ( self, mapper : ScaleMapper ) -> 'Scale':
+        return Scale( self.intervals, mapper )
+
     def interval_at ( self, index : int ) -> Interval:
         l = len( self.intervals )
         
-        return Interval( octaves = index // l, semitones = self.intervals[ index % l ] )
+        interval = Interval( octaves = index // l, semitones = self.intervals[ index % l ] )
+
+        if self.mapper is not None:
+            return self.mapper( interval, index, self )
+        
+        return interval
 
 Scale.black_keys = Scale( [ 1, 3, 6, 8, 10 ] )
 
@@ -28,20 +58,6 @@ Scale.black_keys_padded = Scale( [ 1, 3, 3, 6, 8, 10, 10 ] )
 Scale.white_keys = Scale( [ 0, 2, 4, 5, 7, 9, 11 ] )
 
 Scale.pentatonic_major = Scale( [ 0, 2, 4, 7, 9 ] )
-
-# major: W W H W W W H
-# minor: W H W W H W W
-def build_scale ( steps : List[int] ) -> List[int]:
-    notes = [ 0 ]
-
-    acc = 0
-
-    for s in steps:
-        acc += s
-
-        notes.append( acc )
-
-    return notes
 
 def inverted ( intervals : List[int], count : int ) -> List[int]:
     if count > 0:
@@ -55,36 +71,36 @@ def inverted ( intervals : List[int], count : int ) -> List[int]:
 
 major_intervals = [ 2, 2, 1, 2, 2, 2, 1 ]
 
-major = build_scale( major_intervals )
+major = Scale.steps( major_intervals )
 
 minor_intervals = [ 2, 1, 2, 2, 1, 2, 2 ]
 
-minor = build_scale( minor_intervals )
+minor = Scale.steps( minor_intervals )
 
 # Triads
-major_triad = build_scale( [ 4, 3 ] )
+major_triad = Scale.steps( [ 4, 3 ] )
 
-augmented_triad = build_scale( [ 4, 4 ] )
+augmented_triad = Scale.steps( [ 4, 4 ] )
 
-minor_triad = build_scale( [ 3, 4 ] )
+minor_triad = Scale.steps( [ 3, 4 ] )
 
-diminished_triad = build_scale( [ 3, 3 ] )
+diminished_triad = Scale.steps( [ 3, 3 ] )
 
 # Sevenths
-minor_seventh = build_scale( [ 3, 4, 3 ] )
+minor_seventh = Scale.steps( [ 3, 4, 3 ] )
 
-major_seventh = build_scale( [ 4, 3, 4 ] )
+major_seventh = Scale.steps( [ 4, 3, 4 ] )
 
-dominant_seventh = build_scale( [ 4, 3, 3 ] )
+dominant_seventh = Scale.steps( [ 4, 3, 3 ] )
 
-diminished_seventh = build_scale( [ 3, 3, 3 ] )
+diminished_seventh = Scale.steps( [ 3, 3, 3 ] )
 
-half_diminished_seventh = build_scale( [ 3, 3, 4 ] )
+half_diminished_seventh = Scale.steps( [ 3, 3, 4 ] )
 
-minor_major_seventh = build_scale( [ 3, 4, 4 ] )
+minor_major_seventh = Scale.steps( [ 3, 4, 4 ] )
 
 # Perfect Fifth
-perfect_fifth = build_scale( [ 7 ] )
+perfect_fifth = Scale.steps( [ 7 ] )
 
 chords = {
     'm': minor_triad,

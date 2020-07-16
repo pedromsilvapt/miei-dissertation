@@ -4,12 +4,12 @@ from typing import List, Tuple
 from musikla.core import Value
 
 class ArrayLiteralNode( ExpressionNode ):
-    def __init__ ( self, values : List[ExpressionNode], position : Tuple[int, int] = None ):
+    def __init__ ( self, values : List[ExpressionNode], position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.values : List[ExpressionNode] = values
 
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         return [ Value.assignment( Value.eval( context.fork(), node ) ) for node in self.values ]
 
     def to_source ( self, printer : CodePrinter ):

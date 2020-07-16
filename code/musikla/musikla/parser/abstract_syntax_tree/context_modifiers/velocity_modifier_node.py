@@ -5,7 +5,7 @@ from musikla.core.events import ContextChangeEvent
 from musikla.core import Context, Voice
 
 class VelocityModifierNode( ContextModifierNode ):
-    def __init__ ( self, velocity, position : Tuple[int, int] = None ):
+    def __init__ ( self, velocity, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.velocity = velocity

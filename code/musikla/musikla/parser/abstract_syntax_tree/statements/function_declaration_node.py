@@ -6,14 +6,14 @@ from ..stack_frame_node import StackFrameNode
 from typing import Tuple
 
 class FunctionDeclarationStatementNode( StatementNode ):
-    def __init__ ( self, name, arguments, body, position : Tuple[int, int] = None ):
+    def __init__ ( self, name, arguments, body, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.name = name
         self.arguments = arguments
         self.body = StackFrameNode( body, position = position )
 
-    def eval ( self, context : Context ):
+    def __eval__ ( self, context : Context ):
         fn = CallableValue( lambda *args, **kargs: self.exec( context.symbols, *args, **kargs ) )
 
         if self.name != None:

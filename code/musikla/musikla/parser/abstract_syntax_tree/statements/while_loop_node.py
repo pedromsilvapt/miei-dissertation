@@ -5,7 +5,7 @@ from ..node import Node
 from ..music_node import MusicSequenceBase
 
 class WhileLoopStatementNode( MusicSequenceBase ):
-    def __init__ ( self, condition : Node, body : Node, position : Tuple[int, int] = None ):
+    def __init__ ( self, condition : Node, body : Node, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.condition : Node = condition

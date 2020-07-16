@@ -39,7 +39,7 @@ class MusicSequenceBase( Node ):
             if self._check_stack_frame( stack_frame ):
                 break
 
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         value = None
 
         stack_frame : Optional[StackFrame] = context.symbols.lookup( 'stack_frame', container = 'stack' )
@@ -62,11 +62,11 @@ class MusicSequenceBase( Node ):
 
 
 class MusicNode( ExpressionNode ):
-    def __init__ ( self, position : Tuple[int, int] = None ):
+    def __init__ ( self, position : Tuple[int, int, int] = None ):
         super().__init__( position )
     
     def get_events ( self, context ):
         return iter( () )
 
-    def eval ( self, context ):
+    def __eval__ ( self, context ):
         return Music( self.get_events( context ) )

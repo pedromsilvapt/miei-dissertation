@@ -1,4 +1,5 @@
-from typing import Any
+from sys import base_exec_prefix
+from typing import Any, Optional, Tuple
 from typeguard import check_type
 from .music import Music, MusicGen
 
@@ -55,3 +56,6 @@ class CallableValue:
 
     def __call__ ( self, context, args, kargs ):
         return self.fn( context, *args, **kargs )
+
+    def raw ( self ):
+        return self.fn

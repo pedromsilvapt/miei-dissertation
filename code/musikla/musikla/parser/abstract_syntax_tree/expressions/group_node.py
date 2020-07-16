@@ -4,7 +4,7 @@ from musikla.core import Context, Music
 from ..node import Node
 
 class GroupNode( Node ):
-    def __init__ ( self, expression : Node = None, position : Tuple[int, int] = None ):
+    def __init__ ( self, expression : Node = None, position : Tuple[int, int, int] = None ):
         super().__init__( position )
         
         self.expression : Optional[Node] = expression
@@ -16,7 +16,7 @@ class GroupNode( Node ):
         finally:
             context.join( forked )
 
-    def eval ( self, context : Context, assignment : bool = False ):
+    def __eval__ ( self, context : Context, assignment : bool = False ):
         if self.expression is None:
             return None
 

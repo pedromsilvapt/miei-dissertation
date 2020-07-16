@@ -15,6 +15,8 @@ from .binary_operator_node import AndLogicOperatorNode, OrLogicOperatorNode
 from .binary_operator_node import GreaterComparisonOperatorNode, GreaterEqualComparisonOperatorNode
 from .binary_operator_node import EqualComparisonOperatorNode, NotEqualComparisonOperatorNode
 from .binary_operator_node import LesserComparisonOperatorNode, LesserEqualComparisonOperatorNode
+from .binary_operator_node import IsComparisonOperatorNode, IsNotComparisonOperatorNode
+from .binary_operator_node import InComparisonOperatorNode, NotInComparisonOperatorNode
 from .unary_operator_node import UnaryOperatorNode, NotOperatorNode
 from .block_node import BlockNode
 from .list_comprehension_node import ListComprehensionNode

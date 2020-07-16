@@ -25,7 +25,7 @@ class Interval:
             return Interval( self.full_semitones + interval )
         elif isinstance( interval, Interval ):
             return Interval( self.full_semitones + interval.full_semitones )
-        
+
     def __sub__ ( self, interval ):
         if interval is None:
             return

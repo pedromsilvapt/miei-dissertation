@@ -1,4 +1,4 @@
-from .scales import Scale, build_scale
+from .scales import Scale
 from .scales import major, major_triad, major_intervals
 from .scales import minor, minor_triad, minor_intervals
 from .scales import diminished_seventh, dominant_seventh, half_diminished_seventh, minor_seventh, major_seventh, minor_major_seventh

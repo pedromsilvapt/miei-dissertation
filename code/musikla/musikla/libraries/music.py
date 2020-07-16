@@ -4,7 +4,7 @@ from typing import Tuple
 from musikla.core import Context, Library
 from musikla.core.callable_python_value import CallablePythonValue
 from musikla.core import Music
-from musikla.core.events import NoteEvent, SoundEvent
+from musikla.core.events import NoteEvent, SoundEvent, ChordEvent
 from musikla.core.events.transformers import Transformer, AnnotateTransformer, VoiceIdentifierTransformer, NotationBuilderTransformer, DecomposeChordsTransformer
 from musikla.parser.abstract_syntax_tree import Node
 from musikla.parser.abstract_syntax_tree.music_parallel_node import Box
@@ -134,9 +134,28 @@ def function_to_mkl ( context : Context, music : Music, ast : bool = False ) -> 
 
     return source.value
 
+def function_chord ( context : Context, *notes ):
+    notes = [ n.first_note() if isinstance( n, Music ) else n for n in notes ]
+
+    chord = ChordEvent(
+        timestamp = context.cursor, 
+        pitches = [ int(n) for n in notes  ], 
+        name = None, 
+        duration = notes[ 0 ].duration, 
+        voice = notes[ 0 ].voice, 
+        velocity = notes[ 0 ].velocity, 
+        value = notes[ 0 ].value, 
+        tied = notes[ 0 ].tied, 
+        staff = notes[ 0 ].staff
+    )
+
+    return Music( [ chord ] )
+
 class MusicLibrary(Library):
     def on_link ( self, script ):
         context : Context = self.context
+
+        context.symbols.assign( 'chord', CallablePythonValue( function_chord ) );
 
         context.symbols.assign( 'is_sample_optimized', CallablePythonValue( SoundEvent.is_optimized ) )
         context.symbols.assign( 'optimize_sample', CallablePythonValue( SoundEvent.optimize ) )

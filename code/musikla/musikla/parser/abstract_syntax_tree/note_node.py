@@ -6,7 +6,7 @@ from musikla.core.events import NoteEvent
 from typing import List, Tuple
 
 class NoteNode( MusicNode ):
-    def __init__ ( self, note : Note, position : Tuple[int, int] = None ):
+    def __init__ ( self, note : Note, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.note : Note = note
