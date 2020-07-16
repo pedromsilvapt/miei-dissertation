@@ -112,8 +112,202 @@ A solução tomada inicialmente foi utilizar ponto-e-vírgula para substituir a 
 
 A solução escolhida no final foi um compromisso entre as duas opções: tanto a vírgula como o ponto-e-vírgula podem ser usados como separadores de argumentos, com a exceção de quando o argumento é uma nota músical, onde o ponto-e-vírgula tem de ser obrigatoriamente usado. Assim sendo, poderiamos rescrever o exemplo anterior da seguinte forma \texttt{function\_name(C; A; \$a, 2)}, passando a função a receber agora os quatro argumentos como seria inicialmente esperado.
 
+\subsection{Gramática}
+A sintaxe que descrevemos acima foi implementada com recurso ao gerador de \textit{parsers} com base em gramáticas \acrshort{peg}, \textbf{Arpeggio} (cujo nome é irónico, tendo o tema desta dissertação).
+
+Aqui vamos analisar brevemente uma versão simplificada da gramática (a versão completa usada pela aplicação pode ser vista em maior detalhe no Apêndice \ref{grammar}). Nesta versão simplificada, incluída para facilitar a leitura, não se preocupa com coisas como por exemplo recursividade à esquerda, ou precedência de operadores. Obviamente, na gramática real foram usadas as técnicas usuais para cobrir esses casos.
+
+\subsubsection{Corpo}
+Comecemos pela descrição geral do corpo de um ficheiro Musikla. O corpo é composto por uma lista de \textit{statements} (ou instruções) que são obrigatoriamente separados por pontos e vírgula (sendo apenas o último opcional). 
+
+No fim de todas as instruções, opcionalmente, o utilizador também pode inserir um bloco de código \textit{Python} (que é denotado pelo prefixo \texttt{@python} e consome todo o texto até ao fim).
+
+\begin{lstlisting}[caption={Produções base da gramática},language={}]
+main <- body python? EOF
+
+body <- statement ( ";" statement )* ";"?
+
+python <- "@python" python_body
+
+python_body <- ( r".*" r"\r?\n"? )*
+\end{lstlisting}
+
+Ao longo da gramática são também usadas produções triviais, como inteiros, \textit{strings}, booleanos entre outras. Sendo tão comuns e simples, não vale a pena estar a descrevê-las todas. Deixamos no entanto aqui duas produções que vãoser usadas, mas cujas definições podem ser ligeiramente diferentes do usual.
+
+\begin{lstlisting}[caption={Produções base da gramática},language={}]
+sep = r"[,;]"
+
+identifier <- r"[a-zA-Z\_]" r"[a-zA-Z0-9\_\\]"*
+\end{lstlisting}
+
+\subsubsection{Instruções}
+
+\begin{lstlisting}[caption={Produções de instruções na gramática},language={}]
+statement <- assignment / voice_declaration / import / for / while / if / return / expression
+
+import <- "import" identifier
+        / "import" string_value
+
+assignment <- expression assignment_infix? "=" expression
+
+assignment_infix <- "+" / "-" / "/" / "*" / "|" / "&"
+
+voice_declaration <- ":" identifier "=" voice_declaration_body
+
+voice_declaration_body <- ":" identifier "(" expression ")"
+                        / expression
+
+for_variables <- variable ( (',' / ';') variable )*
+
+for_loop_head <- "for" "(" for_variables "in" value_expression ".." value_expression ")"
+               / "for" "(" for_variables "in" value_expression ")"
+
+for <- for_loop_head "{" body? "}"
+
+while <- "while" "(" expression ")" "{" body "}"
+
+if <- "if" "(" expression ")" "{" body "}" "else" "{" body "}"
+    / "if" "(" expression ")" "{" body "}"
+
+return_statement <- "return" expression?
+\end{lstlisting}
+A nível de instruções, a nossa gramática é bastante banal e não carece de muitos comentários.
+
+\subsubsection{Expressões}
+As nossas expressões, como já foi dito, estão aqui listadas. O conceito de recursividade à esquerda é ignorado nestes exemplos por questões de simplicidade, e a precedência de operadores binários é denotada apenas informalmente pela ordem das produções, começando pelo operador com menos precedência e subindo até aos operadores com mais precedência.
+
+Os \textit{arrays} e \textit{objetos} são bastante similares à sintaxe usada no \textit{python}, com a distinção de que para evitarem ambiguidades com outras produções da gramática, têm de ser precedidos com o símbolo \texttt{@}.
+
+Alguns das outras regras (como notas ou teclados, que são aceites como expressões) serão descritas nas próximas sub-secções.
+\begin{lstlisting}[caption={Produções de expressões na gramática},language={}]
+expression <- expression "|" expression
+            / expression ("and" / "or") expression
+            / expression (">=" / ">" / "==" / "!=" / "<=" / "<") expression
+            / expression ("+" / "-") expression
+            / expression ("**" / "*" / "/") expression
+            / expression expression
+            / expression "::" identifier
+            / expression "::" "[" expression "]"
+            / ( expression / identifier ) "(" parameters ")"
+            / "not" expression
+            / "(" expression ")"
+            / "{" body "}"
+            / variable  / function_declaration  / python_expression
+            / keyboard / note / chord / rest   / modifier
+            / integer / none / bool  / string / array / object
+
+variable <- "$" identifier
+
+parameters <- positional_parameters ( parameters_separator named_parameters )?
+            / named_parameter?
+
+positional_parameters <- expression ( r"[,;]" expression )*
+
+named_parameters <- named_parameter ( r"[,;]" named_parameter )*
+
+named_parameter <- identifier '=' expression
+
+function_declaration <- "fun" identifier? "(" argument_list? ")" "{" body "}"
+                      / "fun" identifier? "(" argument_list? ")" "=>" expression
+
+argument_list <- argument ( (',' / ';') argument )*
+
+argument <- ("expr" / "ref" / "in")? "$" identifier ("=" expression)?
+
+python_expression <- "@py" "{" python_expression_body "}"
+
+python_expression_body <- r"[^\}]*"
+
+array <- "@[" "]"
+        / "@[" expression ( sep expression )* "]"
+
+object <- "@{" "}"
+        / "@{" object_item ( sep object_item )* "}"
+
+object_item <- object_key _ '=' _ expression
+
+object_key <- identifier / float / integer / string
+\end{lstlisting}
+
+\subsubsection{Música}
+No que toca a música, a sintaxe tenta seguir ao máximo a notação usada pelo projeto \textbf{abc}. As suas particularidades também já foram discutidas em bastante detalhe ao longo deste documento, pelo que as produções colocadas aqui não necessitam de muitos comentários.
+\begin{lstlisting}[caption={Produções de expressões na gramática},language={}]
+note <- note_pitch note_value?
+
+note_value <- "/" integer
+            / integer "/" integer
+            / integer
+
+note_pitch <- note_accidental note_pitch_octave
+
+note_accidental <- "^" / "^^" / "__" / "_" / ""
+
+note_pitch_octave <- r"[cdefgab]" "'"*
+                   / r"[CDEFGAB]" ","*
+
+chord <- "[" note_pitch chord_suffix "]" note_value?
+       / "[" note_pitch+ "]" note_value?
+
+chord_suffix <- 'm7' / 'M7' / 'dom7' / '7' / 'm7b5' / 'dim7' / 'mM7'
+              / '5'
+              / 'M' / 'm' / 'aug' / 'dim' / '+'
+
+rest <- "r" note_value?
+
+modifier
+    <- r"[tT]" integer
+     / r"[vV]" integer
+     / r"[iI]" integer
+     / r"[lL]" note_value
+     / r"[sS]" integer "/" integer
+     / r"[sS]" integer
+     / r"[oO]" integer
+     / ":" identifier
+\end{lstlisting}
+
+\subsubsection{Teclados}
+As produções para descrever teclados são um ponto fulcral na nossa gramática e na utilização da nossa linguagem em geral. Nós quisemos que elas permitissem descrever teclados de uma forma consisa, mas ainda assim dando bastante poder ao utilizador na forma como o utiliza.
+
+Com isso em mente, podemos ver que os teclados têm um corpo que difere do corpo geral da linguagem, mas ao mesmo tempo mantém algumas similaridades, nomeadamente, o facto de cada instrução no corpo ser separada por um ponto e vírgula.
+
+No entanto, as instruções no corpo de um teclado são diferentes: a instrução mais básica, denominada por \textit{shortcut}, pode ser imaginada como um par tecla e ação (com mais alguma informação adicional, como por exemplo, argumentos do evento).
+
+Mas para além disso, também há outras instruções aceites que permitem aos nossos teclados serem gerados dinâmicamente: \texttt{for}, \texttt{while} e \texttt{if}. Os cabeçalhos destas instruções são de grosso modo iguais aos das suas versões \textit{general-purpose}, mas nos seus corpos aceitam só instruções de teclados também.
+
+Por fim, existe mais uma instrução válida, \textit{block}, que permite colocar instruções normais e sem restrições, envoltas num par de chavetas. Isto é útil quando precisamos de declarar alguma variável dentro do teclado para evitar, por exemplo, repetir um pedaço de código múltiplas vezes.
+
+\begin{lstlisting}[caption={Produções de declaração de teclados na gramática},language={}]
+keyboard <- "@keyboard" alphanumeric* group? "{" keyboard_body "}"
+
+keyboard_body <- keyboard_body_statement ( ";" keyboard_body_statement )* ";"?
+
+keyboard_body_statement <- keyboard_for
+                         / keyboard_while
+                         / keyboard_if
+                         / keyboard_block
+                         / keyboard_shortcut
+
+keyboard_for <- for_loop_head "{" keyboard_body "}"
+
+keyboard_while <- "while" "(" expression ")" "{" keyboard_body "}"
+
+keyboard_if <- "if" "(" expression ")" "{" keyboard_body "}" "else" "{" keyboard_body "}"
+             / "if" "(" expression ")" "{" keyboard_body "}"
+
+keyboard_block <- "{" body "}"
+
+keyboard_shortcut <- keyboard_shortcut_key keyboard_argument_list? ":" expression
+
+keyboard_shortcut_key <- alphanumeric ("+" alphanumeric)* alphanumeric*
+                       / string_value alphanumeric*
+                       / "[" expression "]" alphanumeric*
+
+keyboard_argument_list <- "(" ( variable ( r"[,;]" variable )* )? ")"
+\end{lstlisting}
+
+% começa cinco linhas numa nova página
 \subsection{Parser}
-Para implementar o parser da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} descendente recursivo com recurso a \textit{memoization} para melhorar a \textit{performance}. A gramática utilizada pode ser vista em maior detalhe no Apêndice \ref{grammar}.
+Para implementar o parser da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} descendente recursivo com recurso a \textit{memoization} para melhorar a \textit{performance}.
 
 \begin{lstlisting}[caption={Excerto da gramática desenvolvida}]
 main <- body EOF;
@@ -140,6 +334,8 @@ def visit_statement ( self, node, children ): ...
 
 def visit_var_declaration ( self, node, children ): ...
 \end{lstlisting}
+
+\newpage
 
 \section{Interpretador}
 As linguagens compiladas usualmente recorrem à compilação \acrfull{aot}, onde o código é transformado em código máquina antes de ser executado (durante a fase de compilação). Esta é a solução que consegue geralmente oferecer melhor \textit{performance}, menor consumo de memória e tempos de \textit{startup} mais rápido. Por outro lado, obriga a um passo de compilação separado sempre que o código fonte é alterado, e regra geral necessita de tipos de dados estáticos para melhor tirar partido das vantagens de \textit{performance}.

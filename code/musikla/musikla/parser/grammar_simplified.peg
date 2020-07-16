@@ -1,0 +1,154 @@
+main <- body python? EOF
+
+body <- statement ( ";" statement )* ";"?
+
+python <- "@python" python_body;
+
+python_body <- ( r".*" r"\r?\n"? )*;
+
+// Statements
+statement <- assignment / voice_declaration / import / for / while / if / return / expression
+
+import <- "import" identifier
+        / "import" string_value
+
+assignment <- expression assignment_infix? "=" expression
+
+assignment_infix <- "+" / "-" / "/" / "*" / "|" / "&"
+
+voice_declaration <- ":" identifier "=" voice_declaration_body
+
+voice_declaration_body <- ":" identifier "(" expression ")"
+                        / expression
+
+function_declaration <- "fun" identifier? "(" argument_list? ")" "{" body "}"
+                      / "fun" identifier? "(" argument_list? ")" "=>" expression
+
+argument_list <- argument ( (',' / ';') argument )*
+
+argument <- ("expr" / "ref" / "in")? "$" identifier ("=" expression)?
+          / argument_prefix "$" identifier
+
+for_variables <- variable ( (',' / ';') variable )*
+
+for_loop_head <- "for" "(" for_variables "in" value_expression ".." value_expression ")"
+               / "for" "(" for_variables "in" value_expression ")"
+
+for <- for_loop_head "{" body? "}"
+
+while <- "while" "(" expression ")" "{" body "}"
+
+if <- "if" "(" expression ")" "{" body "}" "else" "{" body "}"
+    / "if" "(" expression ")" "{" body "}"
+
+return_statement <- "return" expression?
+
+python_expression <- "@py" "{" python_expression_body "}"
+
+python_expression_body <- r"[^\}]*"
+
+// Expressions
+expression <- expression "|" expression
+            / expression ("and" / "or") expression
+            / expression (">=" / ">" / "==" / "!=" / "<=" / "<") expression
+            / expression ("+" / "-") expression
+            / expression ("**" / "*" / "/") expression
+            / expression expression
+            / expression "::" identifier
+            / expression "::" "[" expression "]"
+            / ( expression / identifier ) "(" parameters ")"
+            / "not" expression
+            / "(" expression ")"
+            / "{" body "}"
+            / variable  / function_declaration  / python_expression
+            / keyboard / note / chord / rest   / modifier
+            / integer / none / bool  / string / array / object
+
+variable <- "$" identifier
+
+parameters <- positional_parameters ( parameters_separator named_parameters )?
+            / named_parameter?
+
+positional_parameters <- expression ( r"[,;]" expression )*
+
+named_parameters <- named_parameter ( r"[,;]" named_parameter )*
+
+named_parameter <- identifier '=' expression
+
+note <- note_pitch note_value?
+
+chord <- "[" note_pitch chord_suffix "]" note_value?
+       / "[" note_pitch+ "]" note_value?
+
+chord_suffix <- 'm7' / 'M7' / 'dom7' / '7' / 'm7b5' / 'dim7' / 'mM7'
+              / '5'
+              / 'M' / 'm' / 'aug' / 'dim' / '+'
+
+rest <- "r" note_value?
+
+note_value <- "/" integer
+            / integer "/" integer
+            / integer
+
+
+note_pitch <- note_accidental note_pitch_octave
+
+note_accidental <- "^" / "^^" / "__" / "_" / ""
+
+note_pitch_octave <- r"[cdefgab]" "'"*
+                   / r"[CDEFGAB]" ","*
+
+modifier
+    <- r"[tT]" integer
+     / r"[vV]" integer
+     / r"[iI]" integer
+     / r"[lL]" note_value
+     / r"[sS]" integer "/" integer
+     / r"[sS]" integer
+     / r"[oO]" integer
+     / ":" identifier sequence
+
+array <- "@[" "]"
+       / "@[" expression ( sep expression )* "]"
+
+object <- "@{" "}"
+              / "@{" object_item ( sep object_item )* "}"
+
+object_item <- object_key _ '=' _ expression
+
+object_key <- identifier / float / integer / string
+
+// BEGIN Keyboard
+keyboard <- "@keyboard" alphanumeric* group? "{" keyboard_body "}"
+
+keyboard_body <- keyboard_body_statement ( ";" keyboard_body_statement )* ";"?
+
+keyboard_body_statement <- keyboard_for
+                         / keyboard_while
+                         / keyboard_if
+                         / keyboard_block
+                         / keyboard_shortcut
+
+keyboard_for <- for_loop_head "{" keyboard_body "}"
+
+keyboard_while <- "while" "(" expression ")" "{" keyboard_body "}"
+
+keyboard_if <- "if" "(" expression ")" "{" keyboard_body "}" "else" "{" keyboard_body "}"
+             / "if" "(" expression ")" "{" keyboard_body "}"
+
+keyboard_block <- "{" body "}"
+
+keyboard_shortcut <- keyboard_shortcut_key keyboard_argument_list? ":" expression
+
+keyboard_shortcut_key <- alphanumeric ("+" alphanumeric)* alphanumeric*
+                       / string_value alphanumeric*
+                       / "[" expression "]" alphanumeric*
+
+keyboard_argument_list <- "(" ( variable ( r"[,;]" variable )* )? ")"
+// END Keyboard
+
+sep = r"[,;]"
+
+identifier <- r"[a-zA-Z\_]" r"[a-zA-Z0-9\_\\]"*
+
+alphanumeric <- r"[a-zA-Z\_]"*
