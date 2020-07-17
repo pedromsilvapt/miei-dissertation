@@ -16,15 +16,68 @@ fun keyboard\build_layout ( $layout ) {
     return @py { [ list( l ) for l in lines ] };
 };
 
-$keyboard\piano_layout = keyboard\build_layout( "qwertyuiop+´
+fun keyboard\build_chord_key ( $chord, $ast = false ) {
+    if ( $chord is $str ) {
+        $chord = $chord::split( ' ' );
+    };
+
+    if ( $chord is $list ) {
+        $src = "fun ($s, $i) => @[ ";
+
+        for ( $i, $note in enumerate( $chord ) ) {
+            $is_last = $i == len( $chord ) - 1;
+
+            $offset = 0;
+
+            while ( len( $note ) and ( $note::[ 0 ] == '_' or $note::[ 0 ] == '^' ) ) {
+                if ( $note::[ 0 ] == '_' ) {
+                    $offset -= 1;
+                } else {
+                    $offset += 1;
+                };
+
+                $note = @py { note[1:] };
+            };
+
+            $src += "$s::[ $i + " + $note + " ]";
+
+            if ( $offset < 0 ) {
+                $src += " - " + str( $offset * -1 );
+            } else {
+                $src += " + " + str( $offset );
+            };
+
+            if ( not $is_last ) {
+                $src += "; ";
+            };
+        };
+
+        $src += " ];";
+
+        if ( $ast == true ) {
+            return parse( $src );
+        };
+        
+        return eval( $src );
+    };
+
+    return $chord;
+}; 
+
+$keyboard\piano_layout = keyboard\build_layout( "<zxcvbnm,.-
 asdfghjklçº~
-<zxcvbnm,.-" );
+qwertyuiop+´
+1234567890'«" );
+
+# Alias for the chord() function so that we can use it inside the piano
+# function, without clashing with its chord argument
+$_make_chord = $chord;
 
 # While this function accepts a list of custom scales to be provided, it only works if each scale spans at most, one octave
-fun keyboard\piano ( 
-    $layout = $keyboard\piano_layout, $scales = @[],
+fun keyboard\piano (
+    $layout = $keyboard\piano_layout, $scales = @[], $disable_rows = @[],
+    in $key = C; in $chord = none, $map = none,
     in $transpose = 0, in $transpose_rows = @{}, in $shift_rows = @{},
-    $map = none,
     $toggle = false, $ctrl = false, $alt = false, $shift = false
 ) {
     fun get_row_scale ( $row_index ) {
@@ -59,8 +112,6 @@ fun keyboard\piano (
         $rows = $layout;
     };
 
-    $rows::reverse();
-
     # Will hold the last octave that was used for a specific scale.
     # Next time this scale is used, it's base octave will be this one
     # This is useful when dealing with very small scales, that fit more than twice
@@ -75,27 +126,41 @@ fun keyboard\piano (
 
         $row_base_octave = $scale_last_octaves::get( $row_scale_index, default = 0 );
 
-        for ( $i, $letter in enumerate( $rows::[ $row_index ] ) ) {
-            $music = C + interval( octaves = $row_base_octave );
-            
-            keyboard\register( $kb, 
-                key = keyboard\KeyStroke( $letter, $ctrl, $alt, $shift ), 
-                expression = {
-                    $interval = $row_scale::interval_at( $i + $shift_rows::get( $row_index, default = 0 ) );
+        if ( $row_index notin $disable_rows ) {
+            for ( $i, $letter in enumerate( $rows::[ $row_index ] ) ) {
+                keyboard\register( $kb, 
+                    key = keyboard\KeyStroke( $letter, $ctrl, $alt, $shift ), 
+                    expression = {
+                        $actual_i = $i + $shift_rows::get( $row_index, default = 0 );
 
-                    $interval += $transpose_rows::get( $row_index, default = 0 );
+                        $music = $key + interval( octaves = $row_base_octave ) + $row_scale::[ $actual_i ];
 
-                    $interval += $transpose;
+                        if ( $chord isnot none ) {
+                            $chord_intervals = $chord( $row_scale, $actual_i );
 
-                    if ( $map is none ) {
-                        $music + $interval;
-                    } else {
-                        $map( $music, $i + $shift_rows::get( $row_index, default = 0 ), $row_scale ) + $interval;
-                    };
-                },
-                hold = not $toggle, toggle = $toggle, extend = true 
-            );
+                            # Damn, we need list comprehensions in musikla...
+                            for ( $k, $inter in enumerate( $chord_intervals ) ) {
+                                $chord_intervals::[ $k ] = $key + $inter;
+                            };
+
+                            $music = _spreadfn( $_make_chord, $chord_intervals );
+                        };
+
+                        $interval = $transpose_rows::get( $row_index, default = 0 );
+
+                        $interval += $transpose;
+
+                        if ( $map is none ) {
+                            $music + $interval;
+                        } else {
+                            $map( $music, $actual_i, $row_scale ) + $interval;
+                        };
+                    },
+                    hold = not $toggle, toggle = $toggle, extend = true 
+                );
+            };
         };
+        
 
         $d = div( len( $rows::[ $row_index ] ), len( $row_scale ) );
         $r = mod( len( $rows::[ $row_index ] ), len( $row_scale ) );
@@ -231,3 +296,9 @@ fun keyboard\bufpad( ref $buffers, $keys = @[ 82, 79, 80, 81, 126, 75, 76, 77, 7
 
     return pack( into = $_kb, exclude = @[ 'keys' ] );
 };
+
+@python
+
+@export()
+def _spreadfn ( fn, args ):
+    return fn( *args )

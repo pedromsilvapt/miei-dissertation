@@ -191,7 +191,7 @@ class IsNotComparisonOperatorNode(ComparisonOperatorNode):
         
         if isinstance( b, CallableValue ): b = b.raw()
 
-        return a is not b and type(a) is not b
+        return ( a is not b ) and ( type(a) is not b )
 
 class InComparisonOperatorNode(ComparisonOperatorNode):
     operator : str = 'in'

@@ -38,6 +38,9 @@ class ErrorReporter:
 
                     line_offsets_count += 1
                 else:
+                    if error_line >= 0 and start_line == error_line:
+                        break
+
                     line_offsets[ line_offsets_index ] = i
 
                     start_line += 1
@@ -88,7 +91,15 @@ class ErrorReporter:
             if self.position[ 0 ] >= start and self.position[ 1 ] <= end:
                 line_str = self.contents[ start:self.position[ 0 ] ] \
                          + Back.RED + self.contents[ self.position[ 0 ]:self.position[ 1 ] ] + Style.RESET_ALL \
-                         + self.contents[ self.position[ 1 ]:end ]
+                         + self.contents[ self.position[ 1 ]:end - 1 ]
+            elif self.position[ 0 ] >= start and self.position[ 0 ] < end and self.position[ 1 ] >= end:
+                line_str = self.contents[ start:self.position[ 0 ] ] \
+                         + Back.RED + self.contents[ self.position[ 0 ]:end - 1 ] + Style.RESET_ALL
+            elif self.position[ 0 ] < start and self.position[ 1 ] > start and self.position[ 1 ] <= end:
+                line_str = Back.RED + self.contents[ start:self.position[ 1 ] ] + Style.RESET_ALL \
+                         + self.contents[ self.position[ 1 ]:end - 1 ]
+            elif self.position[ 0 ] < start and self.position[ 1 ] > end:
+                line_str = Back.RED + self.contents[ start:end - 1 ] + Style.RESET_ALL
             else:
                 line_str = self.contents[ start:end ]
 

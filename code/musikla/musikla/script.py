@@ -1,4 +1,3 @@
-from asyncio.tasks import sleep
 from musikla.libraries.keyboard_pynput import KeyboardPynputLibrary
 from musikla.libraries.keyboard_mido import KeyboardMidoLibrary
 from musikla.core import Context, Library, Music, Value
@@ -161,8 +160,8 @@ class Script:
         else:
             raise Exception( f'Trying to import library {library} not found.' )
 
-    def parse ( self, code : str ) -> Node:
-        return self.parser.parse( code )
+    def parse ( self, code : str, rule : str = None ) -> Node:
+        return self.parser.parse( code, rule = rule )
 
     def play ( self, music : Music, sync : bool = True, realtime = True ) -> Optional[asyncio.Task]:
         if sync:
@@ -237,11 +236,10 @@ class Script:
             print( err )
         else:
             print( str( err ) )
-            print( err.stacktrace )
 
     def execute_file ( self, file : str, context : Context = None, fork : bool = False, silent : bool = False, sync : bool = False, realtime : bool = True, locals : Dict[str, Any] = {} ):
         try:
-            with open( file, 'r' ) as f:
+            with open( file, 'r', encoding="utf-8" ) as f:
                 file_id = len( self.files_cache )
 
                 file_contents = f.read()
@@ -249,8 +247,6 @@ class Script:
                 self.files_cache.append( ( file, file_contents ) )
 
                 code = self.parser.parse( file_contents, file = file, file_id = file_id )
-            
-            # code = self.parser.parse_file( file, file_id = file_id )
             
             absolute_file : str = os.path.abspath( file )
 
@@ -275,7 +271,5 @@ class Script:
     async def join ( self ):
         for task in list( self.tasks ):
             await task
-
-        await sleep(2)
 
         self.player.sequencers[ 0 ].join()

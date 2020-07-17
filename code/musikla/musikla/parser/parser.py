@@ -706,11 +706,36 @@ class Parser():
         self.debug : bool = False
 
         with open( Path( __file__ ).parent / "grammar.peg", "r" ) as f:
-            self.internal_parser = ParserPEG( f.read(), "main", skipws=False, debug = False, memoization = True, comment_rule_name = "comment" )
+            self.internal_parser = self.create_parser( "main" )
 
-    def parse ( self, expression, file : str = None, file_id : int = None ) -> Node:
+        self.specific_parsers = dict()
+
+        self.time_spent : float = 0
+
+    def create_parser ( self, rule : str, memoization : bool = True, debug : bool = False ):
+        with open( Path( __file__ ).parent / "grammar.peg", "r" ) as f:
+            return ParserPEG( f.read(), rule, skipws=False, debug = debug, memoization = memoization, comment_rule_name = "comment" )
+
+    def get_parser ( self, rule : str = None ):
+        if rule is None or rule == "main":
+            return self.internal_parser
+        else:
+            if rule not in self.specific_parsers:
+                self.specific_parsers[ rule ] = self.create_parser( rule )
+                print( rule )
+            
+            return self.specific_parsers[ rule ]
+
+    def parse ( self, expression, file : str = None, file_id : int = None, rule : str = None ) -> Node:
+        import time
         try:
-            tree = self.internal_parser.parse( expression )
+            parser = self.get_parser( rule )
+
+            start_time = time.time()
+
+            tree = parser.parse( expression )
+
+            self.time_spent += time.time() - start_time
             
             visitor = ParserVisitor( file = file, file_id = file_id, debug = self.debug )
             
@@ -720,7 +745,7 @@ class Parser():
             raise err from None
 
     def parse_file ( self, file ) -> Node:
-        with open( file, 'r' ) as f:
+        with open( file, 'r', encoding="utf-8" ) as f:
             return self.parse( f.read(), file = file )
 
 class ParserError(Exception):

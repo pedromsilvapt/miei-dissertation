@@ -24,7 +24,7 @@ class VoiceBlockModifier( BlockContextModifierNode ):
         if self.voice_name == '?':
             return TemplateMusic( self.body )
         else:
-            return super().eval( context )
+            return super().__eval__( context )
     
     def to_source ( self, printer : CodePrinter ):
         with printer.block( '(', ')' ):

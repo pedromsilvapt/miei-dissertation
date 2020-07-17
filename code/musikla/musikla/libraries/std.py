@@ -66,12 +66,12 @@ def function_ast_to_code ( ast : Node, ident = 4 ) -> str:
 
     return printer.print( ast )
 
-def function_parse ( code : str ) -> Node:
-    return Parser().parse( code )
+def function_parse ( context : Context, code : str, rule : str = None ) -> Node:
+    return context.script.parse( code, rule = rule )
 
-def function_eval ( context : Context, code ) -> Any:
+def function_eval ( context : Context, code, rule : str = None ) -> Any:
     if type( code ) is str:
-        code = function_parse( code )
+        code = function_parse( context, code, rule = rule )
     
     return Value.assignment( Value.eval( context, code ) )
 
@@ -313,6 +313,8 @@ class StandardLibrary(Library):
         context.symbols.assign( "range", CallablePythonValue( range ) )
         context.symbols.assign( "enumerate", CallablePythonValue( enumerate ) )
         context.symbols.assign( "len", CallablePythonValue( function_len ) )
+        context.symbols.assign( "map", CallablePythonValue( map ) )
+        context.symbols.assign( "filter", CallablePythonValue( filter ) )
 
         context.symbols.assign( "mod", CallablePythonValue( function_mod ) )
         context.symbols.assign( "div", CallablePythonValue( function_div ) )

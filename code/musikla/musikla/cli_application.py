@@ -1,3 +1,4 @@
+from asyncio.tasks import sleep
 import sys
 import argparse
 import os
@@ -162,5 +163,7 @@ class CliApplication:
 
             if keyboard != None and keyboard.has_keys:
                 await self.keyboard( script.context, keyboard )
+            else:
+                await sleep(2)
         finally:
             script.player.close()
