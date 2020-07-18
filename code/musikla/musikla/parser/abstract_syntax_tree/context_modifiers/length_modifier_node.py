@@ -19,4 +19,4 @@ class LengthModifierNode( ContextModifierNode ):
         yield ContextChangeEvent( context.cursor, "length", context.voice.value, context.voice, 0 )
 
     def to_source ( self, printer : CodePrinter ):
-        printer.add_token( 'S' + str( self.length ) )
+        printer.add_token( 'L' + str( self.length ) )

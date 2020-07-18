@@ -93,12 +93,16 @@ class CliApplication:
         parser.add_argument( '--midi', type = str, help = 'Use a custom MIDI port by default when no name is specified' )
         parser.add_argument( '--soundfont', type = str, help = 'Use a custom soundfont .sf2 file' )
         parser.add_argument( '--print-events', dest = 'print_events', action='store_true', help = 'Print events (notes) to the console as they are played.' )
+        parser.add_argument( '--profile', dest = 'profile', action='store_true', help = 'Measure and display total parse times' )
 
         argv = self.split_argv( self.argv, [ '-o', '--output' ] )
 
         options = parser.parse_args( argv[ 0 ] )
 
         script = Script()
+
+        if options.profile:
+            print( "PARSE (AUTOLOAD): ", script.parser.time_spent * 1000, "ms" )
 
         if argv[ 1: ]:
             sequencers = self.parse_outputs_args( script.player, argv[ 1: ] )
@@ -155,6 +159,9 @@ class CliApplication:
                     print( '>>> ', end = '' )
             else:
                 script.execute_file( options.file, sync = False, realtime = script.player.realtime )
+
+            if options.profile:
+                print( "PARSE (TOTAL): ", script.parser.time_spent * 1000, "ms" )
 
             keyboard : KeyboardLibrary = cast( KeyboardLibrary, script.context.library( KeyboardLibrary ) )
 

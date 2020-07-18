@@ -6,6 +6,41 @@ from musikla.core import Value
 from musikla.core.callable_python_value import CallablePythonValue
 from typing import Callable, Tuple, cast
 
+class FunctionChainExpressionNode( ExpressionNode ):
+    def __init__ ( self, left_hand, right_hand, position : Tuple[int, int, int] = None ):
+        super().__init__( position )
+
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
+        self.right_hand.expression = left_hand
+        
+        if position is not None:
+            self.right_hand.position = position
+    
+    @property
+    def position ( self ):
+        return self.right_hand.position
+
+    @position.setter
+    def position( self, value ):
+        if hasattr( self, 'right_hand' ) and self.right_hand is not None:
+            self.right_hand.position = value
+
+    @property
+    def expression ( self ):
+        return self.left_hand.expression
+
+    @expression.setter
+    def expression( self, value ):
+        self.left_hand.expression = value
+
+    def __eval__ ( self, context ):
+        return self.right_hand.eval( context )
+
+    def to_source ( self, printer : CodePrinter ):
+        self.right_hand.to_source( printer )
+
 class FunctionExpressionNode( ExpressionNode ):
     def __init__ ( self, expression, parameters = [], named_parameters = dict(), position : Tuple[int, int, int] = None ):
         super().__init__( position )

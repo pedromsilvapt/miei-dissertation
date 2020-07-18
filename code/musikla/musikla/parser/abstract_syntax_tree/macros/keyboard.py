@@ -174,10 +174,10 @@ class KeyboardIfMacroNode( MacroNode ):
                 cast( Any, macro ).set_keyboard( keyboard )
 
 class KeyboardBlockMacroNode( MacroNode ):
-    def __init__ ( self, body : Node, position : Tuple[int, int, int] = None ):
+    def __init__ ( self, body : Node = None, position : Tuple[int, int, int] = None ):
         super().__init__( position )
     
-        self.body : Node = body
+        self.body : Optional[Node] = body
 
         self.virtual_node = self.body # StatementsListNode( [ macro.virtual_node for macro in self.body if macro.virtual_node is not None ] )
 

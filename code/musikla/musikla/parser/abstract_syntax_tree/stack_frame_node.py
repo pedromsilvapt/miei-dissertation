@@ -1,18 +1,20 @@
 from musikla.parser.printer import CodePrinter
-from typing import Tuple
+from typing import Optional, Tuple
 from .node import Node
 from musikla.core import Value, StackFrame, Context
 
 class StackFrameNode( Node ):
-    def __init__ ( self, child : Node, position : Tuple[int, int, int] = None ):
+    def __init__ ( self, child : Optional[Node], position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
-        self.child : Node = child
+        self.child : Optional[Node] = child
     
     def to_source ( self, printer : CodePrinter ):
-        self.child.to_source( printer )
+        if self.child is not None:
+            self.child.to_source( printer )
 
     def __eval__ ( self, context : Context ):
-        context.symbols.assign( 'stack_frame', StackFrame(), container = 'stack' )
+        if self.child is not None:
+            context.symbols.assign( 'stack_frame', StackFrame(), container = 'stack' )
 
-        return Value.eval( context, self.child )
+            return Value.eval( context, self.child )

@@ -26,7 +26,7 @@ setuptools.setup(
         'pynput',
         'mido',
         'python-rtmidi',
-        'arpeggio',
+        'lark-parser',
         'colorama',
         'typing_extensions',
         'prompt_toolkit',

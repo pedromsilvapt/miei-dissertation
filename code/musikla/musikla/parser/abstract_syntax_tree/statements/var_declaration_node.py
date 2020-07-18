@@ -26,7 +26,7 @@ class VariableDeclarationStatementNode( StatementNode ):
     def __eval__ ( self, context : Context ):
         val = Value.assignment( self.right.eval( context.fork( cursor = 0 ) ) )
 
-        if self.operator is None:
+        if self.operator is None or self.operator == "":
             self.left.assign( context, val, local = self.local )
         else:
             def _set ( value ):

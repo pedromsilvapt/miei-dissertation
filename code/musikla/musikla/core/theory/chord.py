@@ -12,7 +12,7 @@ class Chord:
 
         notes = [ root_note.clone().transpose( interval ) for interval in intervals ]
         
-        return Chord( notes, name, value )
+        return Chord( notes, root_note.to_string( base_octave = 0, append_value = False ) + name, value )
 
     @staticmethod
     def from_pitches ( pitches : List[int], name : str = None, value : Fraction = Fraction() ):
@@ -49,7 +49,7 @@ class Chord:
         return hash( str( self ) )
 
     def to_string ( self, base_octave : int = 4, append_value : bool = True ) -> str:
-        chord =   self.name if self.name is not None \
+        chord = self.name if self.name is not None \
             else ''.join( [ n.to_string( base_octave = base_octave, append_value = False ) for n in self.notes ] )
 
         chord = '[' + chord + ']'

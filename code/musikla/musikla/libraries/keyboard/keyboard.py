@@ -221,7 +221,7 @@ class Keyboard:
         return keyboard
 
     def with_grid ( self, grid, mode : str = 'start_end' ) -> 'Keyboard':
-        body = PropertyAccessorNode( ConstantNode( grid ), StringLiteralNode( 'align' ) )
+        body = PropertyAccessorNode( ConstantNode( grid ), StringLiteralNode( 'align' ), True )
 
         body = FunctionExpressionNode( body, [ VariableExpressionNode( 'music' ), StringLiteralNode( mode ) ] )
 

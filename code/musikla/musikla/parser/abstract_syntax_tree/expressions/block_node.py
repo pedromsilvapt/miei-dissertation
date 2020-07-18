@@ -6,7 +6,7 @@ from ..stack_frame_node import StackFrameNode
 from musikla.core import Context
 
 class BlockNode( ExpressionNode ):
-    def __init__ ( self, body : Node, position : Tuple[int, int, int] = None ):
+    def __init__ ( self, body : Node = None, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.body = StackFrameNode( body, position = position )
