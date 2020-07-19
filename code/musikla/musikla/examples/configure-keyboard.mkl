@@ -1,0 +1,6 @@
+if ( $sys\args ) {
+    keyboard\keymap( $sys\args );
+} else {
+    keyboard\debug();
+};
+

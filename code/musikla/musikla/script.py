@@ -30,7 +30,7 @@ def load_paths ( config : ConfigParser, section : str, option : str ) -> List[st
     return paths_str.split( ":" )
 
 class Script:
-    def __init__ ( self, code : Union[str, Node] = None, context : Context = None, config : ConfigParser = None ):
+    def __init__ ( self, code : Union[str, Node] = None, context : Context = None, config : ConfigParser = None, symbols : Dict[str, Any] = {} ):
         self.prelude_context : Context = context or Context.create()
         self.context : Context = self.prelude_context.fork( symbols = self.prelude_context.symbols.fork( True ) )
         self.parser : Parser = Parser()
@@ -42,6 +42,7 @@ class Script:
         self.import_cache : Dict[str, Context] = {}
         self.import_extensions : List[str] = [ '.py', '.mkl' ]
         self.files_cache : List[Tuple[str, str]] = []
+        self.print_tracebacks : bool = False
 
         self.player.custom_error_printer = self.print_error
 
@@ -57,6 +58,9 @@ class Script:
         # This allows scripts to detect when they are being imported (and should only declare symbols)
         # versus when they are being executed (and should setup keyboards/play stuff/etc...)
         self.context.symbols.assign( '__main__', True, local = True )
+
+        for key, value in symbols.items():
+            self.context.symbols.assign( key, value, local = True )
 
         self.libraries : Dict[str, Any] = {}
         
@@ -234,6 +238,9 @@ class Script:
                 err.create_reporter( file, contents )
 
             print( err )
+            if self.print_tracebacks and err.__traceback__ is not None:
+                import traceback
+                traceback.print_tb(err.__traceback__)
         else:
             print( str( err ) )
 

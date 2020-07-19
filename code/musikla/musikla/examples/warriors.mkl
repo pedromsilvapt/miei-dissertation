@@ -1,4 +1,4 @@
-$notes = readmidi( "examples/warriors.mid" );
+$notes = readmidi( $__dir__ + "/warriors.mid" );
 
 $start = 0;
 

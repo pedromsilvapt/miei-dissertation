@@ -3,7 +3,7 @@ from musikla.core import Context, Library
 from musikla.libraries.keyboard import KeyboardLibrary, EventSource, MouseMove, MouseClick, MouseScroll, KeyStroke
 from pynput.keyboard import Key
 from pynput import keyboard, mouse
-from typing import Any, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 import asyncio
 
 class KeyboardPynputLibrary( Library ):
@@ -22,6 +22,11 @@ class KeyboardPynputEventSource( EventSource ):
         self.keyboard_listener : Optional[keyboard.Listener] = None
         self.mouse_listener : Optional[mouse.Listener] = None
         self.keyboard_state = dict()
+        self.keymaps : Dict[int, str] = dict()
+
+        if self.context.script.config.has_section( 'Keyboard.KeyMap' ):
+            for value, key in self.context.script.config[ 'Keyboard.KeyMap' ].items():
+                self.keymaps[ int( value ) ] = key
 
     def get_key_info ( self, key : Key ) -> Tuple[bool, str, int]:
         if hasattr( key, '_value_' ):
@@ -34,12 +39,14 @@ class KeyboardPynputEventSource( EventSource ):
         key_str = str( key )
 
         # Hardcoded fix for wrong value for 5 numpad key
-        if key_str == '<65437>': key_str = "'5'"
-        elif key_str == "'\\\\'": key_str = "'\\'"
-        elif key_str == '<220>': key_str = "'\\'"
-        elif key_str == '<65032>': key_str = "Key.shift"
+        if value in self.keymaps: key_str = self.keymaps[ value ]
+        else:
+            if key_str == '<65437>': key_str = "'5'"
+            elif key_str == "'\\\\'": key_str = "'\\'"
+            elif key_str == '<220>': key_str = "'\\'"
+            elif key_str == '<65032>': key_str = "Key.shift"
 
-        key_str = key_str[ len( 'Key.' ): ] if key_str.startswith( 'Key.' ) else key_str[ 1:-1 ]
+            key_str = key_str[ len( 'Key.' ): ] if key_str.startswith( 'Key.' ) else key_str[ 1:-1 ]
 
         if key_str == 'ctrl_l' or key_str == 'ctrl_r':
             key_str = 'ctrl'

@@ -118,6 +118,6 @@ class CallablePythonValue(CallableValue):
         else:
             args_values = [ Value.eval( context.fork(), node ) for node in args ]
 
-            kargs_values = dict( [ ( key, Value.eval( context.fork(), node ) ) for key, node in kargs ] )
+            kargs_values = dict( [ ( key, Value.eval( context.fork(), node ) ) for key, node in kargs.items() ] )
 
         return self.callable( *args_values, **kargs_values )

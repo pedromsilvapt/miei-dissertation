@@ -7,7 +7,56 @@ fun keyboard\debug ( $cb = none ) {
                 if ($pressed) { print( $key, $value, "PRESSED" ) } else { print( $key, $value, "RELEASED" ) };
             };
         };
-    }
+    };
+};
+
+fun keyboard\keymap ( $keys ) {
+    $current_key = 0;
+
+    $map = @{};
+
+    fun has_ended () => $current_key == len( $keys );
+
+    fun ask_key () {
+        $prefix = '(' + str( $current_key + 1 ) + '/' + str( len( $keys ) ) + ')';
+
+        print( ( $prefix + ' Please enter key "' + str( $keys::[ $current_key ] ) + '": ' ), end = '' );
+    };
+
+    fun terminate () {
+        $kb::close();
+
+        print();
+        print( "[Keyboard.KeyMap]" );
+        for ( $value, $name in $map::items() ) {
+            print( str( $value ) + "=" + str( $name ) );
+        };
+        print();
+    };
+
+    if ( has_ended() ) {
+        return;
+    } else {
+        ask_key();
+    };
+
+    $kb = @keyboard {
+        [ keyboard\KeyEvent() ] ( $key, $value, $pressed ): {
+            if (not $pressed) {
+                $map::[ $value ] = $keys::[ $current_key ];
+
+                print( "code " + str( $value ) );
+
+                $current_key += 1;
+
+                if ( has_ended() ) {
+                    terminate();
+                } else {
+                    ask_key();
+                };
+            };
+        };
+    };
 };
 
 fun keyboard\build_layout ( $layout ) {

@@ -49,6 +49,7 @@ class MusiklaExecutionError(Exception):
 
         self.position : Optional[Tuple[int, int, int]] = position
         self.base_exception : BaseException = base_exception
+        self.__traceback__ = base_exception.__traceback__
         self.file : Optional[str] = None
         self.content : Optional[str] = None
         self.reporter : Optional[ErrorReporter] = None
