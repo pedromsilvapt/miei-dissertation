@@ -77,6 +77,11 @@ minor_intervals = [ 2, 1, 2, 2, 1, 2, 2 ]
 
 minor = Scale.steps( minor_intervals )
 
+# Dyads
+major_dyad = Scale.steps( [ 4 ] )
+
+minor_dyad = Scale.steps( [ 3 ] )
+
 # Triads
 major_triad = Scale.steps( [ 4, 3 ] )
 
@@ -103,6 +108,9 @@ minor_major_seventh = Scale.steps( [ 3, 4, 4 ] )
 perfect_fifth = Scale.steps( [ 7 ] )
 
 chords = {
+    'm3': minor_dyad,
+    'M3': major_dyad,
+
     'm': minor_triad,
     'M': major_triad,
     'dim': diminished_triad,

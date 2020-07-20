@@ -199,9 +199,10 @@ _object_sep: "," | ";"
 chord: _LSQR note_pitch CHORD_SUFFIX _RSQR note_value?  -> chord_shortcut
      | _LSQR note_pitch+ _RSQR note_value?              -> chord_manual
 
-CHORD_SUFFIX: "m7" | "M7" | "dom7" | "7" | "m7b5" | "dim7" | "mM7"
-            | "5"
-            | "M" | "m" | "aug" | "dim" | "+"
+CHORD_SUFFIX.2: "m3" | "M3"
+              | "m7" | "M7" | "dom7" | "7" | "m7b5" | "dim7" | "mM7"
+              | "5"
+              | "M" | "m" | "aug" | "dim" | "+"
 
 rest: "R"i note_value?
 
