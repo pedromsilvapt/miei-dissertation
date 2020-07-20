@@ -33,6 +33,7 @@ for_loop_statement: for_loop_head _LBRAK [body] _RBRAK
 while_loop_statement: _WHILE _LPAR expression _RPAR _LBRAK [body] _RBRAK
 
 if_statement: _IF _LPAR expression _RPAR _LBRAK [body] _RBRAK "else" _LBRAK [body] _RBRAK -> if_statement_else
+            | _IF _LPAR expression _RPAR _LBRAK [body] _RBRAK "else" if_statement -> if_statement_else
             | _IF _LPAR expression _RPAR _LBRAK [body] _RBRAK -> if_statement
 
 return_statement: _RETURN expression?
@@ -134,6 +135,7 @@ keyboard_for: for_loop_head _LBRAK [keyboard_body] _RBRAK
 keyboard_while: _WHILE _LPAR expression _RPAR _LBRAK [keyboard_body] _RBRAK
 
 keyboard_if: _IF _LPAR expression _RPAR _LBRAK [keyboard_body] _RBRAK "else" _LBRAK [keyboard_body] _RBRAK
+           | _IF _LPAR expression _RPAR _LBRAK [keyboard_body] _RBRAK "else" keyboard_if
            | _IF _LPAR expression _RPAR _LBRAK [keyboard_body] _RBRAK
 
 keyboard_block: _LBRAK body? _RBRAK
@@ -196,13 +198,15 @@ _object_sep: "," | ";"
 // END Literals
 
 // Music
-chord: _LSQR note_pitch CHORD_SUFFIX _RSQR note_value?  -> chord_shortcut
-     | _LSQR note_pitch+ _RSQR note_value?              -> chord_manual
+chord: _LSQR chord_note_pitch CHORD_SUFFIX _RSQR note_value?  -> chord_shortcut
+     | _LSQR chord_note_pitch+ _RSQR note_value?              -> chord_manual
 
-CHORD_SUFFIX.2: "m3" | "M3"
-              | "m7" | "M7" | "dom7" | "7" | "m7b5" | "dim7" | "mM7"
-              | "5"
-              | "M" | "m" | "aug" | "dim" | "+"
+chord_note_pitch: NOTE_ACCIDENTAL? NODE_PITCH_RAW             -> note_pitch
+
+CHORD_SUFFIX: "m3" | "M3"
+            | "m7" | "M7" | "dom7" | "7" | "m7b5" | "dim7" | "mM7"
+            | "5"
+            | "M" | "m" | "aug" | "dim" | "+"
 
 rest: "R"i note_value?
 

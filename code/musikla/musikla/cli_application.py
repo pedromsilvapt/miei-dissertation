@@ -97,6 +97,7 @@ class CliApplication:
         parser.add_argument( '--print-events', dest = 'print_events', action='store_true', help = 'Print events (notes) to the console as they are played.' )
         parser.add_argument( '--profile', dest = 'profile', action='store_true', help = 'Measure and display total parse times' )
         parser.add_argument( '--traceback', dest = 'traceback', action='store_true', help = 'Display error tracebacks (aka stacktraces)' )
+        parser.add_argument( '--skip-parser-cache', dest = 'skip_parser_cache', action='store_true', help = 'Force the parser to rebuild the grammar cache on disk' )
 
         if '--' in self.argv:
             index = self.argv.index( '--' )
@@ -118,6 +119,9 @@ class CliApplication:
 
         if options.profile:
             print( "PARSE (AUTOLOAD): ", script.parser.time_spent * 1000, "ms" )
+
+        if options.skip_parser_cache:
+            script.parser.read_cache = False
 
         if options.traceback:
             script.print_tracebacks = True

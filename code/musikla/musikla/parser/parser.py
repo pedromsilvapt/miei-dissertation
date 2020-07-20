@@ -16,15 +16,18 @@ class Parser():
 
         self.time_spent : float = 0
         self.lark_time_spent : float = 0
-        
+        self.read_cache : bool = True
+        self.write_cache : bool = True
+
         cache_path = Path( __file__ ).parent / "grammar.lark.pickle"
         
-        if not cache_path.exists():
+        if not self.read_cache or not cache_path.exists():
             with open( Path( __file__ ).parent / "grammar.lark", "r" ) as f:
                 self.internal_parser = Lark( f.read(), parser='lalr', debug=False, propagate_positions = True, maybe_placeholders = True )
 
-            with open( cache_path, "wb" ) as f:
-                self.internal_parser.save(f)
+            if self.write_cache:
+                with open( cache_path, "wb" ) as f:
+                    self.internal_parser.save(f)
         else:
             with open( cache_path, "rb" ) as f:
                 self.internal_parser = Lark.load(f)
