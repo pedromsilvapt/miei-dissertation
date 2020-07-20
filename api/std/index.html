@@ -736,19 +736,19 @@
 10
 11
 12
-13</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> custom_function ( ref $count ) {</span><span class="s"></span>
-<span class="g">    $count += 1;</span><span class="s"></span>
+13</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> custom_function </span><span class="p">(</span><span class="s"> </span><span class="k">ref</span><span class="s"> </span><span class="nv">$count</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="nv">$count</span><span class="s"> </span><span class="kp">+=</span><span class="s"> </span><span class="m">1</span><span class="p">;</span><span class="s"></span>
 
-<span class="g">    play( C F G );</span><span class="s"></span>
-<span class="g">};</span><span class="s"></span>
+<span class="s">    </span><span class="nf">play</span><span class="p">(</span><span class="s"> </span><span class="l">C</span><span class="s"> </span><span class="l">F</span><span class="s"> </span><span class="l">G</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
 
-<span class="g">$i = 0;</span><span class="s"></span>
+<span class="nv">$i</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">0</span><span class="p">;</span><span class="s"></span>
 
-<span class="g"># No music will be played here</span><span class="s"></span>
-<span class="g">discard( custom_function( $i ) );</span><span class="s"></span>
+<span class="c"># No music will be played here</span><span class="s"></span>
+<span class="nf">discard</span><span class="p">(</span><span class="s"> </span><span class="nf">custom_function</span><span class="p">(</span><span class="s"> </span><span class="nv">$i</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 
-<span class="g"># But the value of $i is changed to 1</span><span class="s"></span>
-<span class="g">print( $i );</span><span class="s"></span>
+<span class="c"># But the value of $i is changed to 1</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$i</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
 
@@ -769,20 +769,20 @@
 13
 14
 15</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$global</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">0</span><span class="p">;</span><span class="s"></span>
-<span class="k">fun</span><span class="g"> without_using () { </span><span class="s"></span>
-<span class="g">    $global = 1; </span><span class="s"></span>
-<span class="g">};</span><span class="s"></span>
+<span class="k">fun</span><span class="g"> without_using </span><span class="p">()</span><span class="s"> </span><span class="p">{</span><span class="s"> </span>
+<span class="s">    </span><span class="nv">$global</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">1</span><span class="p">;</span><span class="s"> </span>
+<span class="p">};</span><span class="s"></span>
 
-<span class="g">fun with_using () { </span><span class="s"></span>
-<span class="g">    using( $global );</span><span class="s"></span>
+<span class="k">fun</span><span class="g"> with_using </span><span class="p">()</span><span class="s"> </span><span class="p">{</span><span class="s"> </span>
+<span class="s">    </span><span class="nf">using</span><span class="p">(</span><span class="s"> </span><span class="nv">$global</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 
-<span class="g">    $global = 1; </span><span class="s"></span>
-<span class="g">};</span><span class="s"></span>
+<span class="s">    </span><span class="nv">$global</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">1</span><span class="p">;</span><span class="s"> </span>
+<span class="p">};</span><span class="s"></span>
 
-<span class="g">without_using();</span><span class="s"></span>
-<span class="g">print( $global ); # prints 0, global isn&#39;t changed</span><span class="s"></span>
-<span class="g">with_using();</span><span class="s"></span>
-<span class="g">print( $global ); # prints 1, global is changed</span><span class="s"></span>
+<span class="nf">without_using</span><span class="p">();</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$global</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># prints 0, global isn&#39;t changed</span><span class="s"></span>
+<span class="nf">with_using</span><span class="p">();</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$global</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># prints 1, global is changed</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
 

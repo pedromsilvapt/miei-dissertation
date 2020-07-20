@@ -675,12 +675,12 @@
                 <h1 id="programming">Programming</h1>
 <p>A <strong>musikla</strong> script is just a sequence of statements ( and expressions ). Each statement must be followed by a <code>;</code>, even if it ends in brackes <code>{</code> and <code>}</code> like an <code>if</code> or <code>while</code>.</p>
 <h2 id="variables">Variables</h2>
-<p>Variables can stored and accessed by prefixing their name with a dollar sign `$.</p>
+<p>Variables can stored and accessed by prefixing their name with a dollar sign <code>$</code>.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$var_name</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">true</span><span class="p">;</span><span class="s"></span>
 
-<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$var_name</span><span class="s"> </span><span class="kp">==</span><span class="s"> </span><span class="k">null</span><span class="s"> </span><span class="k">or</span><span class="s"> </span><span class="nv">$var_name</span><span class="s"> </span><span class="kp">==</span><span class="s"> </span><span class="m">false</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$var_name</span><span class="s"> </span><span class="kp">==</span><span class="s"> </span><span class="k">none</span><span class="s"> </span><span class="k">or</span><span class="s"> </span><span class="nv">$var_name</span><span class="s"> </span><span class="kp">==</span><span class="s"> </span><span class="m">false</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
 
@@ -688,14 +688,14 @@
 <p>Functions are declared with the <code>fun</code> keyword, followed by an optional function name. Function declarations are expressions that return a reference to the newly created function. This means that they can be saved in variables, passed as parameters to other functions, or otherwise used anywhere an expression could generally be used.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
-3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> hello_world ( $name = &#39;User&#39; ) {</span><span class="s"></span>
-<span class="g">    return &#39;Hello &#39; + $name;</span><span class="s"></span>
-<span class="g">};</span><span class="s"></span>
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> hello_world </span><span class="p">(</span><span class="s"> </span><span class="nv">$name</span><span class="s"> </span><span class="kp">=</span><span class="s"> &#39;User&#39; </span><span class="p">)</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="k">return</span><span class="s"> &#39;Hello &#39; </span><span class="kp">+</span><span class="s"> </span><span class="nv">$name</span><span class="p">;</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
 
 <p>Function bodies can be multiline (like in the example above, surrounded by brackets <code>{</code>  <code>}</code>) or single line indicated by an arrow <code>=&gt;</code></p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> hello_world ( $name = &#39;User&#39; ) =&gt; &#39;Hello &#39; + $name;</span><span class="s"></span>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> hello_world </span><span class="p">(</span><span class="s"> </span><span class="nv">$name</span><span class="s"> </span><span class="kp">=</span><span class="s"> &#39;User&#39; </span><span class="p">)</span><span class="s"> </span><span class="kp">=&gt;</span><span class="s"> &#39;Hello &#39; </span><span class="kp">+</span><span class="s"> </span><span class="nv">$name</span><span class="p">;</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
 
@@ -709,15 +709,15 @@
 6
 7
 8
-9</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> increment ( ref $var ) {</span><span class="s"></span>
-<span class="g">    $var += 1;</span><span class="s"></span>
-<span class="g">};</span><span class="s"></span>
+9</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> increment </span><span class="p">(</span><span class="s"> </span><span class="k">ref</span><span class="s"> </span><span class="nv">$var</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="nv">$var</span><span class="s"> </span><span class="kp">+=</span><span class="s"> </span><span class="m">1</span><span class="p">;</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
 
-<span class="g">$a = 0;</span><span class="s"></span>
+<span class="nv">$a</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">0</span><span class="p">;</span><span class="s"></span>
 
-<span class="g">inc( $a );</span><span class="s"></span>
+<span class="nf">inc</span><span class="p">(</span><span class="s"> </span><span class="nv">$a</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 
-<span class="g">print( $a ); # prints 1</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$a</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># prints 1</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
 
@@ -799,7 +799,7 @@
 <span class="p">};</span><span class="s"></span>
 
 <span class="c"># With the `get` method we can provide a default value</span><span class="s"></span>
-<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$dict</span><span class="kp">::</span><span class="nf">get</span><span class="p">(</span><span class="s"> &#39;foo&#39;</span><span class="p">,</span><span class="s"> </span><span class="m">default </span><span class="kp">=</span><span class="s"> </span><span class="k">null</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$dict</span><span class="kp">::</span><span class="nf">get</span><span class="p">(</span><span class="s"> &#39;foo&#39;</span><span class="p">,</span><span class="s"> </span><span class="m">default </span><span class="kp">=</span><span class="s"> </span><span class="k">none</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 
 <span class="nv">$dict</span><span class="kp">::</span><span class="nf">set</span><span class="p">(</span><span class="s"> &#39;bar&#39;</span><span class="p">,</span><span class="s"> </span><span class="m">false</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 
@@ -814,7 +814,7 @@
 2
 3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$arr</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@</span><span class="p">[</span><span class="s"> </span><span class="m">1</span><span class="p">,</span><span class="s"> </span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">3</span><span class="s"> </span><span class="p">];</span><span class="s"></span>
 
-<span class="nv">$arr</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@py</span><span class="s"> </span><span class="p">{</span><span class="s"> </span><span class="p">[</span><span class="s"> </span><span class="gr">i</span><span class="s"> </span><span class="kp">*</span><span class="s"> </span><span class="m">2</span><span class="s"> </span><span class="k">for</span><span class="s"> </span><span class="gr">i</span><span class="s"> </span><span class="k">in</span><span class="s"> </span><span class="l">arr</span><span class="s"> </span><span class="p">]</span><span class="s"> </span><span class="p">};</span><span class="s"></span>
+<span class="nv">$arr</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="k">@py</span><span class="p"> {</span><span class="g"> [ i * 2 for i in arr ] </span><span class="p">};</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
 
@@ -833,10 +833,10 @@
 
 <span class="nf">do_something</span><span class="p">(</span><span class="s"> </span><span class="nv">$arr</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 
-<span class="gr">@python</span><span class="s"></span>
-<span class="gr">@</span><span class="nf">export</span><span class="p">()</span><span class="s"></span>
-<span class="l">def</span><span class="s"> </span><span class="nf">do_something</span><span class="p">(</span><span class="s"> </span><span class="l">arr</span><span class="s"> </span><span class="p">)</span><span class="gr">:</span><span class="s"></span>
-<span class="s">    </span><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="l">arr</span><span class="s"> </span><span class="p">)</span><span class="s"></span>
+<span class="k">@python</span><span class="g"></span>
+<span class="g">@export()</span>
+<span class="g">def do_something( arr ):</span>
+<span class="g">    print( arr )</span>
 </code></pre></div>
 </td></tr></table>
                 
