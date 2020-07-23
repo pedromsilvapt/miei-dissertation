@@ -8,10 +8,31 @@
 \textbf{Title:} Musikla - Music and Keyboard Language
 
 \bigskip
+In this dissertation we'll study an approach to the analysis, creation and description of music through a \acrfull{dsl}. It is a dynamic language with all the features we are used to, such as variables, functions, loops and conditionals. Furthermore, the two diferrentiating factors about this language are the specialized sintax for declaration of musical arrangements and virtual keyboards. Once evaluated, the results of this language whould be able to be converted into multiple formats, ranging from sound files, MIDI files, our even sounds played directly by the computer's speakers.
 
-The creation of music using synthesizers is a practice that boasts many decades of existence. With the proliferation of personal computers, digital synthesizers and Digital Audio Workstations rose in popularity as well.
+To accomplish that, we'll analyze existent languages in this space, as well as what functionalities they already implement, and which ones we consider missing from them.
 
-This project aims to use the digital audio production and manipulation technologies, and wrap them in a domain specific language that allows to easily describe music compositions, generate sounds dynamically, study properties of music theory or even create virtual keyboards that play sounds or execute actions and can be used to perform live multimedia shows.
+With those aspects in mind, we'll start by proposing a language that tries to reuse the good ideas that are already in use by other projects, plus our own solutions to the challanges we find. We'll also list several case studies that demonstrate what we believe are the main advantages in our approach.
+
+Finaly we'll describe as well the process of developing said language, divided in three main phases:
+\begin{enumerate}
+    \item The design of the syntax, its grammar and parser.
+    \item The interpreter's implementation.
+    \item The development of a standard library to be included in the language.
+\end{enumerate}
+
+With regards to the syntax and the grammar, we'll briefly describe the entire language, giving particular attention to the musical arrangements and keyboards' declaration expressions. Gramattically, those are regular expressions, and so their syntaxes must integrate seamlessly in the rest of the langfuage. This means being able to use them anywhere we could use an expression, be it a number, a string our anything else.
+
+This integration without any specific separation means that all the aspects of the language must be thought of in a way to coexist without issues. Because of that, we'll discuss the challanges we faces by introducing these new classes of expressions in our grammar, and what solutions we found to go around those situations.
+
+In terms of the interpreter, we discuss several options that could be chosen (tree-walk interpreters, bytecode machines, \acrshort{jit} compilation), as well as the justification for our ultimate choice of building a tree-walk interpreter.
+
+In terms of the standard library, we describe the multiple formats supported, both for input and output, as well as the provided facilities to the use of our virtual keyboards, such as grids and buffers.
+
+In the end, we describe briefly how to run scripts written in our language: through a command line application developed in \textit{Python}, called \textbf{musikla}, published in \acrfull{pypi}\footnote{\url{https://pypi.org/project/musikla/}}, and whose source code is freely available on \textit{GitHub}\footnote{\url{https://github.com/pedromsilvapt/miei-dissertation}}.
+% The creation of music using synthesizers is a practice that boasts many decades of existence. With the proliferation of personal computers, digital synthesizers and Digital Audio Workstations rose in popularity as well.
+
+% This project aims to use the digital audio production and manipulation technologies, and wrap them in a domain specific language that allows to easily describe music compositions, generate sounds dynamically, study properties of music theory or even create virtual keyboards that play sounds or execute actions and can be used to perform live multimedia shows.
 % Palavras-chave do resumo em Inglês
 \begin{keywords}
 Domain Specific Language, Interpreter, Language Processing, Music Notation \ldots

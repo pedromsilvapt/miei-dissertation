@@ -9,11 +9,36 @@
 
 \bigskip
 
-A criação de música usando sintetizadores é uma prática que conta já com várias décadas de uso. Com a proliferação dos computadores pessoais, popularizaram-se também os sintetizadores digitais e as Digital Audio Workstations.
+Nesta dissertação iremos estudar uma abordagem para a análise, criação e descrição de música através de uma \acrfull{dsl}. Trata-se de uma linguagem dinâmica, com todas as funcionalidades a que estamos habituados, tais como variáveis, funções, ciclos, condicionais. Para além disso, os dois fatores de diferenciação passam pela sintaxes especializadas para declaração de acompanhamentos musicais e de teclados virtuais. Esta linguagem deve depois poder ser avaliada e os seus resultados convertidos para diversos formatos, desde ficheiros de som, MIDI, ou reproduzir diretamente as notas para as colunas do computador.
 
-Este projeto tem como objetivo utilizar as tecnologias de produção e manipualação de aúdio digital, e envolvê-las numa linguagem de domínio específico que permita facilmente descrever composições músicais, gerar sons dinâmicamente, estudar propriedades da própria teoria músical, ou até criar teclados virtuais que toquem sons ou executem ações e podem ser utilizados para realizar espetáculos multimédia ao vivo.
+Com este intuito vamos analisar as linguagens já existentes neste espaço, bem como quais as funcionalidades que já implementam, e aquelas que consideramos estarem em falta.
+
+Como esses aspetos em mente, de seguida propomos uma linguagem que tente aproveitar as boas ideias daquilo que já existe, mais as nossas soluções para os novos desafios que encontramos. Introduzimos também vários casos de estudo para demonstrarem as vantagens que acreditamos existirem na nossa abordagem.
+
+Finalmente descrevemos também o processo de desenvolvimento da linguagem, dividido em três fases principais: 
+\begin{enumerate}
+ \item O desenho da sintaxe, da sua gramática, e do \textit{parser}.
+ \item A implementação do interpretador.
+ \item O desenvolvimento de uma biblioteca \textit{standard} para ser incluída com a linguagem.
+\end{enumerate}
+
+A nível da sintaxe e da gramática, descrevemos sucintamente toda a linguagem. Damos particular atenção às expressões de declarações de acompanhamentos musicais e de teclados. Em termos gramaticais, são apenas expressões, ou seja, as suas sintaxes devem integrar-se homogeneamente no resto da linguagem. E como tal, podemos utilizá-las em qualquer sítio que onde podemos introduzir uma expressão, seja ela um número, uma \textit{string} ou o que quer que for. 
+
+Esta integração sem separação significa que todos os aspetos da linguagem têm de ser pensados de forma a coexistir sem problemas. Iremos por isso analisar quais os desafios encontrados pela introdução destas novas classes de expressões na gramática, e quais as soluções que foram tomadas para contornar essas situações.
+
+A nível do interpretador, discutimos várias das opções que poderiam ser escolhidas (interpretadores \textit{tree walk}, máquinas \textit{bytecode}, compilação \acrshort{jit}) bem como justificamos a nossa escolha de utilizar um interpretador \textit{tree-walk}.
+
+A nível da biblioteca \textit{standard}, descrevemos os vários formatos suportados, quer de \textit{input}, quer de \textit{output}, bem como os mecanismos providenciados para a utilização de teclados, como grelhas e \textit{buffers}.
+
+No final, descrevemos como correr scripts escritos na nossa linguagem: através de uma aplicação de linha de comandos desenvolvida em \textit{Python}, chamada \textbf{musikla}, publicada no \acrfull{pypi}\footnote{\url{https://pypi.org/project/musikla/}}, e cujo código é disponibilizado livremente no \textit{GitHub}\footnote{\url{https://github.com/pedromsilvapt/miei-dissertation}}.
+
+
+%A criação de música usando sintetizadores é uma prática que conta já com várias décadas de uso. Com a proliferação dos computadores pessoais, popularizaram-se também os sintetizadores digitais e as Digital Audio Workstations.
+
+%Este projeto tem como objetivo utilizar as tecnologias de produção e manipualação de aúdio digital, e envolvê-las numa linguagem de domínio específico que permita facilmente descrever composições músicais, gerar sons dinâmicamente, estudar propriedades da própria teoria músical, ou até criar teclados virtuais que toquem sons ou executem ações e podem ser utilizados para realizar espetáculos multimédia ao vivo.
+
 % Palavras-chave do resumo em Português
 \begin{keywords}
-Interpretador, Linguagem de Domínio Específico, Notação Músical, Processamento de Linguagens\ldots
+Interpretador, Linguagem de Domínio Específico, Notação Musical, Processamento de Linguagens\ldots
 \end{keywords}
 % to add an extra black line

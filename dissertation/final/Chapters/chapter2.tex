@@ -9,9 +9,35 @@
 Atualmente a produção de música é realizada utilizando programas com interfaces gráficas, geralmente denominados como \acrfull{daw}. A minha abordagem irá consistir em estudar formas de criar e tocar músicas ao vivo (e não só) através de uma \acrfull{dsl}, usando técnicas inspiradas nas linguagens de programação e no desenvolvimento de \textit{software}.
 
 \section{Trabalho Relacionado}
-Existem diversos tipos de linguagens usadas atualmente para produzir ou simplesmente descrever música. Algumas fazem uso do conceito de notas músicais, com recurso a algum sintetizador externo, para gerar os sons, enquanto outras funcionam com base na manipulação direta de ondes de som digitais para criar música. Algumas suportam apenas a descrição estática da música, enquanto outras permitem formas dinâmicas tais como funções, variáveis, estruturas de controlo e repetição, ou até mesmo algorítmos aleatórios que permitem gerar músicas diferentes a cada execução.
+Existem diversos tipos de linguagens usadas atualmente para produzir ou simplesmente descrever música. Algumas fazem uso do conceito de notas musicais, com recurso a algum sintetizador externo, para gerar os sons, enquanto outras funcionam com base na manipulação direta de ondas de som digitais para criar música. Algumas suportam apenas a descrição estática da música, enquanto outras permitem formas dinâmicas tais como funções, variáveis, estruturas de controlo e repetição, ou até mesmo algoritmos aleatórios que permitem gerar músicas diferentes a cada execução.
 
-Iremos de seguida analisar algumas das soluções disponíveis atualmente, bem como comparar as funcionalidades que cada uma oferece ou não oferece em relação aos objetivos deste projeto.
+\begin{table}[h]
+\centering
+\def\arraystretch{1.3}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Language}      & \textbf{Tipo de Dados}               & \textbf{Dinâmica} & \textbf{Interatividade} \\ \hline
+\textbf{alda}          & Notação Musical                      & Não               & N/A                     \\ \hline
+\textbf{abc notation}  & Notação Musical                      & Não               & N/A                     \\ \hline
+\textbf{Faust}         & Sinais Áudio                         & Sim               & Botões/Sliders/etc...   \\ \hline
+\textbf{SuperCollider} & Sinais Áudio                         & Sim               & Não                     \\ \hline
+\textbf{ChucK}         & Sinais Áudio                         & Sim               & Teclados Imperativos        \\ \hline
+\textbf{SonicPi}       & Notas                                & Sim               & Não                     \\ \hline \hline
+\textbf{Solução Ideal} & \multicolumn{1}{l|}{Notação Musical} & Sim               & Teclados Declarativos   \\ \hline
+\end{tabular}
+\caption{Lista de modificadores e exemplos da sua utilização}
+\label{tab:sounds-format}
+\end{table}
+
+Queremos analisar as opções segundo os seguintes conceitos:
+\begin{description}
+ \item[Tipo de Dados] Refere-se a quais os tipos de dados usados principalmente pela linguagem na componente musical. Sinais de áudio são os de mais baixo nível, enquanto que \textit{Notas} refere-se à linguagem permitir tocar uma notas manualmente. \texttt{Notação Musical} é a de mais alto nível e permite descrever não só notas, mas acompanhamentos musicais.
+ \item[Dinâmica] Corresponde a saber se a linguagem tem construções dinâmicas (como variáveis, ciclos, funções) ou se é apenas estática.
+ \item[Interatividade] Algumas linguagens podem permitir interatividade através de interfaces gráficas no computador, como botões e \textit{sliders}. Outras podem suportar teclados, que podemos dividir em dois tipos: \textit{Imperativos}, e \textit{Declarativos}. Imperativos referem-se à possibilidade de ser notificado quando qualquer tecla é premida, uma de cada vez, e decidir manualmente o que fazer. Declarativos referem-se a descrever uma lista de teclas e ações a executar para cada uma delas, sem termos de nos preocupar em receber manualmente os eventos e decidir se o evento se aplica à nossa tecla ou não.
+\end{description}
+
+
+Iremos de seguida analisar mais a fundo estas linguagens, bem como comparar as funcionalidades que cada uma oferece relativamente aos conceitos enumerados em cima.
 \subsection{Alda}
 O projeto \textbf{alda}~\cite{alda} é uma linguagem de música textual desenvolvida em \textit{JAVA} focada na simplicidade: o seu maior ponto de atração é apelar tanto a programadores com pouca experiência musical, bem como a músicos com pouca experiência com programação.
 Apesar de ser anunciada como direcionada tanto a músicos como a programadores, a linguagem não suporta nenhum tipo de construções dinâmicas, como ciclos ou funções. Este tipo de funcionalidades, se necessário, requer o uso de uma linguagem de programação por cima, que poderia por exemplo, gerar o código \textit{alda} em \textit{runtime} através da manipulação de \textit{strings} antes de o executar. Isto significa que não é possível implementar composições interativas.
@@ -21,39 +47,39 @@ O exemplo seguinte demonstra um simples programa escrito em \textit{alda}, demon
 \begin{lstlisting}[caption={Exemplo da linguagem alda}]
 piano: o3 c1/e/g/>c4 < b a g | < g+1/b/>e
 \end{lstlisting}
- É também possível verificar o uso de acidentais (identificados pelos símbolos \texttt{+} ou \texttt{-} a seguir a uma nota) bem como a diferenciação da duração de algumas notas (identificadas pelos números em frente às notas).
+ É também possível verificar o uso de acidentes (identificados pelos símbolos \texttt{+} ou \texttt{-} a seguir a uma nota) bem como a diferenciação da duração de algumas notas (identificadas pelos números em frente às notas).
 \subsection{ABC Notation}
-A notação \textbf{ABC}~\cite{AbcPlus}~\cite{abc-notation} é uma notação textual que permite descrever notação músical. É bastante completa, tendo formas de descrever notas, acordes, acidentais, uniões de notas, \textit{lyrics}, múltiplas vozes, entre outros.
+A notação \textbf{ABC}~\cite{AbcPlus, abc-notation} é uma notação textual que permite descrever notação musical. É bastante completa, tendo formas de descrever notas, acordes, acidentes, ligaduras de notas, \textit{lyrics}, múltiplas vozes, entre outros.
 
-Para além das exaustividade de sintaxe que permite descrever quase todo o tipo de música, a popularidade da linguagem também significa que existem já inúmeros conversores de ficheiros ABC para os mais diversos formatos, desde ficheiros MIDI, pautas músicais, ou mesmo ficheiros WAV (gerados através do fornecimento de um ficheiro SoundFont, por exemplo).
+Para além das exaustividade de sintaxe que permite descrever quase todo o tipo de música, a popularidade da linguagem também significa que existem já inúmeros conversores de ficheiros ABC para os mais diversos formatos, desde ficheiros MIDI, pautas musicais, ou mesmo ficheiros WAV (gerados através do fornecimento de um ficheiro SoundFont, por exemplo).
 
-A complexidade da notação traz tanto vantagens como desvantages, no entanto: A sua ubiquidade significa que uma maior percentagem de utilizadores já se pode sentir à vontade com a sintaxe, o que não acontece com outras linguagens menos conhecidas. Mas por outro lado, conhecer ou implementar toda a especificação~\cite{abc-notation-standard} é um feito bastante difícil.
+A complexidade da notação traz tanto vantagens como desvantagens, no entanto: A sua ubiquidade significa que uma maior percentagem de utilizadores já se pode sentir à vontade com a sintaxe, o que não acontece com outras linguagens menos conhecidas. Mas por outro lado, conhecer ou implementar toda a especificação~\cite{abc-notation-standard} é um feito bastante difícil.
 
 No entanto, tal como a linguagem \textit{ALDA}, as músicas definidas são estáticas, pelo que não serve como uma linguagem de programação de músicas dinâmicas. Ainda assim, apesar de implementar toda a notação ser algo pouco prático, implementar um \textit{subset} da notação, contendo as construções mais usadas seria uma vantagem enorme que me permitiria aproveitar a familiaridade de muitos utilizadores com as partes mais comuns da sintaxe.
 
     \subsubsection{Exemplos}
-A sintaxe de um ficheiro \textit{ABC} é composta por duas partes: um cabeçalho onde são definidas as configurações da música atual, seguido pelo corpo da música. O cabeçalho é formado por uma várias linhas. Cada linha, em ABC chamada de campo, tem uma chave e um valor separados por dois pontos (\texttt{:}). A especificação da notação descreve bastantes campos possíves, mas os mais usados são: \textbf{X} (número de referência), \textbf{T} (título), \textbf{M} (compasso), \textbf{L} (unidade de duração de nota) e \textbf{K} (clave).
+A sintaxe de um ficheiro \textit{ABC} é composta por duas partes: um cabeçalho onde são definidas as configurações da música atual, seguido pelo corpo da música. O cabeçalho é formado por uma várias linhas. Cada linha, em ABC chamada de campo, tem uma chave e um valor separados por dois pontos (\texttt{:}). A especificação da notação descreve bastantes campos possíveis, mas os mais usados são: \textbf{X} (número de referência), \textbf{T} (título), \textbf{M} (compasso), \textbf{L} (unidade de duração de nota) e \textbf{K} (armação de clave).
 
 \begin{lstlisting}[caption={Exemplo da notação ABC}]
 C, D, E, F,|G, A, B, C|D E F G|A B c d|e f g a|b c' d' e'|f' g' a' b'|]
 \end{lstlisting}
 
-No exemplo acima podemos ver uma escala completa das notas (sem acidentais). O chamado C médio é representado por um \textbf{c} minúsculo (a capitalização das letras muda o significado). Para subir uma oitava, podemos anotar as notas com um apóstrofo (\textbf{c'}). As oitavas subsequentes são anotadas por mais apóstrofos. De modo análogo, para baixar uma oitava, devemos usar primeiro a nota em maíuscula (\textbf{C}). As oitavas anteriores são identificadas por uma (ou mais) vírgula a seguir à nota com letra maíuscula (\textbf{C,}).
+No exemplo acima podemos ver uma escala completa das notas (sem acidentes). O chamado C médio é representado por um \textbf{c} minúsculo (a capitalização das letras muda o significado). Para subir uma oitava, podemos anotar as notas com um apóstrofo (\textbf{c'}). As oitavas subsequentes são anotadas por mais apóstrofos. De modo análogo, para baixar uma oitava, devemos usar primeiro a nota em maiúscula (\textbf{C}). As oitavas anteriores são identificadas por uma (ou mais) vírgula a seguir à nota com letra maiúscula (\textbf{C,}).
 
 
 \begin{lstlisting}[caption={Exemplo da notação ABC}]
 A/2 A/ A A2 __A _A =A ^A ^^A [CEGc] [C2G2] [CE][DF]
 \end{lstlisting}
-A duração das notas pode ser ajustada relativamente à unidade global definida no cabeçalho acrescentando um número (por exemplo \textbf{2}) ou fração \textbf{1/4} à nota. Os acidentais bemol, bequadro e sustenido podem ser adicionados acrescentando um \textbf{\_}, \textbf{=} e \textbf{\texttt{\textasciicircum{}}} antes da nota, respetivamente. Acordes (notas tocadas ao mesmo tempo) podem ser definidas entre parênteses retos (\textbf{[} e \textbf{]}).
+A duração das notas pode ser ajustada relativamente à unidade global definida no cabeçalho acrescentando um número (por exemplo \textbf{2}) ou fração \textbf{1/4} à nota. Os acidentes bemol, bequadro e sustenido podem ser adicionados acrescentando um \textbf{\_}, \textbf{=} e \textbf{\texttt{\textasciicircum{}}} antes da nota, respetivamente. Acordes (notas tocadas ao mesmo tempo) podem ser definidas entre parênteses retos (\textbf{[} e \textbf{]}).
 
-A notação disponibiliza muitos mais exemplos de todas as funcionalidades aceites no seu website~\cite{abc-notation-examples}.
+A notação disponibiliza muitos mais exemplos de todas as funcionalidades aceites no seu \textit{website}~\cite{abc-notation-examples}.
 
 \subsection{Faust}
-A linguagem \textbf{Faust}~\cite{orlarey:Faust, faust, orlarey:hal-02158894} é uma linguagem de programação funcional com foco na sintetização de som e processamento de audio. Ao contrário das linguagens analisadas até agora, não trabalha com abstrações de notas e elementos músicais. Em vez disso, a linguagem trabalha diretamente com ondas sonoras (representadas como \textit{streams} de números) e através de expressões matemáticas, que de uma forma funcional permitem assim manipular o som produzido.
+A linguagem \textbf{Faust}~\cite{orlarey:Faust, faust, orlarey:hal-02158894} é uma linguagem de programação funcional com foco na sintetização de som e processamento de áudio. Ao contrário das linguagens analisadas até agora, não trabalha com abstrações de notas e elementos musicais. Em vez disso, a linguagem trabalha diretamente com ondas sonoras (representadas como \textit{streams} de números) e através de expressões matemáticas, que de uma forma funcional permitem assim manipular o som produzido.
 
 Um dos pontos fortes da linguagem é o facto da sua arquitetura ser construída de raiz para compilar o mesmo código fonte em várias linguagens. De facto, o projeto conta com várias dezenas de \textit{targets}, desde os mais óbvios (C, C++, Java, JavaScript) até alguns mais especializados (WebAssembly, LLVM Bitcode, instrumentos VST/VSTi). Também permite gerar aplicações \textit{standalone} para as bibliotecas de audio mais comuns já embutidas~\cite{faust-targets}.
 	
-A linguagem vem embutida com uma biblioteca extremamente completa~\cite{faust-libraries} que implementa, entre muitas outras, funções de matemática comuns, filtros audio e funcionalidades extremamente básicas de interfaces gráficas que permitem controlar em tempo real os valores do programa (como botões e \textit{sliders}, entre outros).
+A linguagem vem embutida com uma biblioteca extremamente completa~\cite{faust-libraries} que implementa, entre muitas outras, funções de matemática comuns, filtros áudio e funcionalidades extremamente básicas de interfaces gráficas que permitem controlar em tempo real os valores do programa (como botões e \textit{sliders}, entre outros).
 	
 \subsubsection{Exemplos}
 A documentação do projeto conta com uma quantidade abundante de exemplos~\cite{faust-examples} e com um tutorial para iniciantes~\cite{faust-quickstart}, do qual irei colocar aqui alguns pequenos pedaços de código que demonstram as capacidades fundamentais da linguagem.
@@ -63,7 +89,7 @@ import("stdfaust.lib");
 process = no.noise*0.5;
 \end{lstlisting}
 
-No primeiro exemplo, podemos ver a estrutura mais básica de um programa escrito em \textit{Faust}. Na primeira linha é importada a biblioteca \textit{standard} da linguagem. Na segunda linha podemos ver a \textit{keyword} \textbf{\texttt{process}}, que representa o \textit{input} e \textit{output} audio do nosso programa. Finalmente, em frente a essa \textit{keyword} podemos ver a expressão \texttt{no.noise*0.5}. Isto demonstra a utilização de construções da biblioteca \textit{standard}, como o gerador de ruído aleatório, bem como a utilização de operadores matemáticos usuais (neste caso a multiplicação) para manipular o audio, e diminuir o volume para metade.
+No primeiro exemplo, podemos ver a estrutura mais básica de um programa escrito em \textit{Faust}. Na primeira linha é importada a biblioteca \textit{standard} da linguagem. Na segunda linha podemos ver a \textit{keyword} \textbf{\texttt{process}}, que representa o \textit{input} e \textit{output} audio do nosso programa. Finalmente, em frente a essa \textit{keyword} podemos ver a expressão \texttt{no.noise*0.5} (sendo \texttt{no} o \textit{namespace} contendo as funções de geração de ruído, e \texttt{noise} correspondendo ao \textit{white noise}). Isto demonstra a utilização de construções da biblioteca \textit{standard}, como o gerador de ruído aleatório, bem como a utilização de operadores matemáticos usuais (neste caso a multiplicação) para manipular o áudio, e diminuir o volume para metade.
 
 \begin{lstlisting}[caption={Geração de ruído aleatório com um filtro \textit{low-pass}}]
 import("stdfaust.lib");
@@ -85,9 +111,9 @@ process = no.noise : fi.resonlp(ctFreq,q,gain)*t;
 Por fim podemos ver um exemplo igual ao anterior, mas em vez de ter os valores das variáveis estáticos (guardados nas variáveis \texttt{ctFreq}, \texttt{q} e \texttt{gain}), estes são controlados em tempo real pela interface definida pelas chamadas à função \texttt{hslider}. Foi também adicionada uma variável \texttt{t} com um botão \textit{"gate"}. Este produz o valor 0 (zero) quando está solto, e o valor 1 (um) quando está pressionado, valor que quando multiplicado pelo resto da expressão serve efetivamente como um \textit{on/off switch} para todo o sistema.
 
 \subsection{SuperCollider}
-O projeto \textbf{SuperCollider}~\cite{doi:SuperCollider, orlarey:hal-02158894} é uma plataforma para geração e sintetização de som e música. É composta em parte pela linguagem interpretada \textbf{sclang}, focada na componente de aúdio, mas com funcionalidades de programação generalizada. Também tem um servidor de aúdio \textit{realtime} \textbf{scsynth}, que pode ser controlado pela linguagem \textit{sclang}, e que implementa diversas técnicas de geração de aúdio optimizadas (permitindo ao utilizador programar também as suas próprias técnicas customizadas através de C++). Também integra um \acrshort{ide} \textbf{scide} que disponibiliza um ambiente de edição integrado para todo o ecossistema, bem como ferramentas de ajuda e introdução à plataforma.
+O projeto \textbf{SuperCollider}~\cite{doi:SuperCollider, orlarey:hal-02158894} é uma plataforma para geração e sintetização de som e música. É composta em parte pela linguagem interpretada \textbf{sclang}, focada na componente de áudio, mas com funcionalidades de programação generalizada. Também tem um servidor de áudio \textit{realtime} \textbf{scsynth}, que pode ser controlado pela linguagem \textit{sclang}, e que implementa diversas técnicas de geração de áudio otimizadas (permitindo ao utilizador programar também as suas próprias técnicas customizadas através de C++). Também integra um \acrshort{ide} \textbf{scide} que disponibiliza um ambiente de edição integrado para todo o ecossistema, bem como ferramentas de ajuda e introdução à plataforma.
 
-É uma linguagem de baixo nível em termos músicais, mas com um grande ecossistema para integrar os mais diversos componentes, desde controladores MIDI a interfaces gráficas. Mas a nível músical, como já referido, foca-se na sintetização e manipulação de ondas de som, sem ter noção de conceitos mais abstratos como notas ou acordes. Tais noções têm de ser manualmente implementadas pelo utilizador, e de uma forma bastante mais verbosa do que o desejável.
+É uma linguagem de baixo nível em termos musicais, mas com um grande ecossistema para integrar os mais diversos componentes, desde controladores MIDI a interfaces gráficas. Mas a nível musical, como já referido, foca-se na sintetização e manipulação de ondas de som, sem ter noção de conceitos mais abstratos como notas ou acordes. Tais noções têm de ser manualmente implementadas pelo utilizador, e de uma forma bastante mais verbosa do que o desejável.
 
 \subsubsection{Exemplos}
 A linguagem do projeto \textit{sclang} é uma linguagem orientada a objetos mas com aspetos funcionais (como \textit{currying} ou listas em compreensão).
@@ -96,7 +122,7 @@ A linguagem do projeto \textit{sclang} é uma linguagem orientada a objetos mas 
 { [SinOsc.ar(440, 0, 0.2), SinOsc.ar(442, 0, 0.2)] }.play;
 \end{lstlisting}
 
-No exemplo presente na listagem \ref{lst:sc-1}, é declarada uma função (demarcada pelo par de chavetas) que retorna uma lista com dois osciladores de ondas sinusoidais. O som dos osciladores é depois reproduzido através da chamada da função \texttt{play}. De notar que como os osciladores estão dentro de um \textit{array}, isso significa que estamos a gerar múltiplos canais de aúdio (dois neste caso), com um oscilador para cada canal.
+No exemplo presente na listagem \ref{lst:sc-1}, é declarada uma função (demarcada pelo par de chavetas) que retorna uma lista com dois osciladores de ondas sinusoidais. O som dos osciladores é depois reproduzido através da chamada da função \texttt{play}. De notar que como os osciladores estão dentro de um \textit{array}, isso significa que estamos a gerar múltiplos canais de áudio (dois neste caso), com um oscilador para cada canal.
 
 O oscilador \texttt{SinOsc} é apenas um dos geradores de som disponibilizados pelo servidor \textit{scsynth}, também chamados \textbf{UGens}. Existem outros, e mais importante, é possível compor esses geradores para criar sons mais complexos.
 
@@ -117,14 +143,14 @@ A linguagem é bastante mais complexa, podendo declarar variáveis, objetos, exe
 \subsection{ChucK}
 A linguagem \textbf{ChucK}~\cite{doi:Chuck}~\cite{wang2003chuck} é outra linguagem de sintetização de áudio digital, similar aos projetos \textit{SuperCollider} e \textit{Faust}. O seu maior fator de diferenciação advém da sua abordagem única e interessante de sincronização de processos concorrentes baseado em unidades de tempo (que os autores do projeto denominaram \textbf{strongly-timed}).
 
-Este conceito significa que o utilizador pode definir tempos virtuais associados a quando certas instruções devem ocorrer. Tal garantia torna-se útil quando combinada com o conceito de \textit{shreds} (processos virtuais que podem estar a correr concurrentemente) e que dão a aparência para o utilizador que estão na verdade a correr em paralelo. A máquina virtual por trás da linguagem, responsável por traduzir as instruções em aúdio, assegura-se que os \textit{shreds} são \textbf{sample-synchronous}, ou seja, cada \textit{sample} (ou amostra) geradas pelos \textit{shreds} e com o mesmo \textit{timestamp} virtual irão ser sempre reproduzidas ao mesmo tempo (mesmo que o processador tenha demorado mais tempo a correr um dos \textit{shreds} do que os outros). Isto é, apesar de as \textit{samples} podem-se atrasar, mas a máquina garante que tal acontece de forma sincronizada, sem a possibilidade de criar desfazamento entre os vários \textit{shreds}.
+Este conceito significa que o utilizador pode definir tempos virtuais associados a quando certas instruções devem ocorrer. Tal garantia torna-se útil quando combinada com o conceito de \textit{shreds} (processos virtuais que podem estar a correr concorrentemente) e que dão a aparência para o utilizador que estão na verdade a correr em paralelo. A máquina virtual por trás da linguagem, responsável por traduzir as instruções em áudio, assegura-se que os \textit{shreds} são \textbf{sample-synchronous}, ou seja, cada \textit{sample} (ou amostra) geradas pelos \textit{shreds} e com o mesmo \textit{timestamp} virtual irão ser sempre reproduzidas ao mesmo tempo (mesmo que o processador tenha demorado mais tempo a correr um dos \textit{shreds} do que os outros). Isto é, apesar de as \textit{samples} poderem-se atrasar, a máquina garante que tal acontece de forma sincronizada, sem a possibilidade de criar desfasamento entre os vários \textit{shreds}.
 
 Mais uma vez esta linguagem lida com o conceito de geração de áudio a um baixo nível, e não é portanto muito adequada para a descrição de notação musical. Apesar disso, este projeto apresenta também um fator diferenciador que permite utilizar a sua componente de agendamento temporal de eventos, para permitir interatividade (através de eventos \textit{MIDI} ou do teclado do computador). Mais uma vez, mesmo estas funcionalidades são de baixo nível (como iremos abordar mais em detalhe nos exemplos) mas é agradável saber que já vêm pelo menos incluídas com a linguagem.
 
 \subsubsection{Exemplos}
-A operação central da linguagem \textit{ChucK} passa pelo operador \texttt{=>} (também chamado de operador \textit{chucking}). A sua semântica pode ser pensada um pouco como a atribuição a variáveis, ou \textit{piping} de dados. Por exemplo, na listagem \ref{lst:chuck-1} podemos ver a declaração de um oscilador sinusoidal \textbf{\texttt{SinOsc s}} que é \textit{chucked} para a variável \textbf{\texttt{dac}}. Esta é uma variável especial da linguagem e que representa o dispositivo de reprodução de aúdio (as colunas ou auscultadores).
+A operação central da linguagem \textit{ChucK} passa pelo operador \texttt{=>} (também chamado de operador \textit{chucking}). A sua semântica pode ser pensada um pouco como a atribuição a variáveis, ou \textit{piping} de dados. Por exemplo, na listagem \ref{lst:chuck-1} podemos ver a declaração de um oscilador sinusoidal \textbf{\texttt{SinOsc s}} que é \textit{chucked} para a variável \textbf{\texttt{dac}}. Esta é uma variável especial da linguagem e que representa o dispositivo de reprodução de áudio (as colunas ou auscultadores).
 
-Na linha seguinte podemos ver também que é atribuída à variável \textbf{\texttt{now}} o valor de dois segundos: esta é outra variável especial da linguagem, neste caso responsável por controlar o agendamento da execução de código. Ao executar essa instrução, estamos efetivamente a parar a execução da \textit{shred} atual durante dois segundos (ficando o som do oscilador definido na linha atrás a enviar som durante os dois segundos para o dispositivo de aúdio reproduzir).
+Na linha seguinte podemos ver também que é atribuída à variável \textbf{\texttt{now}} o valor de dois segundos: esta é outra variável especial da linguagem, neste caso responsável por controlar o agendamento da execução de código. Ao executar essa instrução, estamos efetivamente a parar a execução da \textit{shred} atual durante dois segundos (ficando o som do oscilador definido na linha atrás a enviar som durante os dois segundos para o dispositivo de áudio reproduzir).
 \begin{lstlisting}[caption={Reproduzir um oscilador durante dois segundos},label={lst:chuck-1}]
 SinOsc s => dac;
 
@@ -141,7 +167,7 @@ while( true ) {
 }
 \end{lstlisting}
 
-Neste caso o nosso \textit{time-loop} não faz nada senão esperar continuamente. Mas a sua utilidade é revelada quando vemos que podemos mudar as propriedades do som gerado ao longo do tempo. Por exemplo, podemos verificar que para além de conectar o oscilador ao dispositivo aúdio, também lhe demos um nome \textbf{s}. Assim conseguimos usar esse nome para alterar, dentro do ciclo, a sua frequência, por exemplo, de dois em dois segundos, como vemos na listagem \ref{lst:chuck-3}.
+Neste caso o nosso \textit{time-loop} não faz nada senão esperar continuamente. Mas a sua utilidade é revelada quando vemos que podemos mudar as propriedades do som gerado ao longo do tempo. Por exemplo, podemos verificar que para além de conectar o oscilador ao dispositivo áudio, também lhe demos um nome \textbf{s}. Assim conseguimos usar esse nome para alterar, dentro do ciclo, a sua frequência, por exemplo, de dois em dois segundos, como vemos na listagem \ref{lst:chuck-3}.
 \begin{lstlisting}[caption={Reproduzir um oscilador, variando a frequência a cada 2 segundos},label={lst:chuck-3}]
 SinOsc s => dac;
 
@@ -183,20 +209,20 @@ while( true ) {
 
 O exemplo é bastante grande e verboso, e vai de encontro à nossa opinião sobre, apesar de a linguagem permitir interagir com teclados, a definição desta interação por parte do programador é de bastante baixo nível. Se quisermos ter ações associadas a diferentes teclas, temos de construir estruturas de controlo para decidir qual das teclas foi premida e o que fazer em cada caso. Então se quisermos reagir não só a uma tecla, mas a uma tecla com modificadores (por exemplo \texttt{Ctrl Shift T}) temos de guardar manualmente o estado das teclas premidas e saber quando podemos despoletar a ação. Isto porque parece que neste aspeto, a linguagem segue um padrão de código imperativo, em vez de declarativo.
 
-Para além disso, se quisessemos associar algumas ações a teclas do computador, e outras a teclas de um piano MIDI, teríamos de manualmente abrir os dois dispositivos, e depois arranjar alguma forma de esperar concurrentemente pelos eventos de ambos (possivelmente usando uma \textit{shred} diferente para cada dispositivo).
+Para além disso, se quiséssemos associar algumas ações a teclas do computador, e outras a teclas de um piano MIDI, teríamos de manualmente abrir os dois dispositivos, e depois arranjar alguma forma de esperar concorrentemente pelos eventos de ambos (possivelmente usando uma \textit{shred} diferente para cada dispositivo).
 
-Em conclusão, não é uma interface agradável para quem queira fazer algumas rápidas experimentações músicais, principalmente alguém que seja músico e não um programador mais experiente.
+Em conclusão, não é uma interface agradável para quem queira fazer algumas rápidas experimentações musicais, principalmente alguém que seja músico e não um programador mais experiente.
 
 \subsection{Sonic Pi}
 Possivelmente a linguagem que mais se aproxima do objetivo pretendido com este projeto, \textbf{Sonic Pi}~\cite{doi:SonicPi}~\cite{sonic-pi} descreve-se como uma ferramenta de código para a criação e performance de música.
 
-A linguagem permite tocar notas (e também construções mais complexas a partir das mesmas, tais como acordes, arpégios e escalas, por exemplo). Para além disso permite tocar \textit{samples}, que são ficheiros \acrfull{wav}. A linguagem já traz consigo aproximadamente 164 \textit{samples} que podem ser livremente usadas, mas é também possível ao utilizador usar as suas próprias.
+A linguagem permite tocar notas (e também construções mais complexas a partir das mesmas, tais como acordes, \textit{arpeggios} e escalas, por exemplo). Para além disso permite tocar \textit{samples}, que são ficheiros \acrfull{wav}. A linguagem já traz consigo aproximadamente 164 \textit{samples} que podem ser livremente usadas, mas é também possível ao utilizador usar as suas próprias.
 
-As músicas são compostas por \textbf{live loops}, que são grupos de sons que podem estar a tocar simultâneamente. Dentro de cada \textit{live loop} o utilizador pode usar a função \texttt{play} para tocar notas, \texttt{sample} para reproduzir ficheiros \acrshort{wav}, ou \textit{sleep} para avançar o tempo. Para além disso a linguagem suporta, através da função \texttt{with\_fx} a reprodução de sons com efeitos (como \textit{reverb}, \textit{pan}, \textit{echo} entre muitos outros~\cite{sonic-pi-fx}).
+As músicas são compostas por \textbf{live loops}, que são grupos de sons que podem estar a tocar simultaneamente. Dentro de cada \textit{live loop} o utilizador pode usar a função \texttt{play} para tocar notas, \texttt{sample} para reproduzir ficheiros \acrshort{wav}, ou \textit{sleep} para avançar o tempo. Para além disso a linguagem suporta, através da função \texttt{with\_fx} a reprodução de sons com efeitos (como \textit{reverb}, \textit{pan}, \textit{echo} entre muitos outros~\cite{sonic-pi-fx}).
 
-Para além das capacidades músicais, a linguagem disponibiliza numa sintaxe similar a \textit{Ruby}, construções de programação como ciclos, variáveis, estruturas de controlo condicionais e até métodos para adicionar aleatoriedade à música tocada, permitindo escolher, por exemplo, qual a nota a tocar a partir de uma lista de possibilidades.
+Para além das capacidades musicais, a linguagem disponibiliza numa sintaxe similar a \textit{Ruby}, construções de programação como ciclos, variáveis, estruturas de controlo condicionais e até métodos para adicionar aleatoriedade à música tocada, permitindo escolher, por exemplo, qual a nota a tocar a partir de uma lista de possibilidades.
 
-Apesar de tudas estas funcionalidades disponibilizadas, existem áreas onde o \textit{Sonic Pi} fica aquém dos objetivos pretendidos para este projeto. Por exemplo, apesar de permitir tanto receber como enviar eventos \acrshort{midi}, as suas capacidades de \acrfull{io} são bastante primitivas. Também não é fácil utilizar o teclado teclado do computador para tocar sons ou manipular o estado do programa. É possível fazê-lo, mas é bastante mais complicado do que seria de esperar (para além de exigir utilizar alguma linguagem de programação à parte). A sintaxe de declaração de notas favorece ecompanhamentos gerados proceduralmente, mas é muito   verbosa para tocar manualmente acompanhamentos com mais que algumas notas seguidas.
+Apesar de todas estas funcionalidades disponibilizadas, existem áreas onde o \textit{Sonic Pi} fica aquém dos objetivos pretendidos para este projeto. Por exemplo, apesar de permitir tanto receber como enviar eventos \acrshort{midi}, as suas capacidades de \acrfull{io} são bastante primitivas. Também não é fácil utilizar o teclado teclado do computador para tocar sons ou manipular o estado do programa. É possível fazê-lo, mas é bastante mais complicado do que seria de esperar (para além de exigir utilizar alguma linguagem de programação à parte). A sintaxe de declaração de notas favorece acompanhamentos gerados proceduralmente, mas é muito verbosa para tocar manualmente acompanhamentos com mais que algumas notas seguidas.
 
 \subsubsection{Exemplos}
 \begin{lstlisting}[caption={Reproduzir um \textit{sample} com valores aleatórios}] 
@@ -205,9 +231,9 @@ loop do
     sleep rrand(0, 2)
 end
 \end{lstlisting}
-Neste exemplo, podemos ver como a linguagem \textit{Sonic Pi} permite criar um \textit{loop}, onde podemos tocar sons (neste caso, um sample pré-definido chamado \texttt{perc\_bell}).
+Neste exemplo, podemos ver como a linguagem \textit{Sonic Pi} permite criar um \textit{loop}, onde podemos tocar sons (neste caso, um \textit{sample} pré-definido chamado \texttt{perc\_bell}).
 
-É possível verificar também o uso da função \texttt{sleep} para gerir manualmente o avanço temporal da música (neste caso usando um valor escolhido aleatóriamente e entre 0 e 2 segundos).
+É possível verificar também o uso da função \texttt{sleep} para gerir manualmente o avanço temporal da música (neste caso usando um valor escolhido aleatoriamente e entre 0 e 2 segundos).
 
 
 \begin{lstlisting}[caption={Reproduzir um notas de uma escala aleatórias, com efeito \textit{reverb}}] 
@@ -218,7 +244,7 @@ with_fx :reverb, mix: 0.2 do
     end
 end
 \end{lstlisting}
-Neste exemplo podemos observar a possibilidade do uso de efeitos, em particular do efeito \texttt{reverb}, para manipular o som gerado pelo programa. Dentro do \textit{loop}, é tocada uma nota a cada 100 milisegundos. A função \texttt{scale} gera uma lista com as notas da escala pedida, e a função \texttt{choose} escolhe aleatóriamente uma dessas notas para tocar.
+Neste exemplo podemos observar a possibilidade do uso de efeitos, em particular do efeito \texttt{reverb}, para manipular o som gerado pelo programa. Dentro do \textit{loop}, é tocada uma nota a cada 100 milissegundos. A função \texttt{scale} gera uma lista com as notas da escala pedida, e a função \texttt{choose} escolhe aleatoriamente uma dessas notas para tocar.
     
 \section{Gramáticas}
 	%% PEG vs CFG:
@@ -235,7 +261,7 @@ Tradicionalmente, as gramáticas mais populares no campo de processamento de tex
 
 \subsection{Diferenças: \acrshort{cfg} vs \acrshort{peg}}
 
-A diferença com maiores repercussões práticas entre as duas classes de gramáticas deve-se á semãntica atribuída ao operador de escolha, e a consequente \textbf{ambíguidade} (ou falta dela) na gramática. Nas gramáticas \acrshort{peg}, o operador é ordenado, o que significa que a ordem por que as alternativas aparecem é relevante durante o \textit{parsing} do \textit{input}. Isto contrasta com a semântica nas \acrshort{cfg}, onde a ordem das alternativas é irrelevante. Isto pode no entanto levar a ambíguidades, onde o mesmo \textit{input}, descrito pela mesma gramática, pode resultar em duas árvores de \textit{parsing} diferentes, se satisfizesse mais do que um dos ramos do operador de escolha. Isto é, as \acrshort{cfg} podem por essa razão ser ambíguas.
+A diferença com maiores repercussões práticas entre as duas classes de gramáticas deve-se à semântica atribuída ao operador de escolha, e a consequente \textbf{ambiguidade} (ou falta dela) na gramática. Nas gramáticas \acrshort{peg}, o operador é ordenado, o que significa que a ordem por que as alternativas aparecem é relevante durante o \textit{parsing} do \textit{input}. Isto contrasta com a semântica nas \acrshort{cfg}, onde a ordem das alternativas é irrelevante. Isto pode no entanto levar a ambiguidades, onde o mesmo \textit{input}, descrito pela mesma gramática, pode resultar em duas árvores de \textit{parsing} diferentes, se satisfizesse mais do que um dos ramos do operador de escolha. Isto é, as \acrshort{cfg} podem por essa razão ser ambíguas.
 
 Tomemos como exemplo o famoso problema do \textit{dangling else}~\cite{dangling-else} descrito nas duas classe de gramáticas:
 \begin{lstlisting}
@@ -253,30 +279,30 @@ Tomemos como exemplo o famoso problema do \textit{dangling else}~\cite{dangling-
 
 No caso de uma \acrshort{cfg}, sabendo que o operador de escolha \texttt{|} é comutativo, o seguinte \textit{input} será ambíguo, podendo resultar num \textit{if-else} dentro do \textit{if} ou num \textit{if} dentro de um \textit{if-else}.
 
-Mas no caso de uma \acrshort{peg}, o resultado é claro: um \textit{if-else} dentro de um \textit{if}. Quando a primeira regra do condicional chega ao \texttt{statement}, este vai por sua vez chamar o não terminal \texttt{conditional\_statement}, que por sua vez irá consumir o \textit{input} até ao fim. Deste modo, quando a execução voltar ao primeiro \texttt{conditional\_statement}, esta irá falhar por não conseguir ler o \textit{else} (uma vez que já consumimos todo o texto de entrada). Irá depois irá usar a segunda alternativa, dando então o resultado previso.
+Mas no caso de uma \acrshort{peg}, o resultado é claro: um \textit{if-else} dentro de um \textit{if}. Quando a primeira regra do condicional chega ao \texttt{statement}, este vai por sua vez chamar o não terminal \texttt{conditional\_statement}, que por sua vez irá consumir o \textit{input} até ao fim. Deste modo, quando a execução voltar ao primeiro \texttt{conditional\_statement}, esta irá falhar por não conseguir ler o \textit{else} (uma vez que já consumimos todo o texto de entrada). Irá depois irá usar a segunda alternativa, dando então o resultado previsto.
 
-Com este exemplo de \textit{backtracking} podemos também verificar um problema aparente nas gramáticas \acrshort{peg}. Falhando a primeira alternativa na produção \texttt{conditional\_statement}, a segunda irá ser testada. Mas é evidente, olhando para a gramática que a segunda alternativa é exatamente igual à parte inicial da primeira alternativa (que neste caso também corresponde á parte que teve sucesso). Em vez de voltar a testar as regras de uma forma \textit{naive}, as \acrlong{peg} guardam antes em \textit{cache} os resultados de testes anteriores, permitindo assim uma pesquisa em tempo linear relativamente ao tamanho do \textit{input}, à custa de uma maior utilização de memória.
+Com este exemplo de \textit{backtracking} podemos também verificar um problema aparente nas gramáticas \acrshort{peg}. Falhando a primeira alternativa na produção \texttt{conditional\_statement}, a segunda irá ser testada. Mas é evidente, olhando para a gramática que a segunda alternativa é exatamente igual à parte inicial da primeira alternativa (que neste caso também corresponde à parte que teve sucesso). Em vez de voltar a testar as regras de uma forma \textit{naive}, as \acrlong{peg} guardam antes em \textit{cache} os resultados de testes anteriores, permitindo assim uma pesquisa em tempo linear relativamente ao tamanho do \textit{input}, à custa de uma maior utilização de memória.
 
 %% TODO Talk about composition and why PEG grammars can do it better than CFG
 
 \subsection{Resumo}
 Em resumo, as três principais diferenças entre as tradicionais \acrfull{cfg} e as mais recentes \acrfull{peg} são:
 
-\textbf{Ambiguidade}. O operador de escolha ser comutativo nas \acrshort{cfg} resulta em gramáticas que podem ser ambíguas para o mesmo \textit{input}. As \acrshort{peg} são determínisticas, mas exigem mais cuidado na ordem das produções, uma vez que tal afeta a semântica da gramática.
+\textbf{Ambiguidade}. O operador de escolha ser comutativo nas \acrshort{cfg} resulta em gramáticas que podem ser ambíguas para o mesmo \textit{input}. As \acrshort{peg} são determinísticas, mas exigem mais cuidado na ordem das produções, uma vez que tal afeta a semântica da gramática.
 
-\textbf{Memoization} Para evitar \textit{backtracking} exponêncial, as \acrshort{peg} utilizam \textit{memoization} que lhes permite guardar em \textit{cache} resultados parciais durante o processo de \textit{parsing}. Isto reduz o tempo dispendido, pois evita fazer o \textit{parse} do mesmo texto pela mesma regra duas vezes. Mas também aumenta o consumo de memória, pois os resultados parciais têm de ser guardados até a análise terminar por completo.
+\textbf{Memoization} Para evitar \textit{backtracking} exponencial, as \acrshort{peg} utilizam \textit{memoization} que lhes permite guardar em \textit{cache} resultados parciais durante o processo de \textit{parsing}. Isto reduz o tempo despendido, pois evita fazer o \textit{parse} do mesmo texto pela mesma regra duas vezes. Mas também aumenta o consumo de memória, pois os resultados parciais têm de ser guardados até a análise terminar por completo.
 
 \textbf{Composição} As \acrlong{peg} também têm a vantagem de oferecerem uma maior facilidade de composição. Em qualquer parte da gramática é possível trocar um terminal por um não terminal. Isto é, é extremamente fácil construir gramáticas mais modulares e compô-las entre si.
 
 \section{SoundFonts}
-O formato \textit{SoundFont} foi originalmente desenvolvido nos anos 90 pela empresa E-mu Systems para ser usado inicialmente pelas placas de som \textit{Sound Blaster}. Ao longo dos anos o formato sofreu diversas alterações, encontrando-se atualemente na versão 2.04, lançada em 2005~\cite{soundfont}. Atualmente existem diversos sintetizadores de software \textit{cross platform} e \textit{open source} capazes de converterem eventos \textit{MIDI} em som usando ficheiros \textit{SoundFont}, dispensando a necessidade de uma placa de som compatível com o formato. Alguns destes projetos são TiMidity\verb|++|~\cite{timidity}, WildMIDI~\cite{wild-midi} e FluidSynth~\cite{fluidsynth}.
+O formato \textit{SoundFont} foi originalmente desenvolvido nos anos 90 pela empresa \textit{E-mu Systems} para ser usado inicialmente pelas placas de som \textit{Sound Blaster}. Ao longo dos anos o formato sofreu diversas alterações, encontrando-se atualmente na versão 2.04, lançada em 2005~\cite{soundfont}. Atualmente existem diversos sintetizadores de software \textit{cross platform} e \textit{open source} capazes de converterem eventos \textit{MIDI} em som usando ficheiros \textit{SoundFont}, dispensando a necessidade de uma placa de som compatível com o formato. Alguns destes projetos são TiMidity\verb|++|~\cite{timidity}, WildMIDI~\cite{wild-midi} e FluidSynth~\cite{fluidsynth}.
+
 
 Para além do formato original, existem também alternativas mais recentes que disponibilizam mais funcionalidades na sua especificação, como os ficheiros \textbf{SFZ} ou \textbf{NKI}. Estas alternativas trazem consigo vantagens e desvantagens, mas independentemente dos seus méritos, até agora nenhuma atingiu a popularidade dos ficheiros \textit{SoundFont}, o que significa também menos bibliotecas e menos aplicações para trabalhar com elas.
 
-Um ficheiro de SoundFont\cite{rossum1995soundfont} é constítuido por um ou mais bancos (\textit{banks}) (até um máximo de 128). Cada banco pode por sua vez ter até 128 \textit{presets} (por vezes também chamados instrumentos ou programas).
+Um ficheiro de SoundFont\cite{rossum1995soundfont} é constituído por um ou mais bancos (\textit{banks}) (até um máximo de 128). Cada banco pode por sua vez ter até 128 \textit{presets} (por vezes também chamados instrumentos ou programas).
 
 Usando a sintaxe de declaração de tipos do \textit{Python} (que irá ser usada mais vezes neste projeto), podemos declarar um \textit{SoundFont}, de uma forma bastante genérica e omitindo detalhes não essenciais, como sendo modelado pelos seguintes tipos:
-\newpage
 \begin{lstlisting}[caption=Sistema de Tipos de um ficheiro SoundFont,language=Python]
     # Cada preset e identificado por um par: (bank, preset number)
     SoundFont = Dict[ Tuple[ int, int ], Preset ]
@@ -293,7 +319,7 @@ Usando a sintaxe de declaração de tipos do \textit{Python} (que irá ser usada
 
 
 \section{Sintetizadores}
-A biblioteca FluidSynth é um \textit{software} sintetizador de aúdio em tempo real que transforma dados MIDI em sons, que podem ser gravados em disco ou encaminhados diretamente para um \textit{output} de aúdio. Os sons são gerados com recurso a SoundFonts~\cite{soundfont} (ficheiros com a extensão \texttt{.sf2}) que mapeiam cada nota para a gravação de um instrumento a tocar essa nota.
+A biblioteca FluidSynth é um \textit{software} sintetizador de áudio em tempo real que transforma dados MIDI em sons, que podem ser gravados em disco ou encaminhados diretamente para um \textit{output} de áudio. Os sons são gerados com recurso a SoundFonts~\cite{soundfont} (ficheiros com a extensão \texttt{.sf2}) que mapeiam cada nota para a gravação de um instrumento a tocar essa nota.
 
 Os \textit{bindings} da biblioteca para Python foram baseados no código \textit{open source} do projeto \textbf{pyfluidsynth}~\cite{pyfluidsynth}, jutamente com algumas definições CPython extra para permitir usar funções que não tivessem \textit{bindings} já criados.
 
@@ -320,11 +346,11 @@ Com os objetos necessários inicializados, é necessário ainda especificar qual
 
 A função \texttt{Synth.NoteOn} recebe três argumentos: um inteiro a representar o canal, outro inteiro entre 0 e 127 a representar a nota, e finalmente outro inteiro também entre 0 e 127 a representar a velocidade da nota.
 
-O canal (\textbf{channel}) representa qual o instrumento que vai reproduzir a nota em questão. Cada canal está atríbuido a um programa da SoundFont, e é possível a qualquer momento mudar o programa atribuido a qualquer canal através do método \texttt{Synth.ProgramChange}. Caso se tenha carregado mais do que uma \textit{SoundFont}, é possível usar o método \texttt{Synth.ProgramSelect}, que permite especificar o \texttt{id} da \textit{SoundFont} e do banco do instrumento a atribuir.
+O canal (\textbf{channel}) representa qual o instrumento que vai reproduzir a nota em questão. Cada canal está atribuído a um programa da SoundFont, e é possível a qualquer momento mudar o programa atribuído a qualquer canal através do método \texttt{Synth.ProgramChange}. Caso se tenha carregado mais do que uma \textit{SoundFont}, é possível usar o método \texttt{Synth.ProgramSelect}, que permite especificar o \texttt{id} da \textit{SoundFont} e do banco do instrumento a atribuir.
 
-A chave (\textbf{key}) representa a nota a tocar. Sendo este valor um inteiro entre 0 e 127, é necessário saber como mapear as tradicionais notas músicais neste valor. Para isso, basta colocarmos as \textit{pich classes} e os seus respetivos acidentais \textit{sharp} numa lista ordenada (\verb|C, C#, D, D#, E, F, F#, G, G#, A, A#, B|) e associar a eles os inteiros entre 0 e 11 (inclusive). Depois apenas temos de somar a esse número a multiplicação da oitava da nota (a começar em 0) por 12. Podemos deste modo calcular, por exemplo, que a \textit{key} do C central (C4) é igual a 48 ($0 + 4 * 12$). Assim, podemos generalizar que para uma oitava $O$ e para um tom de nota $N$, obtemos a chave aplicando a fórmula:
+A chave (\textbf{key}) representa a nota a tocar. Sendo este valor um inteiro entre 0 e 127, é necessário saber como mapear as tradicionais notas musicais neste valor. Para isso, basta colocarmos as \textit{pich classes} e os seus respetivos acidentes \textit{sharp} numa lista ordenada (\verb|C, C#, D, D#, E, F, F#, G, G#, A, A#, B|) e associar a eles os inteiros entre 0 e 11 (inclusive). Depois apenas temos de somar a esse número a multiplicação da oitava da nota (a começar em 0) por 12. Podemos deste modo calcular, por exemplo, que a \textit{key} do C central (C4) é igual a 48 ($0 + 4 * 12$). Assim, podemos generalizar que para uma oitava $O$ e para um tom de nota $N$, obtemos a chave aplicando a fórmula:
 $$N + O * 12$$
 
-A velocidade (\textbf{velocity}) é também um valor entre 0 e 127. Relacionando a velocidade com um piano físico, esta representa a força (ou velocidade) com que a tecla foi premida. Velocidades maiores geram sons mais altos, enquanto que velocidades mais baixas geram sons mais baixos, permitindo assim ao músico dar ou tirar enfase a uma nota relativamente às restantes. De notar que um valor igual a zero é o equivalente a invocar o método \texttt{Synth.NoteOff}.
+A velocidade (\textbf{velocity}) é também um valor entre 0 e 127. Relacionando a velocidade com um piano físico, esta representa a força (ou velocidade) com que a tecla foi premida. Velocidades maiores geram sons mais altos, enquanto que velocidades mais baixas geram sons mais baixos, permitindo assim ao músico dar ou tirar ênfase a uma nota relativamente às restantes. De notar que um valor igual a zero é o equivalente a invocar o método \texttt{Synth.NoteOff}.
 
-A método \texttt{Synth.NoteOff}, por sua vez, recebe apenas dois argumentos (canal e chave), e deve ser chamada passsado algum tempo para terminar a nota. Podemos deste modo construir a analogia óbvia que o método \texttt{NoteOn} corresponde a uma tecla de piano ser premida, e \texttt{NoteOff} corresponde a essa tecla ser libertada.
+A método \texttt{Synth.NoteOff}, por sua vez, recebe apenas dois argumentos (canal e chave), e deve ser chamada passado algum tempo para terminar a nota. Podemos deste modo construir a analogia óbvia que o método \texttt{NoteOn} corresponde a uma tecla de piano ser premida, e \texttt{NoteOff} corresponde a essa tecla ser libertada.

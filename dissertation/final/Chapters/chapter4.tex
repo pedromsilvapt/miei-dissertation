@@ -32,7 +32,7 @@ Depois podemos ver a utilização de variáveis (\texttt{\$chorus} e \texttt{mel
 É possível ver também o quão conciso fica descrever padrões ou conjuntos de notas repetidas através do operador de repetição (\texttt{*}). O operador de paralelo (\texttt{|}) permite depois tocar notas em paralelo ao mesmo tempo.
 
 \section{Simples Fuga}
-O caso de estudo anterior mostra como é possível declarar algumas notas, e aproveitar operadores simples como a repetição para reduzir a redundância no código. Neste caso de estudo vamos um pouco mais à frente e vêmos como podemos declarar uma função, que usa as suas variáveis em mais do que um sítio e de diferentes formas.
+O caso de estudo anterior mostra como é possível declarar algumas notas, e aproveitar operadores simples como a repetição para reduzir a redundância no código. Neste caso de estudo vamos um pouco mais à frente e vemos como podemos declarar uma função, que usa as suas variáveis em mais do que um sítio e de diferentes formas.
 \begin{lstlisting}[caption=Exemplo da declaração da estrutura e conteúdo de uma simples fuga de duas vozes,language=PHP]
 # Fugue 2 in C minor in Book I of the J.S. Bach’s Well-Tempered Clavier
 fun fugue ( $subj, $resp ) => 
@@ -60,9 +60,9 @@ play( fugue( $subj, $resp ) );
   \label{fig:fugue}
 \end{figure}
 
-Também nos permite analizar que as músicas podem conter estruturas não imediatamente óbvias à primeira vista. A função recebe duas excertos músicais \texttt{\$subj} e \texttt{\$resp}, e toca-os em sequência. Mas para além disso, durante o terceiro e quarto compassos, também toca em paralelo uma versão do \texttt{\$subj} transposta 7 semitons. 
+Também nos permite analisar que as músicas podem conter estruturas não imediatamente óbvias à primeira vista. A função recebe duas excertos musicais \texttt{\$subj} e \texttt{\$resp}, e toca-os em sequência. Mas para além disso, durante o terceiro e quarto compassos, também toca em paralelo uma versão do \texttt{\$subj} transposta 7 semitons. 
 
-E este é apenas um pequeno exemplo do tipo de transformações e operações que podem ser efetuadas de modo não destrutivo sobre os acompanhamentos músicais. Se quisermos mudar alguma nota em \texttt{\$subj}, quando reproduzirmos o ficheiro novamente, essa alteração irá refletir-se automaticamente na versão transposta também.
+E este é apenas um pequeno exemplo do tipo de transformações e operações que podem ser efetuadas de modo não destrutivo sobre os acompanhamentos musicais. Se quisermos mudar alguma nota em \texttt{\$subj}, quando reproduzirmos o ficheiro novamente, essa alteração irá refletir-se automaticamente na versão transposta também.
 
 \section{Definir um teclado}
 
@@ -101,14 +101,14 @@ Lá dentro fazemos uso da função \texttt{cc} que permite controlar diversos co
 
 Depois podemos ver a declaração de dois teclados virtuais (a linguagem permite mais do que um teclado ativo ao mesmo tempo). O primeiro mapeia a algumas teclas (\texttt{a, s, d, f e g}) o conjunto de acordes usados nesta música. Para além disso também define alguns modificares a serem usados por este teclado (cujo significado é discutido no capítulo \ref{modifiers}).
 
-O segundo teclado funciona de forma similar, atribuíndo às teclas de 1 a 9 notas individuais a serem tocadas. Neste teclado podemos também ver que notas músicais não são os únicos elementos que podem ser associados a teclas. Também é possível descrever expressões arbitrárias (como neste caso, a chamada da função \texttt{toggle\_sustain( \$sustained )} associada à tecla \textbf{c}).
+O segundo teclado funciona de forma similar, atribuindo às teclas de 1 a 9 notas individuais a serem tocadas. Neste teclado podemos também ver que notas musicais não são os únicos elementos que podem ser associados a teclas. Também é possível descrever expressões arbitrárias (como neste caso, a chamada da função \texttt{toggle\_sustain( \$sustained )} associada à tecla \textbf{c}).
 
 Outro ponto a notar sobre o segundo teclado é a declaração entre parênteses \texttt{(V120)} que permite modificar o volume das notas tocadas por este teclado (que se sobrepõe ao volume global \texttt{V70} indicado no início do código). Isto é uma forma simples de prefixar configurações a todas as notas do teclado, evitando ter de copiar essas configurações para todas as notas.
 
 \section{Teclado de \textit{Arpeggios}}
 Neste caso vamos construir um teclado mais dinâmico. Vamos associar a algumas teclas diferentes acordes. Mas em vez de tocar simplesmente esses acordes, vamos tocá-los como arpeggios aplicados a um padrão.
 
-É importante notar que o padrão não está escrito estáticamente, mas sim guardado na variável \texttt{\$pat}. Isto significa que podemos depois usar um segundo \textit{keyboard} para controlar qual o padrão ativo. E para tornar o exemplo ainda mais divertido, usamos as setas \textit{up} e \textit{down} para aumentar ou diminuir a transposição das notas resultantes, dando assim mais variadade aos quatro acordes definidos.
+É importante notar que o padrão não está escrito estaticamente, mas sim guardado na variável \texttt{\$pat}. Isto significa que podemos depois usar um segundo \textit{keyboard} para controlar qual o padrão ativo. E para tornar o exemplo ainda mais divertido, usamos as setas \textit{up} e \textit{down} para aumentar ou diminuir a transposição das notas resultantes, dando assim mais variedade aos quatro acordes definidos.
 
 É fácil de ver também como este teclado é extremamente versátil, e pode ser facilmente adaptado para um qualquer número de acordes e \textit{arpeggios} que se queira utilizar.
 
@@ -216,14 +216,14 @@ A primeira parte da função declara um \textit{array} com as três linhas de ca
 
 Essa declaração, inspirada nas listas por compreensão do \textit{Python}, funciona através de uma construção similar a um ciclo \textit{for}. A variável \texttt{\$c} corresponde a cada item da \textit{linha} (neste caso, casa tecla), a variável \texttt{\$sem} permite-nos obter o índice da letra atual na \textit{linha}. A cada letra é associada a nota \texttt{c} transposta pelo índice da tecla e da linha a que pertence.
 
-Para além disso também podemos ver a declaração de mais quatro teclas (correspondentes às quatro setas do teclado) que permitem desclocar as notas tocadas por oitavas completas ou por semitons. Para isso, estas teclas têm associadas uma expressão de bloco (identificada peloas chavetas \texttt{\{} e \texttt{\}}). Lá dentro é possível meter uma instrução (ou opcionalmente várias, separadas por pontos e vírgulas \textbf{;}). O valor da última expressão é o valor de retorno da expressão de bloco toda, pelo que seria possível que uma tecla fizesse mais que uma coisa (alterar o estado e no fim retornar ainda notas para serem tocadas, por exemplo).
+Para além disso também podemos ver a declaração de mais quatro teclas (correspondentes às quatro setas do teclado) que permitem deslocar as notas tocadas por oitavas completas ou por semitons. Para isso, estas teclas têm associadas uma expressão de bloco (identificada pelas chavetas \texttt{\{} e \texttt{\}}). Lá dentro é possível meter uma instrução (ou opcionalmente várias, separadas por pontos e vírgulas \textbf{;}). O valor da última expressão é o valor de retorno da expressão de bloco toda, pelo que seria possível que uma tecla fizesse mais que uma coisa (alterar o estado e no fim retornar ainda notas para serem tocadas, por exemplo).
 
 Finalmente vemos também um exemplo do método \texttt{map}, um dos vários métodos que o objeto \texttt{Keyboard} disponibiliza e que permitem modificar ainda mais o comportamento dos teclados, alterando o valor emitido por cada tecla de acordo com a função passada.
 
 \needspace{.2\textheight}
 
 \section{Conclusão}
-Com estes exemplos pudemos ver como ter uma sintaxe declarativa torna bastante compacta a descrição de acompanhamentos músicais. Mas mais do que poder descrevê-los estáticamente, o facto de podermos repetir e transformar sequências músicais aumenta ainda mais a produtividade do utilizador.
+Com estes exemplos pudemos ver como ter uma sintaxe declarativa torna bastante compacta a descrição de acompanhamentos musicais. Mas mais do que poder descrevê-los estaticamente, o facto de podermos repetir e transformar sequências musicais aumenta ainda mais a produtividade do utilizador.
 
 Para além disso também conseguimos observar que a integração dos teclados abre portas para situações bastante interessantes, principalmente quando usados em conjunto com as ferramentas de programação dinâmica disponíveis. Um exemplo disso é o caso do nosso teclado de \textit{arpeggios}, onde podemos definir apenas um conjunto de acordes, e depois aplicar uma transformação comum a todos eles para produzirem expressões mais complexas (que podem ser depender de variáveis que vão mudando ao longo da execução).
 

@@ -6,11 +6,11 @@
 %% Chapter with lots of dummy text
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Desenvolvimento}
-O desenvolvimento do projeto pode ser dividido de grosso modo em três camadas. Nelas são cobertos um grupo abrangente de aspetos tanto da área do processamento de linguagens e do desenvolvimento de \acrshort{dsl}'s, da teoria músical, e do processamento digital de audio. 
+O desenvolvimento do projeto pode ser dividido de grosso modo em três camadas. Nelas são cobertos um grupo abrangente de aspetos tanto da área do processamento de linguagens e do desenvolvimento de \acrshort{dsl}'s, da teoria musical, e do processamento digital de áudio. 
 
-Na camada da linguagem esteve mais proeminente a área de processamento de linguagens, por motivos óbvios. Mas nas decisões tomadas durante o desenvolvimento desta camada, estiveram sempre presentes também as necessidades específicas que a teoria músical (e a sua notação) impõem numa linguagem de programação.
+Na camada da linguagem esteve mais proeminente a área de processamento de linguagens, por motivos óbvios. Mas nas decisões tomadas durante o desenvolvimento desta camada, estiveram sempre presentes também as necessidades específicas que a teoria musical (e a sua notação) impõem numa linguagem de programação.
 
-Do mesmo modo, o interpretador faz claramente uso de tópicos do domínio do processamento de linguagens, mas é ainda mais fortemente influencidado pelas restrições  e requisitos impostos pela componente músical da linguagem. Esta influencia a forma e a semântica da execução dos vários operadores disponibilizados.
+Do mesmo modo, o interpretador faz claramente uso de tópicos do domínio do processamento de linguagens, mas é ainda mais fortemente influenciado pelas restrições  e requisitos impostos pela componente musical da linguagem. Esta influencia a forma e a semântica da execução dos vários operadores disponibilizados.
 
 A última camada, de desenvolvimento de uma biblioteca, afeta composta pelos objetos e procedimentos que têm como objetivo facilitar a utilização da linguagem. Para isso foi necessário identificar os casos de utilização mais comuns e prioritários, de modo a guiar a construção destas interfaces para refletirem uma utilização real da linguagem e da aplicação.
 
@@ -21,7 +21,7 @@ A camada sintática da aplicação pode ser conceptualmente dividida em duas fas
     \item[Parser] Nesta fase foi desenvolvido um \textit{parser} em \textit{Python}, responsável por converter o código fonte da linguagem numa \acrfull{ast};
 \end{description}
 
-No entanto, a realidade é que a abordagem seguida (não só nesta camada mas como em todo o projeto) foi mais iterativa, dividindo cada faze em porções semi-independentes e intercalando as várias porções das diversas fases. Esta abordagem tem a vantagem de permitir ir testando e experimentando com o projeto mais cedo do que seria possível com um modelo de desenvolvimento em cascata.
+No entanto, a realidade é que a abordagem seguida (não só nesta camada mas como em todo o projeto) foi mais iterativa, dividindo cada fase em porções semi-independentes e intercalando as várias porções das diversas fases. Esta abordagem tem a vantagem de permitir ir testando e experimentando com o projeto mais cedo do que seria possível com um modelo de desenvolvimento em cascata.
 
 \subsection{Sintaxe}
 A sintaxe da linguagem é fortemente inspirada nas usualmente chamadas linguagens da família C, com recurso a parênteses curvos e chavetas para delínear os vários blocos da linguagem. No entanto, as expressões são complementadas com um novo conjunto de literais e operadores dedicados à componente músical da linguagem. Conseguir juntar estes dois mundos traz consigo alguns desafios que serão discutidos mais em detalhe em cada umas das secções seguintes.
@@ -29,10 +29,10 @@ A sintaxe da linguagem é fortemente inspirada nas usualmente chamadas linguagen
 \subsubsection{\textbf{Literais}}
 Literais referem-se ao conceito de sintaxe desenhada com o propósito de descrever dados (literais) no código. São usados em quase todas as linguagens de programação (e na nossa também) para descrever números, \textit{strings} e booleanos.
 
-A maior diferença nesta área entre a nossa linguagem e as restantes, foi a adição de literais responsáveis por modelar conceitos músicais, como notas, pausas e acordes. Esta sintaxe, tal como já foi mencionado anteriormente, foi inspirada pelo projecto \textit{abc notation}, com algumas modificações.
+A maior diferença nesta área entre a nossa linguagem e as restantes, foi a adição de literais responsáveis por modelar conceitos musicais, como notas, pausas e acordes. Esta sintaxe, tal como já foi mencionado anteriormente, foi inspirada pelo projeto \textit{abc notation}, com algumas modificações.
 
 \subsubsection{\textbf{Notas e Pausas}}
-A sintaxe de notas descrição de notas é composta por quatro componentes: \textbf{acidentais}, \textbf{\textit{pitch}} (obrigatório), \textbf{oitava} e \textbf{duração}.
+A sintaxe de notas descrição de notas é composta por quatro componentes: \textbf{acidentes}, \textbf{\textit{pitch}} (obrigatório), \textbf{oitava} e \textbf{duração}.
 
 \begin{lstlisting}[caption=Expressão Regular que identifica uma nota (quebras de linha adicionadas apenas para claridade de leitura)]
 [_^]*
@@ -41,14 +41,14 @@ A sintaxe de notas descrição de notas é composta por quatro componentes: \tex
 ([0-9]*\/)?[0-9]*
 \end{lstlisting}
 
-O \textit{pitch} refere-se à nota (ou frequência) que deve ser tocada. O \textbf{C médio} (também conhecido como C4) é descrito simplesmente como \texttt{C}. É possível descer uma ou mais oitavas acrescentando uma ou mais vírgulas \texttt{,}. Para subir uma oitava, podemos primeiro substituir as letras maíusculas por minúsculas. Para subir ainda mais oitavas, podemos acrescentar uma ou mais pelicas \texttt{'}. Para subir ou descer semitons, podemos prefixar as notas com os acidentais \textbf{\texttt{\textasciicircum{}}} e \textbf{\texttt{\_}}, respetivamente.
+O \textit{pitch} refere-se à nota (ou frequência) que deve ser tocada. O \textbf{C médio} (também conhecido como C4) é descrito simplesmente como \texttt{C}. É possível descer uma ou mais oitavas acrescentando uma ou mais vírgulas \texttt{,}. Para subir uma oitava, podemos primeiro substituir as letras maiúsculas por minúsculas. Para subir ainda mais oitavas, podemos acrescentar uma ou mais pelicas \texttt{'}. Para subir ou descer semitons, podemos prefixar as notas com os acidentes \textbf{\texttt{\textasciicircum{}}} e \textbf{\texttt{\_}}, respetivamente.
 
 As pausas são mais simples, sendo compostas simplesmente pela letra \texttt{r} seguida da sua \textbf{duração} (usando as mesma sintaxe das notas).
 
 \subsubsection{\textbf{Acordes}}
-Para definir acordes na linguagem, colocam-se várias notas dentro de parenteses retos. A notação usada para cada nota inclui os seus três primeiros componentes (acidentais, \textit{pitch} e oitava), mas exclui a duração. Em vez de definir a duração em cada nota, esta é definida globalmente no acorde após fechar os parenteses retos.
+Para definir acordes na linguagem, colocam-se várias notas dentro de parênteses retos. A notação usada para cada nota inclui os seus três primeiros componentes (acidentes, \textit{pitch} e oitava), mas exclui a duração. Em vez de definir a duração em cada nota, esta é definida globalmente no acorde após fechar os parênteses retos.
 
-Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de um acorde manualmente, temos uma sintaxe abreviada para os tipos de acordes mais comuns, onde é apenas necessário introduzir a nota base seguido do tipo de acorde. Esta sintaxe irá suportar mais tipos no futuro, sendo atualmente possível usar os seguintes suffixos:
+Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de um acorde manualmente, temos uma sintaxe abreviada para os tipos de acordes mais comuns, onde é apenas necessário introduzir a nota base seguido do tipo de acorde. Esta sintaxe irá suportar mais tipos no futuro, sendo atualmente possível usar os seguintes sufixos:
 
 \begin{table}[h]
 \centering
@@ -64,7 +64,7 @@ Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de
 \label{tab:modifiers-list}
 \end{table}
 
-A decisão de envolver cada acorde com parênteses retos deveu-se ao facto de muitas abreviaturas serem já populares no domínio da notação músical, e como tal o ideal era não as mudar. No entanto, algumas dessas abreviaturas poderiam entrar em conflito com outros componentes da declaração da nota. Por exemplo, \texttt{C7} poderia ser tanto um acorde de sétima como uma nota com duração de 7. Com a separação por parenteses retos, a ambiguidade deixa de existir, sendo obvio que \texttt{[C7]} é um acorde de sétima, e \texttt{C7} é uma nota com duração 7.
+A decisão de envolver cada acorde com parênteses retos deveu-se ao facto de muitas abreviaturas serem já populares no domínio da notação musical, e como tal o ideal era não as mudar. No entanto, algumas dessas abreviaturas poderiam entrar em conflito com outros componentes da declaração da nota. Por exemplo, \texttt{C7} poderia ser tanto um acorde de sétima como uma nota com duração de 7. Com a separação por parênteses retos, a ambiguidade deixa de existir, sendo óbvio que \texttt{[C7]} é um acorde de sétima, e \texttt{C7} é uma nota com duração 7.
 
 \begin{lstlisting}[caption={Exemplos de três definições de acordes possíveis}] 
 [CFG]/4 [^Fm] [C5]2
@@ -72,7 +72,7 @@ A decisão de envolver cada acorde com parênteses retos deveu-se ao facto de mu
 
 \subsubsection{\textbf{Modificadores}}
 
-Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar certas propriedades das notas e acordes. Duas destas propriedades (duração e oitava) podem ser depois customizadas em cada nota ou acorde, como já vimos. No entanto, em vez de estes valores substituirem simplesmente os valores predefinidos, eles ``complementam-se''.
+Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar certas propriedades das notas e acordes. Duas destas propriedades (duração e oitava) podem ser depois customizadas em cada nota ou acorde, como já vimos. No entanto, em vez de estes valores substituírem simplesmente os valores predefinidos, eles ``complementam-se''.
 
 Ou seja, se declararmos por exemplo que a duração base das notas é $\frac{1}{4}$. Quando definirmos alguma nota a seguir com a duração de $\frac{1}{2}$, a sua duração real irá ser calculada da seguinte forma $\frac{1}{4} \times \frac{1}{2} = \frac{1}{8}$.
 
@@ -100,20 +100,20 @@ Compasso      & S$D$/$N$                                                        
 \subsubsection{\textbf{Variáveis e Funções}}
 Uma das consequências da introdução da sintaxe de notas literais foi a impossibilidade de ter variáveis com certos nomes. Uma variável chamada \textbf{\texttt{a}}, por exemplo, iria entrar em conflito com a nota do mesmo nome. Do mesmo modo, uma variável chamada \texttt{i1} iria entrar em conflito com o modificador de instrumento. 
 
-Em vez de criar casos de excepção para as variáveis que possam ter nomes que conflitam com outros construtores sintáticos, seguimos o exemplo de outras linguagems como \textit{PHP}, \textit{Perl} ou \textit{Powershell}, e decidimos prefixar as nossas variáveis com o caracter \texttt{\$}.
+Em vez de criar casos de exceção para as variáveis que possam ter nomes que conflitam com outros construtores sintáticos, seguimos o exemplo de outras linguagens como \textit{PHP}, \textit{Perl} ou \textit{Powershell}, e decidimos prefixar as nossas variáveis com o carácter \texttt{\$}.
 
-No caso das funções foi possível evitar a ambiguidade (e do mesmo modo a obrigatoriedade de as prefixar com um caracter) devido ao facto de as funções terem obriugatoriamente um par de parênteses (sem espaço entre os mesmos e o nome da função) quando são chamadas.
+No caso das funções foi possível evitar a ambiguidade (e do mesmo modo a obrigatoriedade de as prefixar com um carácter) devido ao facto de as funções terem obrigatoriamente um par de parênteses (sem espaço entre os mesmos e o nome da função) quando são chamadas.
 
 No entanto não quer dizer que as funções passaram imunes à introdução das literais de música. Uma vez que a vírgula é usada para mudar a oitava de uma nota (e foi escolhida de forma a manter compatibilidade com a sintaxe do projeto \textit{abc notation}), existem casos em que esta não pode ser utilizada para separar os argumentos passados a uma função.
 
 Por exemplo, dada a expressão \texttt{function\_name(C, A, \$a, 2)}, quantos argumentos podemos concluir que a mesma tem? Quatro? A resposta correta seria dois, pois as duas primeiras vírgulas poderiam pertencer à nota ou ao separador da função. Mas neste caso a nota teria prioridade na nossa gramática, pelo que \texttt{C, A, \$a} seria o primeiro argumento, e \texttt{2} seria o segundo.
 
-A solução tomada inicialmente foi utilizar ponto-e-vírgula para substituir a vírgula como separador de argumentos nas funções. E enquanto iso resolveu os problemas de ambiguidade, tornou-se óbvio à medida que que a linguagem foi avançando, que a prevalência da vírgula como separador de argumentos em quase todas as linguagens de programação mais populares fazia com que houvesse um custo mental de mudança de contexto sempre que alguém mudava de alguma linguagem para a nossa, e vice-versa.
+A solução tomada inicialmente foi utilizar ponto-e-vírgula para substituir a vírgula como separador de argumentos nas funções. E enquanto isso resolveu os problemas de ambiguidade, tornou-se óbvio à medida que que a linguagem foi avançando, que a prevalência da vírgula como separador de argumentos em quase todas as linguagens de programação mais populares fazia com que houvesse um custo mental de mudança de contexto sempre que alguém mudava de alguma linguagem para a nossa, e vice-versa.
 
-A solução escolhida no final foi um compromisso entre as duas opções: tanto a vírgula como o ponto-e-vírgula podem ser usados como separadores de argumentos, com a exceção de quando o argumento é uma nota músical, onde o ponto-e-vírgula tem de ser obrigatoriamente usado. Assim sendo, poderiamos rescrever o exemplo anterior da seguinte forma \texttt{function\_name(C; A; \$a, 2)}, passando a função a receber agora os quatro argumentos como seria inicialmente esperado.
+A solução escolhida no final foi um compromisso entre as duas opções: tanto a vírgula como o ponto-e-vírgula podem ser usados como separadores de argumentos, com a exceção de quando o argumento é uma nota musical, onde o ponto-e-vírgula tem de ser obrigatoriamente usado. Assim sendo, poderíamos rescrever o exemplo anterior da seguinte forma \texttt{function\_name(C; A; \$a, 2)}, passando a função a receber agora os quatro argumentos como seria inicialmente esperado.
 
 \subsection{Gramática}
-A sintaxe que descrevemos acima foi implementada com recurso ao gerador de \textit{parsers} com base em gramáticas \acrshort{peg}, \textbf{Arpeggio} (cujo nome é irónico, tendo o tema desta dissertação).
+A sintaxe que descrevemos acima foi implementada com recurso ao gerador de \textit{parsers} com base em gramáticas \acrshort{peg}, \textbf{Arpeggio} (cujo nome é irónico, tendo em conta o tema desta dissertação).
 
 Aqui vamos analisar brevemente uma versão simplificada da gramática (a versão completa usada pela aplicação pode ser vista em maior detalhe no Apêndice \ref{grammar}). Nesta versão simplificada, incluída para facilitar a leitura, não se preocupa com coisas como por exemplo recursividade à esquerda, ou precedência de operadores. Obviamente, na gramática real foram usadas as técnicas usuais para cobrir esses casos.
 
@@ -132,7 +132,7 @@ python <- "@python" python_body
 python_body <- ( r".*" r"\r?\n"? )*
 \end{lstlisting}
 
-Ao longo da gramática são também usadas produções triviais, como inteiros, \textit{strings}, booleanos entre outras. Sendo tão comuns e simples, não vale a pena estar a descrevê-las todas. Deixamos no entanto aqui duas produções que vãoser usadas, mas cujas definições podem ser ligeiramente diferentes do usual.
+Ao longo da gramática são também usadas produções triviais, como inteiros, \textit{strings}, booleanos entre outras. Sendo tão comuns e simples, não vale a pena estar a descrevê-las todas. Deixamos no entanto aqui duas produções que vão ser usadas, mas cujas definições podem ser ligeiramente diferentes do usual.
 
 \begin{lstlisting}[caption={Produções base da gramática},language={}]
 sep = r"[,;]"
@@ -266,13 +266,13 @@ modifier
 \end{lstlisting}
 
 \subsubsection{Teclados}
-As produções para descrever teclados são um ponto fulcral na nossa gramática e na utilização da nossa linguagem em geral. Nós quisemos que elas permitissem descrever teclados de uma forma consisa, mas ainda assim dando bastante poder ao utilizador na forma como o utiliza.
+As produções para descrever teclados são um ponto fulcral na nossa gramática e na utilização da nossa linguagem em geral. Nós quisemos que elas permitissem descrever teclados de uma forma concisa, mas ainda assim dando bastante poder ao utilizador na forma como o utiliza.
 
 Com isso em mente, podemos ver que os teclados têm um corpo que difere do corpo geral da linguagem, mas ao mesmo tempo mantém algumas similaridades, nomeadamente, o facto de cada instrução no corpo ser separada por um ponto e vírgula.
 
 No entanto, as instruções no corpo de um teclado são diferentes: a instrução mais básica, denominada por \textit{shortcut}, pode ser imaginada como um par tecla e ação (com mais alguma informação adicional, como por exemplo, argumentos do evento).
 
-Mas para além disso, também há outras instruções aceites que permitem aos nossos teclados serem gerados dinâmicamente: \texttt{for}, \texttt{while} e \texttt{if}. Os cabeçalhos destas instruções são de grosso modo iguais aos das suas versões \textit{general-purpose}, mas nos seus corpos aceitam só instruções de teclados também.
+Mas para além disso, também há outras instruções aceites que permitem aos nossos teclados serem gerados dinamicamente: \texttt{for}, \texttt{while} e \texttt{if}. Os cabeçalhos destas instruções são de grosso modo iguais aos das suas versões \textit{general-purpose}, mas nos seus corpos aceitam só instruções de teclados também.
 
 Por fim, existe mais uma instrução válida, \textit{block}, que permite colocar instruções normais e sem restrições, envoltas num par de chavetas. Isto é útil quando precisamos de declarar alguma variável dentro do teclado para evitar, por exemplo, repetir um pedaço de código múltiplas vezes.
 
@@ -307,7 +307,7 @@ keyboard_argument_list <- "(" ( variable ( r"[,;]" variable )* )? ")"
 
 % começa cinco linhas numa nova página
 \subsection{Parser}
-Para implementar o parser da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} descendente recursivo com recurso a \textit{memoization} para melhorar a \textit{performance}.
+Para implementar o \textit{parser} da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} descendente recursivo com recurso a \textit{memoization} para melhorar a \textit{performance}.
 
 \begin{lstlisting}[caption={Excerto da gramática desenvolvida}]
 main <- body EOF;
@@ -335,6 +335,92 @@ def visit_statement ( self, node, children ): ...
 def visit_var_declaration ( self, node, children ): ...
 \end{lstlisting}
 
+\subsection{Tooling}
+Para além da gramática e do \textit{parser} da linguagem, que são indispensáveis para o funcionamento do projeto, foram também implementados algumas funcionalidades adicionais com o intuito de facilitar a utilização da nossa linguagem, que só vamos cobrir brevemente.
+
+\subsubsection{Syntax Highlighting}
+Para oferecer \textit{syntax highlighting} para a nossa linguagem, que a nosso ver torna a experiência de programar com a mesma muito mais agradável, utilizamos uma linguagem chamada \textbf{Iro}\footnote{\url{https://eeyo.io/iro/}}. Esta linguagem é uma \acrshort{dsl} que permite descrever a sintaxe através de expressões regulares, e associar estilos a cada uma. 
+
+\begin{lstlisting}[caption={Pequeno excerto da definição da linguagem escrito em Iro}]
+:pattern {
+    regex          \= (=>|<=|>=|==|!=|[=\*\|\+\-\/]|>=)
+    styles []       = .operator;
+}
+
+: pattern {
+    regex          \= (#.*)
+    styles []       = .comment;
+}
+\end{lstlisting}
+
+A sua grande vantagem é permitir, a partir de uma única definição, gerar versões em formatos específicos suportados por vários editores, como por exemplo o \textit{TextMate}, \textit{Visual Studio Code}, \textit{Atom}, \textit{Sublime 3}, ou até convenientemente para o formato suportado pelo popular módulo \textit{Python} \textbf{Pygments}. Usamos este módulo para colorir os exemplos de código na nossa documentação, como iremos ver na secção seguinte.
+
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.95\linewidth]{./img/syntax_highlight.png}}%
+  }%
+  \caption{\textit{Syntax highlighting} da linguagem MusiKLa no editor Visual Studio Code}
+  \label{fig:syntax-highlighting-code}
+\end{figure}
+
+\newpage
+
+\subsubsection{Documentação}
+Também foi escrita documentação para a linguagem\footnote{\url{https://pedromsilvapt.github.io/miei-dissertation/}}, que inclui informação sobre a sintaxe, exemplos de \textit{scripts} funcionais escritos em \textit{musikla}, e uma \acrshort{api} com a descrição das várias funções disponibilizadas, as suas assinaturas e alguns exemplos de utilização.
+
+A documentação foi escrita em \textit{Markdown}, e convertida para \acrshort{html} usando o projeto \textbf{mkdocs}\footnote{\url{https://www.mkdocs.org/}}. Os exemplos de código disponibilizados na documentação são coloridos pelo módulo \textbf{Pygments}, usando a definição de linguagem que descrevemos na secção anterior.
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.95\linewidth]{./img/documentation.png}}%
+  }%
+  \caption{Captura de ecrã da página de documentação da linguagem}
+  \label{fig:documentation-screenshot}
+\end{figure}
+
+\subsubsection{Relatórios de Erros}
+A aplicação de linha de comandos que interpreta a linguagem também dispõe de um componente responsável por, quando ocorre algum erro relacionado com a linguagem, imprimir para o terminal o sítio onde o erro ocorreu, bem como a mensagem a descrever o erro.
+
+Existem dois tipos de erros possíveis: erros de sintaxe, que ocorrem durante a fase de \textit{parse} quando algum carácter está no sítio errado; e erros de execução, que ocorrem quando a linguagem está a executar e podem ter causas variadas.
+
+\begin{figure}[ht]
+  \centering
+  {%
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0pt}%
+  \fbox{\includegraphics[width=.95\linewidth]{./img/error_reporting.png}}%
+  }%
+  \caption{Relatório de erro de \textit{parse}}
+  \label{fig:error_reporting_parse}
+\end{figure}
+
+Para ambos os erros, o componente de relatório precisa apenas dos seguintes campos:
+\begin{enumerate}
+ \item[Ficheiro] Qual o caminho do ficheiro onde ocorreu o erro (opcional).
+ \item[Código] O conteúdo do ficheiro que originou o erro. Este campo pode parecer redundante, tendo nós o caminho do ficheiro. Seria de esperar que podíamos simplesmente ler o ficheiro e obter o seu conteúdo. No entanto, desde o momento que o ficheiro foi lido inicialmente, e o momento em que ocorreu o erro, o seu conteúdo pode ter mudado. Por esta razão, é importante manter em memória o código dos ficheiros carregados para assegurar que os erros são mostrados corretamente.
+ \item[Posição Início e Fim] Dois inteiros indicando o inicio e fim da secção contígua no ficheiro onde o erro deve ser marcado a vermelho. Podem cobrir mais do que uma linha.
+ \item[Mensagem] Finalmente, qual a mensagem de erro a mostrar ao utilizador.
+\end{enumerate}
+
+\subsubsection*{Erros de Sintaxe}
+Estes erros são fáceis de reportar. Sempre que há algum erro de sintaxe, o \textit{parser} emite uma exceção já com a informação da mensagem de erro, bem como a posição onde o erro ocorreu. Na nossa aplicação, só temos de tratar essa exceção, adicionando-lhe o caminho e o conteúdo do ficheiro a que estávamos a fazer \textit{parse}, e já temos toda a informação disponível para mostrar o erro.
+
+\subsubsection*{Erros de Avaliação}
+Este tipo de erros pode ocorrer em qualquer lado. Por essa razão, antes de fazer-mos \textit{parse} de qualquer ficheiro, associamos o ficheiro (e o seu conteúdo) a um inteiro único por execução. 
+
+Depois durante a fase de \textit{parsing}, associamos a cada nó da \acrshort{ast} um triplo com três inteiros, representando o ficheiro, posição de início, e posição de fim a que esse nó corresponde.
+
+Desta forma, no método \texttt{Node.eval()} herdado por todos os nós da \acrshort{ast}, colocamos um \texttt{try ... except ...} à volta da chamada de \texttt{Node.\_\_eval\_\_()} (função que contém o código específico de execução de cada nó). Desta forma, conseguimos adicionar a qualquer exceção que ocorra durante a execução, o triplo que o nó tem com a informação sobre o ficheiro e a sua posição no mesmo.
+
+Esta informação é depois utilizada para preencher os campos e mostrar o relatório de erro.
+
 \newpage
 
 \section{Interpretador}
@@ -344,7 +430,7 @@ No que toca a linguagens interpretadas temos mais opções. Podemos então divid
 \begin{description}
  \item[Interpretadores] Também chamados por vezes como interpretadores \textit{tree walk}, são usualmente os mais simples de implementar (mas também os mais lentos a executar). O seu conceito baseia-se no \textit{design pattern} homónimo, em que as operações da linguagem são modeladas numa árvore, geralmente igual ou similar à estrutura da \acrshort{ast}. Para executar uma expressão é chamado um método na raiz da árvore, e esse método irá chamar recursivamente os métodos das suas sub-expressões, passando o estado como argumentos da função, e recebendo o resultado pelo valor retornado da função.
  \item[Bytecode VM] São chamadas máquinas virtuais (VM) porque o seu comportamento assemelha-se mais ao comportamento dos processadores reais dos computadores. As expressões da árvore de sintaxe abstrata são previamente convertidas numa sequência linear de instruções mais simples (geralmente compactadas em binário para melhor \textit{performance}), também referidas como \textit{bytecode}. Cada instrução é depois executada dentro de um ciclo. Esta solução fornece um balanço entre facilidade de implementação e velocidade de execução (evitando a grande quantidade de chamadas recursivas de funções presentes nos interpretadores \textit{tree walk}).
- \item[Just In Time] O método mais complexo (mas também o que oferece melhor \textit{performance} para tarefas pesadas). O código é executado inicialmente por um dos dois métodos anteriores, de modo a recolher estatísticas sobre qual o tipo de execução mais comum do código. Após esta recolha, é gerado código máquina optimizado para os tipos de dados mais comuns de uma variável, ou para os caminhos de execução mais prevalentes, para que seja possível da próxima vez que o mesmo pedaço de código seja executado, isso ocorra com recurso ao código máquina. Este processo é gerlamente repetido ao longo da execução do programa, sendo que caso a versão de código máquina gerada fique desatualizado (o tipo de dados usualmente passados a uma função mudem), essa porção de código seja invalidada e eventualmente substituida por uma nova versão mais adequada.
+ \item[Just In Time] O método mais complexo (mas também o que oferece melhor \textit{performance} para tarefas pesadas). O código é executado inicialmente por um dos dois métodos anteriores, de modo a recolher estatísticas sobre qual o tipo de execução mais comum do código. Após esta recolha, é gerado código máquina otimizado para os tipos de dados mais comuns de uma variável, ou para os caminhos de execução mais prevalentes, para que seja possível da próxima vez que o mesmo pedaço de código seja executado, isso ocorra com recurso ao código máquina. Este processo é geralmente repetido ao longo da execução do programa, sendo que caso a versão de código máquina gerada fique desatualizado (o tipo de dados usualmente passados a uma função mudem), essa porção de código seja invalidada e eventualmente substituída por uma nova versão mais adequada.
  \end{description}
 
  É possível ver que a solução ideal seria sempre a compilação \acrfull{jit}, que evita uma fase de compilação explícita e forçada ao utilizador, mas ao mesmo tempo consegue fornecer \textit{performance} competitiva para tarefas mais exigentes. No entanto é inevitável concluir que esta solução impõe custos de desenvolvimento astronómicos, e implica equipas de grande dimensão e tempos de desenvolvimento extremamente longos.
@@ -363,18 +449,18 @@ No que toca a linguagens interpretadas temos mais opções. Podemos então divid
 \subsection{Contexto}
 A variável de contexto guarda o estado da execução, e deve conter toda a informação necessária para cada instrução poder executar. Os seus conteúdos podem ser divididos em três componentes:
 \begin{description}
- \item[Timestamp] Esta propriedade é um simples inteiro que permite às expressões de geração de eventos músicais saberem qual o tempo virtual atual. Este tempo virtual é manipulado pelos vários operadores. O operador sequencial por exemplo, que recebe uma lista de expressões e emite uma lista de eventos músicais uns a seguir aos outros, avança este cursor para o fim do último evento antes de passar o contexto para avaliar a expressão seguinte.
- \item[Voz] Objeto que contém as várias propriedades músicais que devem ser aplicadas durante a geração de eventos, tais como a duração base das notas, o compasso ou as batidas por minuto.
+ \item[Timestamp] Esta propriedade é um simples inteiro que permite às expressões de geração de eventos musicais saberem qual o tempo virtual atual. Este tempo virtual é manipulado pelos vários operadores. O operador sequencial por exemplo, que recebe uma lista de expressões e emite uma lista de eventos musicais uns a seguir aos outros, avança este cursor para o fim do último evento antes de passar o contexto para avaliar a expressão seguinte.
+ \item[Voz] Objeto que contém as várias propriedades musicais que devem ser aplicadas durante a geração de eventos, tais como a duração base das notas, o compasso ou as batidas por minuto.
  \item[Símbolos] Um contentor que permite aceder e modificar os símbolos disponíveis na linguagem (tais como variáveis e funções).
  \end{description}
  
  Os contextos foram desenhados com o intuito de serem leves, daí apenas conterem  referências para três variáveis. Desta forma é possível criar cópias dos contextos e permitir que operações variadas estejam a executar ao mesmo tempo com diferentes contextos.
  
- Para percebermos a razão desta necessidade, basta pensarmos no operador paralelo. Se colocarmos duas expressões músicais que devem tocar ao mesmo tempo, a geração de uma (ou mais) notas na primeira expressão não deve afetar o \texttt{timestamp} da segunda. Para isto, cada uma das expressões deve receber uma cópia do contexto (com o \textit{timestamp} inicial igual). Quando as duas expressões terminarem, no entanto, é importante que o contexto original (que gerou as duas cópias) atualize os seu \textit{timestamp} para qual for a expressão mais longa.
+ Para percebermos a razão desta necessidade, basta pensarmos no operador paralelo. Se colocarmos duas expressões musicais que devem tocar ao mesmo tempo, a geração de uma (ou mais) notas na primeira expressão não deve afetar o \texttt{timestamp} da segunda. Para isto, cada uma das expressões deve receber uma cópia do contexto (com o \textit{timestamp} inicial igual). Quando as duas expressões terminarem, no entanto, é importante que o contexto original (que gerou as duas cópias) atualize os seu \textit{timestamp} para qual for a expressão mais longa.
  
  Se prestarmos atenção, podemos estar aqui a detetar um padrão bastante comum na área da programação: o modelo \textbf{fork-join}.
  
- E é fácil perceber que faz sentido. Apesar de estarmos a lidar com notas e eventos músicais, fundamentalmente estamos a criar ramos paralelos de execução, e queremos no final aguardar o seu resutado e uníficá-lo com o ramo original. Se substituirmos ramo por \textit{thread} para o caso da programação, ou \textit{contexto} para o nosso caso, vemos a equivalência de contextos.
+ E é fácil perceber que faz sentido. Apesar de estarmos a lidar com notas e eventos musicais, fundamentalmente estamos a criar ramos paralelos de execução, e queremos no final aguardar o seu resultado e uníficá-lo com o ramo original. Se substituirmos ramo por \textit{thread} para o caso da programação, ou \textit{contexto} para o nosso caso, vemos a equivalência de contextos.
  
  Como tal, para além do estado (as três variáveis) que o objeto de contexto engloba, este providencia também algumas operações bastante simples e úteis:
  
@@ -389,7 +475,7 @@ A variável de contexto guarda o estado da execução, e deve conter toda a info
 \subsection{Scope de Símbolos}
 Cada contexto tem uma referência para o \textit{scope} de símbolos a que tem acesso. Nestes scopes são guardadas as variáveis e funções que o utilizador (e as bibliotecas standard da linguagem) declararem. Mais uma vez, cada objeto de \textit{scope} é composto por três propriedades: uma referência ao seu \textbf{antecessor} (ou pai), uma tabela de \textit{hash} com os \textbf{símbolos}, e uma \textit{flag} booleana para designar este \textit{scope} como \textbf{opaco}.
 
-O próprio conceito de \textit{scope} implica por si só uma hierarquia, e de facto cada objecto \textit{scope} guarda uma referência para o seu parente (ou para o valor nulo, caso seja o \textit{scope} raiz). Esta propriedade é utilizada para as operações disponíveis, tanto para pesquisar, como para atribuir valores a símbolos do \textit{scope} atual, algo que iremos verificar mais a seguir.
+O próprio conceito de \textit{scope} implica por si só uma hierarquia, e de facto cada objeto \textit{scope} guarda uma referência para o seu parente (ou para o valor nulo, caso seja o \textit{scope} raiz). Esta propriedade é utilizada para as operações disponíveis, tanto para pesquisar, como para atribuir valores a símbolos do \textit{scope} atual, algo que iremos verificar mais a seguir.
 
 \begin{description}
  \item[Pesquisa] A operação de pesquisa por um símbolo começa por procurar o símbolo no próprio \textit{scope}, e caso não encontre nada, navega recursivamente para o \textit{scope} pai para efetuar a pesquisa.
@@ -398,9 +484,9 @@ O próprio conceito de \textit{scope} implica por si só uma hierarquia, e de fa
  
  Se encontrar o símbolo nalgum \textit{scope}, então muda o seu valor nesse \textit{scope} onde está declarado. Caso contrário, é criado um novo símbolo no \textit{scope} original onde a operação de atribuição foi iniciada.
  
- \item[Enumeração] A operação de enumeração permite listar quais os símbolos vísiveis a partir de um \textit{scope}. Ela permite listar não só os símbolos do próprio \textit{scope}, mas também dos seus pais, tendo o cuidado para não retornar símbolos que tenham sido obscurecidos por um \textit{scope} mais em baixo. Esta é útil para importar símbolos do \textit{scope} de um módulo para outro, ou para implementar funcionalidades como \textit{autocomplete} sobre um script em execução (e permitir sugerir os símbolos disponíveis).
+ \item[Enumeração] A operação de enumeração permite listar quais os símbolos visíveis a partir de um \textit{scope}. Ela permite listar não só os símbolos do próprio \textit{scope}, mas também dos seus pais, tendo o cuidado para não retornar símbolos que tenham sido obscurecidos por um \textit{scope} mais em baixo. Esta é útil para importar símbolos do \textit{scope} de um módulo para outro, ou para implementar funcionalidades como \textit{autocomplete} sobre um script em execução (e permitir sugerir os símbolos disponíveis).
  
- \item[Apontadores] Como vimos na atribuição, é ímpossível alterar valores de variáveis globais dentro de \textit{scopes} opacos (como dentro de funções, por exemplo). Para colmatar isso, similar ao operador \texttt{global} e \texttt{nonlocal} do \textit{Python}, é possível instruir um \textit{scope} a criar um apontador para um símbolo declarado noutro \textit{scope}, de forma a que quando ocorre alguma atribuição, a alteração é replicada no seu \textit{scope} original.
+ \item[Apontadores] Como vimos na atribuição, é impossível alterar valores de variáveis globais dentro de \textit{scopes} opacos (como dentro de funções, por exemplo). Para colmatar isso, similar ao operador \texttt{global} e \texttt{nonlocal} do \textit{Python}, é possível instruir um \textit{scope} a criar um apontador para um símbolo declarado noutro \textit{scope}, de forma a que quando ocorre alguma atribuição, a alteração é replicada no seu \textit{scope} original.
 \end{description}
 
 \subsection{Módulos}
@@ -408,19 +494,19 @@ O interpretador dispõe também da possibilidade de executar código separado em
 
 Cada ficheiro importado é executado apenas uma vez durante a primeira importação, e no final o seu \textit{scope} é guardado em \textit{cache} para ser usado em futuras importações.
 
-Cada instrução de importação é dividida em duas fases: primeiro, o caminho passado é resolvido no caminho real e absoluto do ficheiro. Só depois é verificada na cache  se o ficheiro já foi importado antes. Uma vez obtido o seu \textit{scope}, os seus símbolos são enumerados e copiados para o scope que efetuou a importação (com símbolos que comecem com um \textit{underscore} sendo tratados como símbolos privados e ignorados).
+Cada instrução de importação é dividida em duas fases: primeiro, o caminho passado é resolvido no caminho real e absoluto do ficheiro. Só depois é verificada na \textit{cache} se o ficheiro já foi importado antes. Uma vez obtido o seu \textit{scope}, os seus símbolos são enumerados e copiados para o \textit{scope} que efetuou a importação (com símbolos que comecem com um \textit{underscore} sendo tratados como símbolos privados e ignorados).
 
 Para isso, quando o interpretador é inicializado, é criado um \textit{scope} raiz chamado \textbf{prelude}, e um \textit{scope} filho. Cada módulo importado é executado num \textit{scope} criado sempre a partir do \textit{prelude}. Desta forma, os símbolos aí guardados estão sempre acessíveis em todos os módulos importados.
 
 % TODO Imagem a exemplificar os scopes
 
-\subsection{Operadores Músicais}
+\subsection{Operadores Musicais}
 A sintaxe suporta os operadores aritméticos e de comparação usuais nas linguagens de programação. De modo geral, a sua sintaxe e semântica na nossa linguagem, o que seria expectável para cada um deles, pelo que não vale enumerá-los a todos nesta secção. No entanto, existem alguns operadores menos convencionais, ou até \textit{overloads} de operadores convencionais (como o operador de multiplicação e adição) que funcionam de forma diferente quando empregues junto a valores do tipo musical. São esses os casos que iremos abordar nas seguintes sub-secções.
 
-Um aspeto importante a ter em conta é que estes operadores não estão restritos gramaticalmente para aceitar apenas expressões músicais, mas aceita sim qualquer tipo de expressão. O seu tipo (e portânto a sua semântica) são apenas decididos em \textit{runtime} (emitando o modo de funcionamento do \textit{overloading} de operadores em \textit{Python}). Isto é necessário porque uma variável pode conter tanto um número como uma expressão músical, e o seu verdadeiro valor apenas é conhecido em execução.
+Um aspeto importante a ter em conta é que estes operadores não estão restritos gramaticalmente para aceitar apenas expressões musicais, mas aceita sim qualquer tipo de expressão. O seu tipo (e portanto a sua semântica) são apenas decididos em \textit{runtime} (imitando o modo de funcionamento do \textit{overloading} de operadores em \textit{Python}). Isto é necessário porque uma variável pode conter tanto um número como uma expressão musical, e o seu verdadeiro valor apenas é conhecido em execução.
 
 \subsubsection{Sequencial/Concatenação}
-Ao longo deste documento já vimos várias instâncias de como declarar uma nota ou um acorde. O ato de concatenar esses eventos (ou seja, reproduzi-los em sequência) é tão fundamental para a linguagem que também é algo que já vimos inúmeras vezes nos exemplos sem pensar muito nisso. Uma das razões para isso deve-se à sua sintaxe (ou falta dela, na verdade). O ato de concatenar eventos músicais é tão simples como escrevê-los uns à frente dos outros, sem nenhum tipo de separador especial (para além dos opcionais espaços em branco). O evento ficam com o seu tempo inicial sempre igual ao tempo final do evento anterior.
+Ao longo deste documento já vimos várias instâncias de como declarar uma nota ou um acorde. O ato de concatenar esses eventos (ou seja, reproduzi-los em sequência) é tão fundamental para a linguagem que também é algo que já vimos inúmeras vezes nos exemplos sem pensar muito nisso. Uma das razões para isso deve-se à sua sintaxe (ou falta dela, na verdade). O ato de concatenar eventos musicais é tão simples como escrevê-los uns à frente dos outros, sem nenhum tipo de separador especial (para além dos opcionais espaços em branco). O evento ficam com o seu tempo inicial sempre igual ao tempo final do evento anterior.
 
 \begin{lstlisting}[caption={Excerto da música \textit{Wet Hands} de C418},label=lst:ops-concat,belowcaptionskip=-\medskipamount]
 S4/4 T74 L/8 V90;
@@ -435,7 +521,7 @@ A, E A B ^c B A E D ^F ^c e ^c A3;
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/paper/concatenation2.png}}%
   }%
-  \caption{Pauta músical gerada pela linguagem\protect\footnotemark, versão aúdio dísponível \href{https://drive.google.com/open?id=1TP4lcul81s8iMCUFmD3HKnSpeftCzKT0}{\underline{aqui}}\protect\footnotemark.}
+  \caption{Pauta musical gerada pela linguagem\protect\footnotemark, versão áudio disponível \href{https://drive.google.com/open?id=1TP4lcul81s8iMCUFmD3HKnSpeftCzKT0}{\underline{aqui}}\protect\footnotemark.}
   \label{fig:ops-concat}
 \end{figure}
 
@@ -445,7 +531,7 @@ A, E A B ^c B A E D ^F ^c e ^c A3;
 Também é importante salientar o facto de que as listas de instruções (\textit{statements}) seguem a mesma semântica do operador de concatenação. Cada linha só vai tocar as suas notas quando as linhas anteriores tiverem acabado. Neste exemplo portanto, ter tudo na mesma linha ou separado em duas (ou mais) tem o mesmo resultado, variando apenas a legibilidade.
 
 \subsubsection{Repetição}
-O operador de repetição é bastante similar ao operador de concatenação. E faz sentido, uma vez que repetir uma expressão músical $N$ vezes pode ser pensado como um caso particular da concatenação onde existem $N$ operandos, todos iguais, uns em frente aos outros.
+O operador de repetição é bastante similar ao operador de concatenação. E faz sentido, uma vez que repetir uma expressão musical $N$ vezes pode ser pensado como um caso particular da concatenação onde existem $N$ operandos, todos iguais, uns em frente aos outros.
 
 \begin{lstlisting}[caption={Excerto do começo do tema principal de Westworld, por Ramin Djawadi},label=lst:ops-repetition,belowcaptionskip=-\medskipamount]
 I1 S6/8 T140 L/8 V90;
@@ -459,16 +545,16 @@ A*11 G F*12
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/paper/repetition2.png}}%
   }%
-  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/open?id=1IIm8PQkLsNFMK9MNSVubJSG6SP6KwhPL}{\underline{aqui}}\protect\footnotemark.}
+  \caption{Pauta musical gerada pela linguagem, versão áudio disponível \href{https://drive.google.com/open?id=1IIm8PQkLsNFMK9MNSVubJSG6SP6KwhPL}{\underline{aqui}}\protect\footnotemark.}
   \label{fig:ops-repetition}
 \end{figure}
 
 \footnotetext{Repetição \url{https://drive.google.com/open?id=1IIm8PQkLsNFMK9MNSVubJSG6SP6KwhPL}}
 
-Este operador, apesar de bastante simples, é também bastante útil para repetir pequenos acompanhamentos (mesmo notas singulares) muitas vezes, ou até para repetir poucas vezes acompanhamentos mais complexos. Evitando repetir os acompanhamentos no código, é possível efetuar alterações em apenas um sítio e ver essas alterações repetirem-se ao longo de toda a estrutura músical.
+Este operador, apesar de bastante simples, é também bastante útil para repetir pequenos acompanhamentos (mesmo notas singulares) muitas vezes, ou até para repetir poucas vezes acompanhamentos mais complexos. Evitando repetir os acompanhamentos no código, é possível efetuar alterações em apenas um sítio e ver essas alterações repetirem-se ao longo de toda a estrutura musical.
 
 \subsubsection{Paralelo}
-O operador paralelo permite reproduzir múltiplas sequências de eventos músicais em paralelo. Podemos dizer que conceptualmente, o operador paralelo é uma função que recebe uma lista de sequências músicais, e retorna uma única sequência com todas as sequencias combinadas. No entanto é importante que lembrar que o operador tem de respeitar os príncipios de \textit{\textbf{lazyness}} (não pedir mais eventos de cada vez do que o que os que são extritamente necessários) e \textbf{ordem} (a sequência de eventos resultantes tem de estar estritamente ordenada pelo tempo de ínicio de cada evento).
+O operador paralelo permite reproduzir múltiplas sequências de eventos musicais em paralelo. Podemos dizer que conceptualmente, o operador paralelo é uma função que recebe uma lista de sequências musicais, e retorna uma única sequência com todas as sequencias combinadas. No entanto é importante que lembrar que o operador tem de respeitar os princípios de \textit{\textbf{lazyness}} (não pedir mais eventos de cada vez do que o que os que são estritamente necessários) e \textbf{ordem} (a sequência de eventos resultantes tem de estar estritamente ordenada pelo tempo de início de cada evento).
 
 \begin{lstlisting}[caption={Excerto da música \textit{Soft to Be Strong} de Marina},label=lst:ops-parallel,belowcaptionskip=-\medskipamount]
 T120 V70 L1;
@@ -482,19 +568,19 @@ r/4 ^g/4 ^g/4 ^g/4   ^f/2 e/8 ^d3/8   ^c2 | [^Cm] [BM]  [AM] [BM]
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/paper/parallel2.png}}%
   }%
-  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/open?id=1ENTm3hZonYHyQIOgRZ8TQ1Qz-AfRLt2I}{\underline{aqui}}\protect\footnotemark.}
+  \caption{Pauta musical gerada pela linguagem, versão áudio disponível \href{https://drive.google.com/open?id=1ENTm3hZonYHyQIOgRZ8TQ1Qz-AfRLt2I}{\underline{aqui}}\protect\footnotemark.}
   \label{fig:ops-parallel}
 \end{figure}
 \footnotetext{Paralelo \url{https://drive.google.com/open?id=1ENTm3hZonYHyQIOgRZ8TQ1Qz-AfRLt2I}}
 
-A implementação do operador paralelo depende de um simples algoritmo de \textit{merge sorted} (não relacionado com o conhecido algoritmo de ordenação de \textit{arrays merge sort } inventado por John von Neumann).
+A implementação do operador paralelo depende de um simples algoritmo de \textit{merge sorted} (não relacionado com o conhecido algoritmo de ordenação de \textit{arrays merge sort} inventado por John von Neumann).
 
-A função \textit{merge sorted} receve $N$ operandos e cria um \textit{buffer} também de tamanho $N$. Para cada operando, ela cria um \textit{fork} do seu contexto, para que cada operando possa executar concurrentemente e assim modificar apenas o seu próprio contexto. Depois, ainda durante a inicialização do algoritmo, a função pede a cada operando um evento (que são guardados nas respetivas posições do \textit{buffer}).
+A função \textit{merge sorted} recebe $N$ operandos e cria um \textit{buffer} também de tamanho $N$. Para cada operando, ela cria um \textit{fork} do seu contexto, para que cada operando possa executar concorrentemente e assim modificar apenas o seu próprio contexto. Depois, ainda durante a inicialização do algoritmo, a função pede a cada operando um evento (que são guardados nas respetivas posições do \textit{buffer}).
 
 Após o \textit{buffer} estar preenchido pela primeira vez com um evento por operando, o algoritmo procura o evento mais recente (o evento com \textit{timestamp} menor) guardado no \textit{buffer}. Vamos assumir que esse evento se encontra guardado na posição $K$ do \textit{buffer}, sendo $k < N$. O método emite esse evento \texttt{buffer[K]} para a sequência músical de saída, e de seguida pede ao operando na posição $K$ o seu próximo evento, usando-o para substituir o que estava anteriormente no \textit{buffer} nessa mesma posição (guardando o valor \texttt{null} caso o operando $K$ já tenha chegado ao fim). O algoritmo repete depois este passo até todos os operandos terem chegado ao fim.
 
 \subsubsection{Transposição}
-As operações \verb|Music + Integer| e \verb|Music - Integer| correspondem à transposição de notas (e acordes). Podem ser aplicados a notas singulares ou expressões músicais complexas, o que resulta na transposição a ser aplicada a cada uma das notas da expressão músical.
+As operações \verb|Music + Integer| e \verb|Music - Integer| correspondem à transposição de notas (e acordes). Podem ser aplicados a notas singulares ou expressões musicais complexas, o que resulta na transposição a ser aplicada a cada uma das notas da expressão musical.
 
 \begin{lstlisting}[caption={Exemplo de transposição de um acompanhamento com três notas},label=lst:ops-transpose,belowcaptionskip=-\medskipamount]
 L/8;
@@ -508,15 +594,15 @@ L/8;
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/dissertation/transpose.png}}%
   }%
-  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/file/d/1xVey6on6Q-sWjNgo__Llb3QgOF1-_axa}{\underline{aqui}}\protect\footnotemark.}
+  \caption{Pauta musical gerada pela linguagem, versão áudio dísponível \href{https://drive.google.com/file/d/1xVey6on6Q-sWjNgo__Llb3QgOF1-_axa}{\underline{aqui}}\protect\footnotemark.}
   \label{fig:ops-transpose}
 \end{figure}
 \footnotetext{Transposição \url{https://drive.google.com/file/d/1xVey6on6Q-sWjNgo__Llb3QgOF1-_axa}}
 
-Neste simples exemplo listado em \ref{lst:ops-transpose} e ilustrado em forma de pauta músical na Figura \ref{fig:ops-transpose}, podemos ver claramente que a música é composta por dois triplos de notas, ambos com o mesmo padrão, sendo a única diferença que o segundo é tocado uma oitava acima (12 semitons).
+Neste simples exemplo listado em \ref{lst:ops-transpose} e ilustrado em forma de pauta musical na Figura \ref{fig:ops-transpose}, podemos ver claramente que a música é composta por dois triplos de notas, ambos com o mesmo padrão, sendo a única diferença que o segundo é tocado uma oitava acima (12 semitons).
 
 \subsubsection{Arpeggio}
-A operação \verb|Chord * Music| \footnote{Na implementação atual, o operador aceita não só acordes como primeiro operando, mas qualquer expressão músical} permite aplicar um \textbf{Arpeggio}. Esta operação consiste em pegar nas notas presentes no primeiro operador e colocá-las numa lista de $0 .. N$ não inclusivo (sendo $N$ o número de notas no acorde). De seguida é avaliada a segunda expressão músical, mantendo os seus tempos e posições, mas substituindo as notas pelas pertencentes ao acorde. O modo de substituição usa a seguinte escala: \texttt{C D E F G A B}. Isto é, assume a nota \texttt{C} como base (a que é substituida pela primeira nota do acorde), a nota \texttt{D} sendo substituida pela segunda nota do acorde, e por aí fora.
+A operação \verb|Chord * Music| \footnote{Na implementação atual, o operador aceita não só acordes como primeiro operando, mas qualquer expressão musical} permite aplicar um \textbf{Arpeggio}. Esta operação consiste em pegar nas notas presentes no primeiro operador e colocá-las numa lista de $0 .. N$ não inclusivo (sendo $N$ o número de notas no acorde). De seguida é avaliada a segunda expressão musical, mantendo os seus tempos e posições, mas substituindo as notas pelas pertencentes ao acorde. O modo de substituição usa a seguinte escala: \texttt{C D E F G A B}. Isto é, assume a nota \texttt{C} como base (a que é substituída pela primeira nota do acorde), a nota \texttt{D} sendo substituída pela segunda nota do acorde, e por aí fora.
 
 \begin{lstlisting}[caption={Três acordes diferentes arpegiados com o mesmo padrão},label=lst:ops-arpeggio,belowcaptionskip=-\medskipamount]
 S4/4 L/8 T85;
@@ -533,18 +619,18 @@ $p = C D E D2 E C2;
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/dissertation/arpeggio.png}}%
   }%
-  \caption{Pauta músical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/file/d/1E6ayR6gG2CfsikWFHijnEIui0rR1cAL7}{\underline{aqui}}\protect\footnotemark.}
+  \caption{Pauta musical gerada pela linguagem, versão aúdio dísponível \href{https://drive.google.com/file/d/1E6ayR6gG2CfsikWFHijnEIui0rR1cAL7}{\underline{aqui}}\protect\footnotemark.}
   \label{fig:ops-arpeggio}
 \end{figure}
 \footnotetext{\textit{Arpeggio} \url{https://drive.google.com/file/d/1E6ayR6gG2CfsikWFHijnEIui0rR1cAL7}}
 
 No exemplo da listagem \ref{lst:ops-arpeggio} recorremos ao uso de uma variável para guardar o padrão da nossa melodia. De seguida usamos o operador de \textit{arpeggio} em cada um dos acordes, sempre com o mesmo padrão. Esta funcionalidade permite definir uma melodia e testar rapidamente múltiplas variações da mesma sem ter de alterar manualmente a melodia de cada vez.
 
-Atualmentre a definição do padrão recorre à sintaxe das músicas usuais, por conveniência. No futuro, seria interessante implementar uma sintaxe específica para a definição de \textit{arpeggios}, usando por exemplo númeração romana. Dessa forma, o padrão do exemplo na listagem \ref{lst:ops-arpeggio} ficaria algo como \verb|I II III II2 III I2|. Outra possíbilidade seria a de usar a numeração decimal, com alguma marcação para distinguir dos números inteiros, tal como \verb|1º 2º 3º 2º2 3º 1º2|.
+Atualmente a definição do padrão recorre à sintaxe das músicas usuais, por conveniência. No futuro, seria interessante implementar uma sintaxe específica para a definição de \textit{arpeggios}, usando por exemplo numeração romana. Dessa forma, o padrão do exemplo na listagem \ref{lst:ops-arpeggio} ficaria algo como \verb|I II III II2 III I2|. Outra possibilidade seria a de usar a numeração decimal, com alguma marcação para distinguir dos números inteiros, tal como \verb|1º 2º 3º 2º2 3º 1º2|.
 
 
 \subsubsection{Redimensionamento}
-O operador de \textbf{Redimensionamento}, denotado pela sintaxe \verb|Music ** Integer|, \verb|Music ** Fraction|, ou \verb|Music ** Music|, pode talvez ser o menos intuitivo, mas é algo bastante útil. Ele permite mudar o tamanho de uma expressão arbitrária já declarada, para combinar com outra duração expressa num inteiro, fração, ou inferida através da duração de uma segunda expressão músical. O seu valor de retorno é então o primeiro operando, mas com os tempos proporcionalmente esticados (ou encolhidos) de modo a, no total, ficarem com a nova duração escolhida.
+O operador de \textbf{Redimensionamento}, denotado pela sintaxe \verb|Music ** Integer|, \verb|Music ** Fraction|, ou \verb|Music ** Music|, pode talvez ser o menos intuitivo, mas é algo bastante útil. Ele permite mudar o tamanho de uma expressão arbitrária já declarada, para combinar com outra duração expressa num inteiro, fração, ou inferida através da duração de uma segunda expressão musical. O seu valor de retorno é então o primeiro operando, mas com os tempos proporcionalmente esticados (ou encolhidos) de modo a, no total, ficarem com a nova duração escolhida.
 
 \begin{lstlisting}[caption={Redimensionamento da duração de uma expressão músical},label=lst:ops-retime,belowcaptionskip=-\medskipamount]
 S2/4 L/8 T90;
@@ -571,45 +657,45 @@ No exemplo presente na listagem \ref{lst:ops-retime}, temos duas variáveis com 
 
 \section{Biblioteca Standard}
 \subsection{Inputs \& Outputs}
-Durante a execução, os eventos músicais são representados em memória por objetos \textit{Python} que derivam da classe base \textbf{MusicEvent}, e estão agrupados em sequências pelos objetos que derivam da classe \textbf{Music}.
+Durante a execução, os eventos musicais são representados em memória por objetos \textit{Python} que derivam da classe base \textbf{MusicEvent}, e estão agrupados em sequências pelos objetos que derivam da classe \textbf{Music}.
 
-A forma mais óbvia de criar estes objetos é utilizando a syntaxe de literais de música inspirada pelo projeto \textit{abc notation} que pode ser utilizada dentro da própria linguagem.
+A forma mais óbvia de criar estes objetos é utilizando a sintaxe de literais de música inspirada pelo projeto \textit{abc notation} que pode ser utilizada dentro da própria linguagem.
 
-No entanto, não há nenhuma restrição que forçe este a ser o único método de introdução ou geração de eventos músicais. De facto, existem já vários formatos de descrição de música, e a capacidade de os poder ler e traduzir para objetos músicais dentro da nossa linguagem, indistinguíveis daqueles que são criados pela sintaxe de literais, traz ínumeras vantagens e abre a possibilidade de este projeto se tornar como um canivete suísso da notação músical, capaz de ler, transformar e depois também escrever em diversos formatos diferentes.
+No entanto, não há nenhuma restrição que force este a ser o único método de introdução ou geração de eventos musicais. De facto, existem já vários formatos de descrição de música, e a capacidade de os poder ler e traduzir para objetos musicais dentro da nossa linguagem, indistinguíveis daqueles que são criados pela sintaxe de literais, traz inúmeras vantagens e abre a possibilidade de este projeto se tornar como um canivete suíço da notação musical, capaz de ler, transformar e depois também escrever em diversos formatos diferentes.
 
-Para além de ser capaz de ler (\textbf{input}) eventos músicais e transforma-los nos objetos em memória que a nossa linguagem expecta, é também importante poder, depois de os criar e transformar ao nosso gosto, poder fazer algo de útil com eles. Ou seja, escrever (\textbf{output}) estes eventos músicais em diversos formatos.
+Para além de ser capaz de ler (\textbf{input}) eventos musicais e transforma-los nos objetos em memória que a nossa linguagem expecta, é também importante poder, depois de os criar e transformar ao nosso gosto, poder fazer algo de útil com eles. Ou seja, escrever (\textbf{output}) estes eventos musicais em diversos formatos.
 
-O verdadeiro objetivo da linguagem é que seja extensível, de modo a que qualquer pessoa capaz de programar \textit{Python} possa connectar um novo \textit{input} ou \textit{output} para as suas necessidades específicas, sem necessitar de ter conhecimentos intrínsecos do funcionamento de toda a linguagem. Nesta secção iremos descrever alguns dos modos de \textit{input} e \textit{output} incluídos de base com a linguagem e que servem de prova de conceito do que é possível fazer com ela.
+O verdadeiro objetivo da linguagem é que seja extensível, de modo a que qualquer pessoa capaz de programar \textit{Python} possa conectar um novo \textit{input} ou \textit{output} para as suas necessidades específicas, sem necessitar de ter conhecimentos intrínsecos do funcionamento de toda a linguagem. Nesta secção iremos descrever alguns dos modos de \textit{input} e \textit{output} incluídos de base com a linguagem e que servem de prova de conceito do que é possível fazer com ela.
 
 Os \textit{outputs} podem ser globais, ou seja, aplicarem-se aos eventos emitidos pela aplicação. Neste caso são geralmente passados como argumentos de linha de comandos, ou adicionados durante a execução através da função \texttt{\$script::player::add\_sequencer()}. Também é possível gravar apenas expressões de música específicas com a função \texttt{save()}.
 \subsubsection{FluidSynth}
 Esta biblioteca serve apenas como \textbf{output} para a linguagem, e permite sintetizar sons a partir de ficheiros \textit{SoundFont}. Os sons gerados podem depois ser passados diretamente para as colunas do computador, ou guardados em disco num ficheiro de música.
 
-Para implementar este \textit{output}, utilizamos o projeto \textit{pyfluidsynth}\cite{pyfluidsynth} para interoperar o nosso código \textit{Python} com a biblioteca \textit{FluidSynth}, escrita em \textit{C}. Como os \textit{bindings} do projeto em \textit{Python} não cobriam toda a \acrshort{api} da biblioteca que nós necessitavamos, optamos por realizar um \textit{fork} dos \textit{bindings}, o que nos permitiu depois efetuar as alterações necessárias à nossa medida.
+Para implementar este \textit{output}, utilizamos o projeto \textit{pyfluidsynth}\cite{pyfluidsynth} para interoperar o nosso código \textit{Python} com a biblioteca \textit{FluidSynth}, escrita em \textit{C}. Como os \textit{bindings} do projeto em \textit{Python} não cobriam toda a \acrshort{api} da biblioteca que nós necessitávamos, optamos por realizar um \textit{fork} dos \textit{bindings}, o que nos permitiu depois efetuar as alterações necessárias à nossa medida.
 
-O objeto principal disponibilizado pelo \textit{FluidSynth} é o objeto \texttt{Synth}. Este disponibiliza inúmeros métodos (baseados no \textit{standard} MIDI) para ativar e desativar uma nota, mudar o instrumento, definir o valor de um controlo, entre muitas outras. Os métodos chamados neste objetos são aplicados imediatamente, pelo que se tivermos uma lista de ações (eventos músicais) a tomar com \textit{timestamps} variados, temos de tratar do seu correto agendamento.
+O objeto principal disponibilizado pelo \textit{FluidSynth} é o objeto \texttt{Synth}. Este disponibiliza inúmeros métodos (baseados no \textit{standard} MIDI) para ativar e desativar uma nota, mudar o instrumento, definir o valor de um controlo, entre muitas outras. Os métodos chamados neste objetos são aplicados imediatamente, pelo que se tivermos uma lista de ações (eventos musicais) a tomar com \textit{timestamps} variados, temos de tratar do seu correto agendamento.
 
 Felizmente a biblioteca também providencia um objeto para isso: \texttt{Sequencer}.  Para o efeito registamos um \textit{callback} na nossa aplicação que recebe o evento e é responsável por o aplicar ao \texttt{Synth}. Depois, sempre que algum evento é gerado, chamamos a função \texttt{Sequencer.timer()} e passamos-lhe o \textit{timestamp} em que deve ser executado o evento, bem como o evento em si e o \textit{callback} a chamar quando o temporizador concluir. Uma das vantagens é o facto de o FluidSynth já disponibilizar uma interface segura de acesso entre \textit{threads}\cite{henningsson2011fluidsynth}.
 
-A maioria dos eventos da nossa linguagem são inspirados pelo \textit{standard} MIDI, tal como a é desenhada a \acrshort{api} do sintetizador do \textit{FluiSynth}, pelo que aplicação dos eventos passa geralmente apenas por chamar a função correta e fornecer-lhe os parâmetros carregados pelo evento. Há no entanto uma exceção à regra, algo que iremos aprofundar mais à frente, e que é a possibilidade de reproduzir, para além de notas músicais, mas ficheiros músicais também. Infelizmente o \textit{FluidSynth} não suporta diretamente este tipo de utilização, mas com alguma criatividade foi possível implementá-la usando as ferramentas que nos eram disponibilizadas.
+A maioria dos eventos da nossa linguagem são inspirados pelo \textit{standard} MIDI, tal como a é desenhada a \acrshort{api} do sintetizador do \textit{FluiSynth}, pelo que aplicação dos eventos passa geralmente apenas por chamar a função correta e fornecer-lhe os parâmetros carregados pelo evento. Há no entanto uma exceção à regra, algo que iremos aprofundar mais à frente, e que é a possibilidade de reproduzir, para além de notas musicais, mas ficheiros musicais também. Infelizmente o \textit{FluidSynth} não suporta diretamente este tipo de utilização, mas com alguma criatividade foi possível implementá-la usando as ferramentas que nos eram disponibilizadas.
 
 A sintetização de notas efetuada pelo \textit{FluidSynth} recorre aos ficheiros \textit{Soundfont}, que podem ser descritos de uma forma muito simplista como um dicionário que associa a cada nota de cada instrumento um \textit{buffer} contendo o som a ser reproduzido, mais algumas configurações que permitem ajustar o som gerado a diversas situações (duração da nota, velocidade, entre outras).
 
 Estas fontes de som podem ser carregadas para o \textit{FluidSynth} e através do método \texttt{Synth.sfload()} e passando-lhe o caminho do ficheiro. Mas para além de fontes carregadas do disco, também é disponibilizada uma estrutura \texttt{RamSFont} que permite criar, representar e editar uma fonte de som completamente em memória, que pode ser depois associada ao sintetizador pelo método \texttt{Synth.add\_sfont()}.
 
-Sempre que algum evento músical traz consigo um ficheiro de música para ser reproduzido, nós associamos o conteúdo desse ficheiro a uma nota de um instrumento virtual da \texttt{RamSFont} que criamos. Quando o mesmo ficheiro é pedido para ser reproduzido várias vezes, a mesma nota do mesmo instrumento é utilizada, evitando estar sempre a ler os conteúdos do ficheiro. Este evento músical é depois convertido num evento de reprodução de notas, com a informação da nota e do instrumento a usar sendo preenchidas automaticamente com o nosso instrumento virtual.
+Sempre que algum evento musical traz consigo um ficheiro de música para ser reproduzido, nós associamos o conteúdo desse ficheiro a uma nota de um instrumento virtual da \texttt{RamSFont} que criamos. Quando o mesmo ficheiro é pedido para ser reproduzido várias vezes, a mesma nota do mesmo instrumento é utilizada, evitando estar sempre a ler os conteúdos do ficheiro. Este evento musical é depois convertido num evento de reprodução de notas, com a informação da nota e do instrumento a usar sendo preenchidas automaticamente com o nosso instrumento virtual.
 
-Desta forma, podemos reproduzir ficheiros arbitrários de som em conjunto com as notas músicais de uma forma transparente para o utilizador.
+Desta forma, podemos reproduzir ficheiros arbitrários de som em conjunto com as notas musicais de uma forma transparente para o utilizador.
 
 No entanto, um obstáculo que encontramos durante a implementação desta funcionalidade foi o facto de os sons associados a notas com um valor inteiro inferior a 15 (cada instrumento pode ter 128 notas, entre 0-127) tinham o seu \textit{pitch} distorcido, mesmo quando eram passadas as \textit{flags} para que os sons fossem reproduzidos sem ajustamento do \textit{pitch}. Este comportamento no entanto desaparecia acima de notas com o valor 15, pelo que adotamos esse valor como a nossa base (o que desperdiça 15 lugares em cada instrumento que poderiam ser associados a sons). Como na \textit{SoundFont} podemos utilizar também vários instrumentos, isso significava que ainda assim conseguíamos reproduzir $127 \times 113 = 14351$ sons distintos, o que é bastante mais do que suficiente para a maioria dos casos.
 
 \subsubsection{MIDI}
-Mais uma biblioteca que achamos importante incluir de base foi o suporte para leitura e escrita de dados MIDI. Isto tanto pelo facto de que o \textit{standard} MIDI é um dos mais utilizados no mundo da música, mas também porque a nossa implementação da linguagem, particularmente relativa à representação dos eventos músicais em memória, foi fortemente inspirada por este formato. Dessa forma, implementar funções de transformação dos não exigiu demasiado esforço. Para o efeito, utilizamos o módulo \textit{Python} \texttt{mido}, que permite ler e escrever eventos MIDI, tanto de portas como de ficheiros em disco.
+Mais uma biblioteca que achamos importante incluir de base foi o suporte para leitura e escrita de dados MIDI. Isto tanto pelo facto de que o \textit{standard} MIDI é um dos mais utilizados no mundo da música, mas também porque a nossa implementação da linguagem, particularmente relativa à representação dos eventos musicais em memória, foi fortemente inspirada por este formato. Dessa forma, implementar funções de transformação dos não exigiu demasiado esforço. Para o efeito, utilizamos o módulo \textit{Python} \texttt{mido}, que permite ler e escrever eventos MIDI, tanto de portas como de ficheiros em disco.
 
-A nível de leitura (\textbf{input}), o módulo disponibiliza uma função \texttt{readmidi()} que permite ler eventos músicais de um ficheiro ou porta MIDI, returnando um objeto do tipo \textbf{Music}. A função aceita os seguintes parâmetros (sendo os parâmetros de ficheiro ou de porta mutualmente exclusivos):
+A nível de leitura (\textbf{input}), o módulo disponibiliza uma função \texttt{readmidi()} que permite ler eventos musicais de um ficheiro ou porta MIDI, retornando um objeto do tipo \textbf{Music}. A função aceita os seguintes parâmetros (sendo os parâmetros de ficheiro ou de porta mutuamente exclusivos):
 
 \begin{description}
- \item[file] \textit{(Opcional)} Quando presente, lê os eventos músicais de um ficheiro MIDI.
+ \item[file] \textit{(Opcional)} Quando presente, lê os eventos musicais de um ficheiro MIDI.
  \item[port] \textit{(Opcional)} Permite ler os eventos de uma porta em vez de um ficheiro. Este parâmetro aceita vários valores.
  \begin{description}
   \item[True] Se receber este valor, tenta listar as portas MIDI disponíveis e escolher a mais indicada para ler os eventos.
@@ -623,36 +709,36 @@ A nível de leitura (\textbf{input}), o módulo disponibiliza uma função \text
 
 É também possível escrever (\textbf{output}) para portas e ficheiros MIDI de forma bastante simples. Este \textit{output} é ativado automaticamente quando se grava um ficheiro com a extensão MIDI, ou quando se prefixa o nome de uma porta com a \textit{string} \texttt{midi://}.
 
-Ao escrever para ficheiros ou portas MIDI, é possível filtrar apenas os eventos de certas vozes, e mapear também os canais atribuidos a cada voz. Isto é extremamente útil para permitir ligar a aplicação a programas \acrshort{daw}, e permitir receber os eventos MIDI em faixas separadas (para aplicar efeitos ou transformações específicas a cada faixa).
+Ao escrever para ficheiros ou portas MIDI, é possível filtrar apenas os eventos de certas vozes, e mapear também os canais atribuídos a cada voz. Isto é extremamente útil para permitir ligar a aplicação a programas \acrshort{daw}, e permitir receber os eventos MIDI em faixas separadas (para aplicar efeitos ou transformações específicas a cada faixa).
 
 \subsubsection{ABC}
 Outro dos formatos de saída suportados é o formato \textbf{abc notation}. A sintaxe das notas e acordes da nossa linguagem é fortemente inspirada nesta notação, pelo que não seria estranho pensar que escrever para este formato não seria nada de especial. E em parte é verdade, na medida que gerar o texto com o formato certo não é complicado.
 
-A maior diferença é, no entanto, o facto de que o formato \textit{abc} é estático, e a sua estrutura foi desenhada para imitar de certa forma a notação das partituras músicais. Tudo isto envolve conceitos como agrupar as notas por vozes, pautas, compassos, claves, entre outros. De certa maneira, o modelo de dados que a linguagem usa para representar as notas em memória mapeaia-se de forma muito mais simples para o formato \textit{MIDI} do que para o \textit{abc}.
+A maior diferença é, no entanto, o facto de que o formato \textit{abc} é estático, e a sua estrutura foi desenhada para imitar de certa forma a notação das partituras musicais. Tudo isto envolve conceitos como agrupar as notas por vozes, pautas, compassos, claves, entre outros. De certa maneira, o modelo de dados que a linguagem usa para representar as notas em memória mapeia-se de forma muito mais simples para o formato \textit{MIDI} do que para o \textit{abc}.
 
 Para colmatar este facto, os eventos, antes de serem convertidos para o formato \textit{abc}, são introduzidos numa \textit{pipeline} que executa uma série de passos de modo a tornar a conversão mais simples. De grosso modo, os passos pela ordem que são executados, são os seguintes:
 
 \begin{itemize}
  \item Em primeiro lugar o sistema tenta converter quaisquer notas que possam estar a ser emitidas como eventos \textit{on/off} separados. Isto acontece quando, por exemplo, o teclado é usado, o que pode implicar começar a tocar as notas sem saber quando o utilizador as vai parar. Os pares de eventos são então convertidos num só evento com a informação do início e da duração da nota.
  \item Em segundo lugar, o sistema tenta identificar as notas paralelas que possam estar a ser emitidas e que possam pertencer a um acorde. Isto acontece mais uma vez quando, ao invés de usar a sintaxe de acordes presente na linguagem, o usa o teclado para gerar o acorde através de notas/teclas diferentes ativadas ao mesmo tempo.
- \item Em terceiro lugar, as notas que pertencam à mesma voz mas que tenham \textit{overlap} na sua duração, são colocadas em linhas diferentes. Mais uma vez, isto acontece mais frequentemente quando o teclado é usado, onde o utilizador pode estar a tocar notas concurrentemente da forma que quiser.
+ \item Em terceiro lugar, as notas que pertençam à mesma voz mas que tenham \textit{overlap} na sua duração, são colocadas em linhas diferentes. Mais uma vez, isto acontece mais frequentemente quando o teclado é usado, onde o utilizador pode estar a tocar notas concorrentemente da forma que quiser.
  \item Em quarto lugar, são inferidos eventos pausa quando duas notas consecutivas pertencentes à mesma voz têm um intervalo. Mais uma vez, isto acontece mais frequentemente quando o utilizador toca com o teclado. Mas neste caso pode também acontecer quando as notas são declaradas pela sintaxe da linguagem, como por exemplo na seguinte situação \texttt{A ( B | C )}, onde as notas \texttt{A} e \texttt{B} ficam na mesma pauta. A nota C, no entanto, como se sobrepõe com a nota \texttt{B}, pelo passo anterior, seria movida para a sua pauta. No entanto, esta pauta não teria nada ao início, e por isso precisa de uma pausa. Seria conceptualmente equivalente ao resultado de \texttt{(A B) | (r C)}.
- \item Finalmente em quinto lugar, são introduzidos eventos especiais na sequência músical para identificar, para cada voz em separado, quando devem ser introduzidos novos compassos, ou novas pautas na partitura. Do mesmo modo, isto implica que notas e acordes cuja duração não caiba num compasso, sejam divididos quantas vezes forem necessários, e conectados através de \gls{ligaduras}.
+ \item Finalmente em quinto lugar, são introduzidos eventos especiais na sequência musical para identificar, para cada voz em separado, quando devem ser introduzidos novos compassos, ou novas pautas na partitura. Do mesmo modo, isto implica que notas e acordes cuja duração não caiba num compasso, sejam divididos quantas vezes forem necessários, e conectados através de \gls{ligaduras}.
 \end{itemize}
 
 Estas transformações são reutilizáveis (não estão fortemente acopladas ao formato \textit{abc}) e são implementadas utilizando o conceito de transformadores, que iremos abordar mais à frente neste documento.
 
 Muitas destas transformações são, no entanto, imperfeitas por natureza: a deteção de acordes a partir de notas paralelas individuais, por exemplo, nunca pode ter 100\% de certeza se as notas que agrupou são realmente um acorde. É possível que o músico tivesse a intenção de que as várias notas pertencessem a vozes diferentes, por exemplo.
 
-Para além disto, a notação músical é tão complexa que apenas uma pequena parte é suportada pela nossa linguagem. Deste modo, é preciso ter em mente que apesar de a linguagem ser capaz de gerar ficheiros \textit{abc} válidos, e com a sua estrutura maioritariamente correta de acordo com o que o utilizador tivesse em mente, serão muitas vezes necessários pequenos ajustes manuais para personalizar os resultados aos gostos de cada um. Ainda assim, o facto de não ser necessário escrever o ficheiro todo manualmente é por si só uma vantagem enorme.
+Para além disto, a notação musical é tão complexa que apenas uma pequena parte é suportada pela nossa linguagem. Deste modo, é preciso ter em mente que apesar de a linguagem ser capaz de gerar ficheiros \textit{abc} válidos, e com a sua estrutura maioritariamente correta de acordo com o que o utilizador tivesse em mente, serão muitas vezes necessários pequenos ajustes manuais para personalizar os resultados aos gostos de cada um. Ainda assim, o facto de não ser necessário escrever o ficheiro todo manualmente é por si só uma vantagem enorme.
 
 Isto porque o ficheiro \textit{abc} não serve só como um formato de texto. Existem várias ferramentas para o converter para outros formatos, como \textit{PDF}. Por exemplo, o projeto \textbf{\$ABC\_UI}\footnote{\url{http://dev.music.free.fr/web-demo/\$ABC_UI.html}} é utilizado pela nossa linguagem para, em conjunto com o exportador \textit{abc}, gerar páginas \acrshort{html} com uma renderização da pauta usando \acrfull{svg}.
 
-Desta forma, podemos concluir que o formato \textit{abc} serve como uma espécie de ponte \textit{standard}, e nos permite apanmhar boleia para depois suportar ínumeros outros formatos que existam muito mais facilmente.
+Desta forma, podemos concluir que o formato \textit{abc} serve como uma espécie de ponte \textit{standard}, e nos permite apanhar boleia para depois suportar inúmeros outros formatos que existam muito mais facilmente.
 
 
 \subsection{Ficheiros de Som}
-Como já foi mencionado no sub-capítulo sobre o \textit{output} \textbf{FluidSynth}, uma das funcionalidades que queriamos implementar na linguagem era a possibilidade de reproduzir ficheiros de som arbitrários, e integra-los com o resto da geração de eventos músicais.
+Como já foi mencionado no sub-capítulo sobre o \textit{output} \textbf{FluidSynth}, uma das funcionalidades que queríamos implementar na linguagem era a possibilidade de reproduzir ficheiros de som arbitrários, e integra-los com o resto da geração de eventos musicais.
 
 Isto abre a possibilidade de incluir nos projetos que usem a linguagem sons gerados por outros programas, e mais uma vez vai de encontro ao nosso objetivo central de extensibilidade da linguagem. Podemos pensar assim que mesmo que a aplicação não suporte todo o tipo de geração de sons que alguma pessoa possa precisar, é sempre possível usar a aplicação para a maioria dos casos mais comuns que são suportados, e gerar ficheiros com recurso a alguma aplicação externa que colmatem as nossas necessidades mais específicas. Para utilizar-mos esta funcionalidade, temos à nossa disposição o método \texttt{sample()}.
 
@@ -660,7 +746,7 @@ Isto abre a possibilidade de incluir nos projetos que usem a linguagem sons gera
 A B sample( "cihat.wav" );
 \end{lstlisting}
 
-Para facilitar todo o processo, os ficheiros de som devem seguir todos as mesmas especificações. Por conveniência, adoptamos as configurações suportadas pela biblioteca \textit{FluidSynth} para blocos de som nas suas \textit{SoundFonts}.
+Para facilitar todo o processo, os ficheiros de som devem seguir todos as mesmas especificações. Por conveniência, adotamos as configurações suportadas pela biblioteca \textit{FluidSynth} para blocos de som nas suas \textit{SoundFonts}.
 
 \begin{table}[h]
 \centering
@@ -678,7 +764,7 @@ Compressão            & \textit{N/A}   \\ \hline
 \label{tab:sounds-format}
 \end{table}
 
-Para facilitar a utilização, é possível ao utilizador carregar ficheiros de som em formatos diferentes desde que tenha a ferramenta FFMPEG instalada no sistema. Quando isso ocorre, a linguagem converte o ficheiro musical \textit{background}, aplicando as configurações necessárias, e guarda-o depois em memória. Isto é especialmente útil para experiências rápidas e com ficheiros pequenos (até alguns \textit{megabytes}).
+Para facilitar a utilização, é possível ao utilizador carregar ficheiros de som em formatos diferentes desde que tenha a ferramenta \textbf{FFmpeg} instalada no sistema. Quando isso ocorre, a linguagem converte o ficheiro musical \textit{background}, aplicando as configurações necessárias, e guarda-o depois em memória. Isto é especialmente útil para experiências rápidas e com ficheiros pequenos (até alguns \textit{megabytes}).
 
 Esta funcionalidade traz bastante simplicidade à utilização da linguagem, mas impõe um custo durante a inicialização de todos os programas. Para permitir aos utilizadores determinarem se os seus ficheiros vão necessitar de conversão, sem terem de recorrer a ferramentas externas para efetuar a verificação, disponibilizamos a função \texttt{is\_sample\_optimized()}, em conjunto com a função \texttt{optimize\_sample()} para converter o ficheiro e gravar o resultado em disco.
 
@@ -692,11 +778,11 @@ if ( not is_sample_optimized( "cihat.wav" ) ) {
 Desta forma a conversão ocorre apenas uma vez, e de seguida o utilizador pode utilizar o ficheiro convertido e não se preocupar com a perda de performance sempre que usa o som num \textit{script}.
 
 \subsection{Grelhas}
-A linguagem tem dois modos de produção de música principais: expressões músicais descritas no código, e a utilização de teclados em tempo real. Em termos de propriedades temporais, de modo geral, as expressões músicais são geradas com tempos precisos. Por outro lado, como é natural, músicas criadas através dos teclados músicais vão ter tempos imperfeitos. Quando utilizadas de modo separado, as diferenças muitas vezes são tão subtis que não se notam. Mas quando queremos tocar uma expressão de música pré-definida em código ao mesmo tempo que se utiliza um teclado, as diferenças e imperfeições podem-se tornar mais óbvias\cite{doi:10.1177/1029864913486793}.
+A linguagem tem dois modos de produção de música principais: expressões musicais descritas no código, e a utilização de teclados em tempo real. Em termos de propriedades temporais, de modo geral, as expressões musicais são geradas com tempos precisos. Por outro lado, como é natural, músicas criadas através dos teclados musicais vão ter tempos imperfeitos. Quando utilizadas de modo separado, as diferenças muitas vezes são tão subtis que não se notam. Mas quando queremos tocar uma expressão de música pré-definida em código ao mesmo tempo que se utiliza um teclado, as diferenças e imperfeições podem-se tornar mais óbvias\cite{doi:10.1177/1029864913486793}.
 
-A operação conhecida como Quantization~\footnote{\url{https://en.wikipedia.org/wiki/Quantization_(music)}} é possível na nossa linguagem através da utilização de \textbf{Grelhas}. Uma vez que o objetivo das grelhas é poderem ser utilizadas em tempo real à medida que as notas vão sendo tocadas, a forma de funcionamento escolhido para as grelhas é bastante simples e determínistica, dependendo apenas do tempo (\textit{timestamp}) e tipo do evento que queremos alinhar.
+A operação conhecida como \textit{Quantization}~\footnote{\url{https://en.wikipedia.org/wiki/Quantization_(music)}} é possível na nossa linguagem através da utilização de \textbf{Grelhas}. Uma vez que o objetivo das grelhas é poderem ser utilizadas em tempo real à medida que as notas vão sendo tocadas, a forma de funcionamento escolhido para as grelhas é bastante simples e determinística, dependendo apenas do tempo (\textit{timestamp}) e tipo do evento que queremos alinhar.
 
-Uma grelha é composta por um número infínito de células, todas do mesmo tamanho, que se estendem ao longo do eixo temporal. Quando um evento músical é tocado, esse evento vai calhar algures dentro de uma dessas células. A responsabilidade da grelha passa por determinar se o evento deve ser movido no tempo, bem como para onde deve ser movido. Para isso, devemos compreender como cada célula da grelha é dividida.
+Uma grelha é composta por um número infinito de células, todas do mesmo tamanho, que se estendem ao longo do eixo temporal. Quando um evento musical é tocado, esse evento vai calhar algures dentro de uma dessas células. A responsabilidade da grelha passa por determinar se o evento deve ser movido no tempo, bem como para onde deve ser movido. Para isso, devemos compreender como cada célula da grelha é dividida.
 
 \begin{figure}[h]
 \begin{center}
@@ -706,7 +792,7 @@ Uma grelha é composta por um número infínito de células, todas do mesmo tama
 \label{fig:grids-1}
 \end{figure}
 
-Na figura \ref{fig:grids-1} podemos ver representadas duas células de uma grelha, cada uma com tamanho de 1 segundo. Também podemos ver que cada célula está dívidida em duas partes, direita e esquerda, e a ordem dessas partes pode parecer engano, ou que estão trocadas. Mas estão corretas, pois na verdade cada uma dessas partes é relativa não à célula, mas ao separador das células.
+Na figura \ref{fig:grids-1} podemos ver representadas duas células de uma grelha, cada uma com tamanho de 1 segundo. Também podemos ver que cada célula está dividida em duas partes, direita e esquerda, e a ordem dessas partes pode parecer engano, ou que estão trocadas. Mas estão corretas, pois na verdade cada uma dessas partes é relativa não à célula, mas ao separador das células.
 
 Olhemos por exemplo para o divisor central, situado em cima da marca do 1 segundo. A parte à sua esquerda refere-se à esquerda do separador, e a parte à direita referem-se à direita do separador. Desta forma, faz mais sentido a ordem das partes.
 
@@ -729,7 +815,7 @@ $grid = Grid( 1,
 
 Não nos esqueçamos que o objetivo da grelha é alinhar eventos, movendo os eventos ao longo do eixo do tempo para junto dos separadores das células. A propriedade \textit{range} tem como valor predefinido metade do tamanho da célula. Isso significa que tanto o \textbf{range\_left} como o \textbf{range\_right} cobrem de modos igual toda a célula, e dessa os eventos são movidos para o separador da grelha que estiver mais próximo. O valor predefinido da propriedade \textit{forgiveness}, por outro lado, é zero, o que significa que mesmo os eventos que se encontrem já muito perto dos separadores são movidos.
 
-Na listagem \ref{lst:grids-2} podemos ver a definição de uma grelha simétrica (as propriedades \textit{left} e \textit{right} são iguais). O valor de \textit{forgiveness} implica que eventos que estejam a mais de 372 milissegundos de distância de qualquer um dos separadores são ignorados pela grelha, isto é, o seu tempo não se mexe. O valor de \textit{forgiveness}, o que significa que eventos que estejam a menos de 125 millisegundos de um dos separadores são também ignorados pela grelha. Neste exemplo, são apenas movidos os eventos que estejam entre 125 e 375 milissegundos de distância de um dos separadores.
+Na listagem \ref{lst:grids-2} podemos ver a definição de uma grelha simétrica (as propriedades \textit{left} e \textit{right} são iguais). O valor de \textit{forgiveness} implica que eventos que estejam a mais de 372 milissegundos de distância de qualquer um dos separadores são ignorados pela grelha, isto é, o seu tempo não se mexe. O valor de \textit{forgiveness}, o que significa que eventos que estejam a menos de 125 milissegundos de um dos separadores são também ignorados pela grelha. Neste exemplo, são apenas movidos os eventos que estejam entre 125 e 375 milissegundos de distância de um dos separadores.
 
 Note-se que cada propriedade poderia ser costumizada para a esquerda e para a direita. Isto é, o exemplo a cima podia ser reescrito da seguinte forma:
 
@@ -764,10 +850,10 @@ Tomemos como exemplo a seguinte situação com três eventos e a grelha definida
 \label{fig:grids-3-2}
 \end{figure}
 
-O modo de funcionamento das grelhas pode parecer à primeira vista um desnecessáriamente complexo, ou os exemplos um pouco artificiais, mas o objetivo foi sempre permitir ao utilizador aplicar o tipo de grelha que mais se adequar ao seu caso. Isso pode ser uma simples grelha onde só define o tamanho de cada célula, e os \textit{ranges} são cada metade de cada célula, empurrando todos os eventos para o separador que lhe esteja mais próximo, ou exemplos de grelhas assímétricas, onde possivelmente os eventos são sempre movidos só numa direção (esquerda ou direita) ou onde eventos que estejam perto dos separadores não sejam movidos.
+O modo de funcionamento das grelhas pode parecer à primeira vista um desnecessariamente complexo, ou os exemplos um pouco artificiais, mas o objetivo foi sempre permitir ao utilizador aplicar o tipo de grelha que mais se adequar ao seu caso. Isso pode ser uma simples grelha onde só define o tamanho de cada célula, e os \textit{ranges} são cada metade de cada célula, empurrando todos os eventos para o separador que lhe esteja mais próximo, ou exemplos de grelhas assimétricas, onde possivelmente os eventos são sempre movidos só numa direção (esquerda ou direita) ou onde eventos que estejam perto dos separadores não sejam movidos.
 
-\subsection{Teclados Músicais}
-Para além de permitir construir expressões que geram sequências de eventos músicais dinâmicas, algo que esteve desde início no topo da nossa lista de prioridades foi sem dúvida adicionar suporte para a criação de teclados interativos. Sendo esta linguagem desenvolvida em computadores, não seria errado pensar que por teclado nos referimos aos teclados físicos dos computadores. E esses fazem certamente parte, mas quando nos referimos a teclados músicais, referimo-nos à possibilidade de descrever na nossa linguagem mapeamentos entre \textit{eventos} e expressões músicais ou ações a executar quando esses eventos acontecem.
+\subsection{Teclados Musicais}
+Para além de permitir construir expressões que geram sequências de eventos musicais dinâmicas, algo que esteve desde início no topo da nossa lista de prioridades foi sem dúvida adicionar suporte para a criação de teclados interativos. Sendo esta linguagem desenvolvida em computadores, não seria errado pensar que por teclado nos referimos aos teclados físicos dos computadores. E esses fazem certamente parte, mas quando nos referimos a teclados musicais, referi-mo-nos à possibilidade de descrever na nossa linguagem mapeamentos entre \textit{eventos} e expressões musicais ou ações a executar quando esses eventos acontecem.
 
 \begin{lstlisting}[caption={Exemplo de declaração de duas teclas}]
 @keyboard {
@@ -779,7 +865,7 @@ Para além de permitir construir expressões que geram sequências de eventos m�
 Esses eventos podem então ser teclas de um teclado, mas também de um piano conectado ao computador, ou eventos do rato, ou de qualquer outro dispositivo de \acrshort{io} que as pessoas queiram adaptar, bastando para isso herdar a classe\texttt{KeyboardEvent}.
 
 \subsubsection{Tipos de Eventos}
-Os tipos de evento mais comum são teclas de teclado e de piano. Por essa mesma razão implementamos açúcar sintático na definição desses eventos  (que são implementados pelas classes \texttt{KeyStroke} e \texttt{PianoKey}, respectivamente).
+Os tipos de evento mais comum são teclas de teclado e de piano. Por essa mesma razão implementamos açúcar sintático na definição desses eventos  (que são implementados pelas classes \texttt{KeyStroke} e \texttt{PianoKey}, respetivamente).
 
 \begin{lstlisting}[caption={Declaração de três eventos, o primeiro é uma combinação de teclas, o segundo referência o \textit{virtual key code}, e o terceiro uma nota MIDI}]
 @keyboard {
@@ -798,10 +884,10 @@ A lista de tipos de eventos suportados de base pela linguagem são os seguintes:
  \item[PianoKey] Sinalizam quando uma nota é tocada e recebida pela porta MIDI que a aplicação esteja à escuta. Trazem consigo um parâmetro que identifica a velocidade com que a nota foi premida.
  
  \textbf{Parâmetros:} \texttt{\$vel}
- \item[MouseClick] Evento ocorre quando algum dos botões do rato é premido. As informações sobre a posição em que o rato se encontra, bem como qual o botão premido e se foi premido ou levantado, são incluidas como parâmetros deste evento.
+ \item[MouseClick] Evento ocorre quando algum dos botões do rato é premido. As informações sobre a posição em que o rato se encontra, bem como qual o botão premido e se foi premido ou levantado, são incluídas como parâmetros deste evento.
  
  \textbf{Parâmetros:} \texttt{\$x}, \texttt{\$y}, \texttt{\$button} \texttt{\$pressed}
- \item[MouseMove] Evento ocorre sempre que o rato é movido. Pode ser útil paar controlar alguma variável como se fosse um \textit{slider}. Trás como parâmetros as coordenadas do rato.
+ \item[MouseMove] Evento ocorre sempre que o rato é movido. Pode ser útil para controlar alguma variável como se fosse um \textit{slider}. Trás como parâmetros as coordenadas do rato.
  
  \textbf{Parâmetros:} \texttt{\$x}, \texttt{\$y}
  \item[MouseScroll] Evento despoletado quando a roda do rato é acionada. Para além de trazer informações sobre a posição do rato, indica também qual o valor que a roda se moveu, tanto na vertical (mais comum) como também na horizontal.
@@ -817,18 +903,18 @@ Os \textbf{parâmetros} são algo que, como pudemos ver, é disponibilizado por 
 };
 \end{lstlisting}
 
-Para criar novos tipos de eventos, basta criar uma nova classe em \textit{Python} que derive da classe \texttt{KeyboardEvent}. Esta classe deve implementar apenas dois métodos obrigatórios (\texttt{\_\_hash\_\_} e \texttt{\_\_eq\_\_}) que são usados para guardar os eventos num dicionário, ficando cada evento associado à sua ação. Opcionalmente pode ser definido um terceiro método, \texttt{get\_parameters}, que deve returnar um dicionário com as variáveis e os seus respetivos valores que o evento disponibiliza. Cada tipo de evento pode também definir uma propriedade chamada \texttt{binary} como verdadeira ou falsa.
+Para criar novos tipos de eventos, basta criar uma nova classe em \textit{Python} que derive da classe \texttt{KeyboardEvent}. Esta classe deve implementar apenas dois métodos obrigatórios (\texttt{\_\_hash\_\_} e \texttt{\_\_eq\_\_}) que são usados para guardar os eventos num dicionário, ficando cada evento associado à sua ação. Opcionalmente pode ser definido um terceiro método, \texttt{get\_parameters}, que deve retornar um dicionário com as variáveis e os seus respetivos valores que o evento disponibiliza. Cada tipo de evento pode também definir uma propriedade chamada \texttt{binary} como verdadeira ou falsa.
 
 Os \textbf{binários} referem-se ao conceito de eventos que são conceptualmente compostos por duas fases: premir e soltar. Exemplos deste tipo de eventos são, obviamente premir e soltar teclas do computador ou de um piano. A razão porque este conceito é tratado como um caso particular na nossa linguagem, ao invés de serem tratados como dois eventos separados (\texttt{PianoKeyPress} e \texttt{PianoKeyRelease} por exemplo), deve-se ao facto de os eventos binários mapearem de forma bastante elegante com o conceito de \textit{note on} e \textit{note off} na geração de música. E da mesma maneira que a nossa linguagem não obriga o utilizador a declarar por cada nota o seu ponto de início e de fim separados, não faria sentido fazer isso para os teclados.
 
 Por essa razão, os teclados podem (através dos modificadores \texttt{hold extend} que vamos cobrir a seguir) mapear automaticamente o início e o fim das notas declaradas em cada uma das suas teclas, com os modos \textit{press} e \textit{release} dos seus eventos.
 
 \subsubsection{Modificadores de Eventos}
-Cada evento de um teclado tem associada uma ação: essa ação pode ter \textit{size effects}, e opcionalmente returnar um evento músical (ou uma sequência de eventos). Sempre que o evento é despoletado, a ação é avaliada e caso retorne um objeto músical, esse é reproduzido.
+Cada evento de um teclado tem associada uma ação: essa ação pode ter \textit{size effects}, e opcionalmente retornar um evento musical (ou uma sequência de eventos). Sempre que o evento é despoletado, a ação é avaliada e caso retorne um objeto musical, esse é reproduzido.
 
-Por predefinição, o tempo que a tecla está premida não afeta a duração das notas emitidas. Pelo contrário, a duração das notas (e acordes e todo o resto de eventos músicais) é calculada com o que o utilizador tiver determinado no código. Isto acontece porque o teclado permite que o utilizador defina não só um evento músical para cada tecla, mas sim que possa definir uma música completa, se quiser. Neste caso quando a tecla é premida, a música começa a tocar até terminar.
+Por predefinição, o tempo que a tecla está premida não afeta a duração das notas emitidas. Pelo contrário, a duração das notas (e acordes e todo o resto de eventos musicais) é calculada com o que o utilizador tiver determinado no código. Isto acontece porque o teclado permite que o utilizador defina não só um evento musical para cada tecla, mas sim que possa definir uma música completa, se quiser. Neste caso quando a tecla é premida, a música começa a tocar até terminar.
 
-Os \textbf{modificadores} permitem customizar o comportamento do teclado quando encontra alguma sequência músical. Cada modificador pode ser aplicado a todo o teclado (quando aparece à frente da \textit{keyword} \texttt{@keyboard}), ou ser aplicada individualmente a cada tecla.
+Os \textbf{modificadores} permitem customizar o comportamento do teclado quando encontra alguma sequência musical. Cada modificador pode ser aplicado a todo o teclado (quando aparece à frente da \textit{keyword} \texttt{@keyboard}), ou ser aplicada individualmente a cada tecla.
 
 \begin{description}
  \item[repeat] Quando presente, o teclado reproduz a música da tecla, e quando esta acabar, começa a tocar novamente, sem parar.
@@ -837,7 +923,7 @@ Os \textbf{modificadores} permitem customizar o comportamento do teclado quando 
  \item[extend] Tanto o \texttt{toggle} como o \texttt{hold} permitem terminar uma música mais cedo. Com este modificador, todas as notas tocadas pela tecla ficam ativas enquanto a pessoa não carregar novamente na tecla (em conjunto com o \texttt{toggle}), ou a largar (em conjunto com o \texttt{hold}).
 \end{description}
 
-Assim, se quisermos replicar o comportamento de um piano, por exemplo, em que premir a tecla começa a tocar uma nota, e libertá-la para a nota, podemos usar os modificadores \texttt{hold extend} em conjunto.
+Assim, se quisermos replicar o comportamento de um piano, por exemplo, em que premir a tecla começa a tocar uma nota, e liberta-la para a nota, podemos usar os modificadores \texttt{hold extend} em conjunto.
 
 \begin{lstlisting}[caption={Aplicar o modificar \texttt{hold extend} a um teclado inteiro}]
 @keyboard hold extend {
@@ -889,7 +975,7 @@ $i = 0;
 };
 \end{lstlisting}
 
-Não seria invulgar pensar que ambos os números seriam iguiais sempre que fossem impressos, mas isso não é o caso. Isto providencia uma boa ocasião para reforçar a noção que as teclas ficam associadas a expressões, e essas expressões são executadas só quando a tecla é ativada.
+Não seria invulgar pensar que ambos os números seriam iguais sempre que fossem impressos, mas isso não é o caso. Isto providencia uma boa ocasião para reforçar a noção que as teclas ficam associadas a expressões, e essas expressões são executadas só quando a tecla é ativada.
 
 Isto significa que quando qualquer tecla for premida, o valor de \texttt{\$i} será sempre o mesmo: $4$. Isto porque a variável está declarada fora do teclado, e mais importante, fora do ciclo \texttt{for}, o que significa que todas as teclas referenciam a mesma variável. Por outro lado, a variável \texttt{\$ki} é declarada pela primeira vez dentro do ciclo, e como tal está a criar quatro símbolos diferentes que são depois cada um referenciado pela tecla respetiva.
 
@@ -901,42 +987,42 @@ keyboard\record( $file );
 \end{lstlisting}
 
 Através da função descrita na listagem \ref{lst:kb-perf-1}, é possível instruir os teclados para gravarem para um determinado ficheiro, cujo caminho é passado como argumento. Também é possível passar o valor \texttt{none} para a função, o que efetivamente termina a gravação da performance atual (se estiver a decorrer alguma).
-De notar que uma vez que os teclados suportam registar como ações, não só expressões músicais, mas também quaisquer blocos de códigos válidos, podemos chamar esta função na ação de uma das teclas do teclado. Desta forma é possível iniciar e parar a gravação durante a execução do programa.
+De notar que uma vez que os teclados suportam registar como ações, não só expressões musicais, mas também quaisquer blocos de códigos válidos, podemos chamar esta função na ação de uma das teclas do teclado. Desta forma é possível iniciar e parar a gravação durante a execução do programa.
 
 \begin{lstlisting}[caption={Reprodução de uma \textit{performance}},label={lst:kb-perf-2}]
 keyboard\replay( $file, $delay = 0 );
 \end{lstlisting}
 
-Da mesma maneira que é possível gravar uma \textit{performance}, é possível também reproduzir uma \textit{performance} a qualquer momento através da função referênciada em \ref{lst:kb-perf-2}. Neste caso devemos passar o caminho do ficheiro contendo a \textit{performance} gravada, bem como um parâmetro opcional (em milissegundos) para atrasar o ínicio da reprodução durante algum tempo. Isto pode ser útil se quisermos tocar alguma faixa ao vivo por cima da gravação, para alinhar a mesma ou para servir de tempo de preparação.
+Da mesma maneira que é possível gravar uma \textit{performance}, é possível também reproduzir uma \textit{performance} a qualquer momento através da função referenciada em \ref{lst:kb-perf-2}. Neste caso devemos passar o caminho do ficheiro contendo a \textit{performance} gravada, bem como um parâmetro opcional (em milissegundos) para atrasar o início da reprodução durante algum tempo. Isto pode ser útil se quisermos tocar alguma faixa ao vivo por cima da gravação, para alinhar a mesma ou para servir de tempo de preparação.
 
 \begin{lstlisting}[caption={Conversão de uma \textit{performance} numa sequência de eventos músicais},label={lst:kb-perf-3}]
 $music = keyboard\readperf( $file, $keyboards = [] );
 \end{lstlisting}
 
-Mas podemos não querer reproduzir diretamente uma \textit{performance}. Também é possível carregar uma \textit{performance} gravada para memória, como uma sequência de eventos músicais convencional, que podemos depois manipular com todas as funções e operadores que já vimos e que operam sobre música.
+Mas podemos não querer reproduzir diretamente uma \textit{performance}. Também é possível carregar uma \textit{performance} gravada para memória, como uma sequência de eventos musicais convencional, que podemos depois manipular com todas as funções e operadores que já vimos e que operam sobre música.
 
 Esta função aceita também, para além do usual caminho do ficheiro de \textit{performance}, uma lista opcional de teclados a usar na conversão. Quando a lista vai vazia, são utilizados todos os teclados ativos. Isto demonstra uma das funcionalidades mais interessantes da gravação de ficheiros de \textit{performance}, na medida que permitem gravar os eventos das teclas ativadas, mas podemos depois reproduzir essas \textit{performances} com teclados com notas e expressões diferentes associadas às teclas.
 
 
 
 \subsubsection{Buffers}
-Ao contrário de \textit{performances}, que gravam os eventos que acionam as teclas dos teclados, é possível guardar diretamente os eventos músicais produzidos pelos teclados com a class \texttt{keyboard\textbackslash{}Buffer}. Os eventos capturados em \textit{buffers} podem ser tratados como qualquer outra sequência músical, e como tal, ser composta com outras expressões, passada a funções e tudo o resto que a linguagem possibilita. 
+Ao contrário de \textit{performances}, que gravam os eventos que acionam as teclas dos teclados, é possível guardar diretamente os eventos musicais produzidos pelos teclados com a \textit{class} \texttt{keyboard\textbackslash{}Buffer}. Os eventos capturados em \textit{buffers} podem ser tratados como qualquer outra sequência musical, e como tal, ser composta com outras expressões, passada a funções e tudo o resto que a linguagem possibilita. 
 
 \begin{lstlisting}[caption={Instanciação de um \textit{buffer}}]
 $buffer = keyboard\Buffer( $keyboards = ..., $start = true );
 \end{lstlisting}
-Ao construir um \textit{buffer}, por predefinição, todos os teclados são gravados imediatamente. É no entanto possível passar uma lista a limitar quais os teclados que irão ser gravados para o buffer, útil para permitir dividir as notas gravadas em faixas separadas (um \textit{buffer} grava uma faixa, outro grava uma faixa diferente, etc). Para além disso, é possível também não iniciar a gravação para o buffer imediatamente. 
+Ao construir um \textit{buffer}, por predefinição, todos os teclados são gravados imediatamente. É no entanto possível passar uma lista a limitar quais os teclados que irão ser gravados para o \textit{buffer}, útil para permitir dividir as notas gravadas em faixas separadas (um \textit{buffer} grava uma faixa, outro grava uma faixa diferente, etc). Para além disso, é possível também não iniciar a gravação para o \textit{buffer} imediatamente. 
 
 Entre as funcionalidades disponibilizadas pela classe, podemos destacar as mais importantes como sendo:
 \begin{description}
- \item[start] Começa a gravar os eventos emitidos. Mesmo depois de chamado o método \texttt{start()}, o \textit{buffer} só inicia a gravação quando for capturado o primeiro evento músical. Caso se queira forçar um \textit{padding} silencioso ao início, pode-se emitir um evento de pausa com duração zero. Caso o buffer já tenha conteúdos em memória, o que for gravado agora é acrescentado ao fim.
- \item[stop] Para a gravação do \textit{buffer}. Mais uma vez, a gravação é cortada no último evento músical. Caso se queira forçar a duração do \textit{buffer} com mais algum tempo depois da última nota, basta emitir um evento de pausa com duração zero quando realmente quisermos que o \textit{buffer} termine.
- \item[clear] Limpa tudo o que o buffer tiver gravado e permite reutilizar o \textit{buffer} do ínicio.
- \item[to\_music] Retorna os conteúdos do \textit{buffer} na forma de uma sequência músical. Esta sequência é ímutável: alterações aos conteúdos do \textit{buffer} não são refletidos nos dados da sequência gerada. Para obter essas alterações, este método deve ser chamado novamente, returnando uma nova sequência músical.
- \item[from\_music] Permite substituir manualmente o conteúdo do \textit{buffer} com uma sequência músical. É útil como iremos ver mais à frente para permitir as operações de \texttt{save()} e \texttt{load()} dos \textit{buffers}.
+ \item[start] Começa a gravar os eventos emitidos. Mesmo depois de chamado o método \texttt{start()}, o \textit{buffer} só inicia a gravação quando for capturado o primeiro evento musical. Caso se queira forçar um \textit{padding} silencioso ao início, pode-se emitir um evento de pausa com duração zero. Caso o \textit{buffer} já tenha conteúdos em memória, o que for gravado agora é acrescentado ao fim.
+ \item[stop] Para a gravação do \textit{buffer}. Mais uma vez, a gravação é cortada no último evento musical. Caso se queira forçar a duração do \textit{buffer} com mais algum tempo depois da última nota, basta emitir um evento de pausa com duração zero quando realmente quisermos que o \textit{buffer} termine.
+ \item[clear] Limpa tudo o que o \textit{buffer} tiver gravado e permite reutilizar o \textit{buffer} do inicio.
+ \item[to\_music] Retorna os conteúdos do \textit{buffer} na forma de uma sequência musical. Esta sequência é imutável: alterações aos conteúdos do \textit{buffer} não são refletidos nos dados da sequência gerada. Para obter essas alterações, este método deve ser chamado novamente, retornando uma nova sequência musical.
+ \item[from\_music] Permite substituir manualmente o conteúdo do \textit{buffer} com uma sequência musical. É útil como iremos ver mais à frente para permitir as operações de \texttt{save()} e \texttt{load()} dos \textit{buffers}.
 \end{description}
 
-Tudo isto permite manipular os \textit{buffers} através da linguagem de \textit{scripting}, mas sendo o objetivo dos \textit{buffers} serem usados em conjunto com os teclados, primariamente quando o utilizador os estiver a usar para compor arranjos músicais, é desejável associar todas estas chamadas de código a teclas do teclado, para as permitir usar durante a sua utilização.
+Tudo isto permite manipular os \textit{buffers} através da linguagem de \textit{scripting}, mas sendo o objetivo dos \textit{buffers} serem usados em conjunto com os teclados, primariamente quando o utilizador os estiver a usar para compor arranjos musicais, é desejável associar todas estas chamadas de código a teclas do teclado, para as permitir usar durante a sua utilização.
 
 Tendo acesso às funções dos \textit{buffers}, cada utilizador pode então programar a sua utilização como bem quiser. Mas para os casos mais comuns, a biblioteca da linguagem fornece já funções destinadas a facilitar o seu uso.
 
@@ -956,7 +1042,7 @@ Quando o utilizador pressiona a tecla para gravar ou carregar os \textit{buffers
 \begin{center}
     \includegraphics[width=0.87\textwidth]{img/open_buffers_dialog.png}
 \end{center}
-\caption{Janela de carregamento dos buffers}
+\caption{Janela de carregamento dos \textit{buffers}}
 \end{figure}
 
 Os conteúdos do \textit{buffer} são guardados num ficheiro \texttt{.mkl}, o que é bastante interessante pois permite evitar ter de criar e implementar algum formato específico para guardar os seus conteúdos. Mas também permite, sendo um formato de texto, e sendo a sua sintaxe a da nossa linguagem \textit{Musikla}, o utilizador pode gravar os \textit{buffers}, abrir o ficheiro com algum editor de texto e efetuar alterações manualmente, e carregar essas alterações de novo para os \textit{buffers} com extrema facilidade.
@@ -966,16 +1052,16 @@ $buffers = @{};
 $buffers::set(1; (:default r2/23 [B^d^f]1/29 r1/32 [A^ce]1/32))
 \end{lstlisting}
 
-O formato do ficheiro passa pela declaração de uma variável \textbf{\$buffers} contendo um dicionário. O dicionário contém depois um par chave-valor para cada \textit{buffer} não vazio aquando da gravação do ficheiro. A chave representa o índice do \textit{buffer}, e o valor representa a sequência músical lá guardada nesse momento.
+O formato do ficheiro passa pela declaração de uma variável \textbf{\$buffers} contendo um dicionário. O dicionário contém depois um par chave-valor para cada \textit{buffer} não vazio aquando da gravação do ficheiro. A chave representa o índice do \textit{buffer}, e o valor representa a sequência musical lá guardada nesse momento.
 
 Para guardar o ficheiro, é criada é memória a sua \acrshort{ast} respetiva. Esta é depois convertida em texto através da classe \texttt{CodePrinter}.
 
-O processo de carregar o ficheiro é igualmente simples, passando por executar o \textit{script} num contexto isolado. Depois o valor da variável \texttt{\$buffers} é obtido, e as entradas do dicionário são percorridas, substituindo os valores presentes nos \textit{buffers} recorrendo á funcção \texttt{keyboard\textbackslash{}Buffer.from\_music()}.
+O processo de carregar o ficheiro é igualmente simples, passando por executar o \textit{script} num contexto isolado. Depois o valor da variável \texttt{\$buffers} é obtido, e as entradas do dicionário são percorridas, substituindo os valores presentes nos \textit{buffers} recorrendo à função \texttt{keyboard\textbackslash{}Buffer.from\_music()}.
 
 \subsection{Editor Embutido}
-O modo principal de execução de código baseia-se em carregar um ficheiro \textit{Musikla} e executá-lo. Mas ao mesmo tempo, uma das funcionalidades mais importantes da linguagem é permitir descrever teclados músicais que permitem interação do utilizador enquanto a aplicação não for fechada.
+O modo principal de execução de código baseia-se em carregar um ficheiro \textit{Musikla} e executá-lo. Mas ao mesmo tempo, uma das funcionalidades mais importantes da linguagem é permitir descrever teclados musicais que permitem interação do utilizador enquanto a aplicação não for fechada.
 
-No entanto, muitas das funcionalidades disponibilizadas pela aplicação são accessíveis através de classes e funções que podem ser chamadas pela linguagem. Isto tipicamente involve uma de duas opções: o utilizador ter de mudar o ficheiro de código e executá-lo novamente, o que implica perder os dados que estejam em memória (como \textit{buffers} e o possível estado do teclado). Também é possível associar pedaços de código a ações do teclado para permitir chamar esses pedaços de código durante a execução do programa, mas isso implica ser necessário planear todos os possíveis casos de uso à partida antes de iniciar executar o teclado. Se nos esquecermos de alguma, temos de voltar à opção inicial de mudar o código fonte e reiniciar a aplicação.
+No entanto, muitas das funcionalidades disponibilizadas pela aplicação são acessíveis através de classes e funções que podem ser chamadas pela linguagem. Isto tipicamente envolve uma de duas opções: o utilizador ter de mudar o ficheiro de código e executá-lo novamente, o que implica perder os dados que estejam em memória (como \textit{buffers} e o possível estado do teclado). Também é possível associar pedaços de código a ações do teclado para permitir chamar esses pedaços de código durante a execução do programa, mas isso implica ser necessário planear todos os possíveis casos de uso à partida antes de iniciar executar o teclado. Se nos esquecermos de alguma, temos de voltar à opção inicial de mudar o código fonte e reiniciar a aplicação.
 
 A solução passa pela inclusão de um simples editor de texto em \textit{runtime} (implementado com recurso ao módulo \textit{Python} \texttt{prompt\_toolkit}. A biblioteca dispõem de uma função para permitir abrir e fechar o editor de texto ao premir uma tecla, ou também uma função para abrir diretamente o editor quando é chamada, dando assim ao utilizador mais controlo sobre como é possível usar este editor.
 
@@ -983,7 +1069,7 @@ A solução passa pela inclusão de um simples editor de texto em \textit{runtim
 keyboard\repl( $key = "\\", $ctx = none );
 \end{lstlisting}
 
-Na listagem \ref{lst:kb-editor-1} é possível ver a função que permite abrir o editor embutido. É também possível passar um contexto através do qual as expressões do editor irão ser avaliadas. Isto pode afetar quais as variáveis que são vísíveis, ou até ter vários editores para diferentes contextos.
+Na listagem \ref{lst:kb-editor-1} é possível ver a função que permite abrir o editor embutido. É também possível passar um contexto através do qual as expressões do editor irão ser avaliadas. Isto pode afetar quais as variáveis que são visíveis, ou até ter vários editores para diferentes contextos.
 
 \begin{figure}[h]
 \begin{center}
@@ -1006,7 +1092,7 @@ Isto significa que o editor pode ser usado não só como um ambiente de programa
 \caption{Implementação básica de uma solução de \textit{auto-complete}.}
 \end{figure}
 
-Como prova de conceito, também foi incorporado um sistema de \textit{auto-complete} que sugere símbolos que estejam declarados no nível base do contexto. Devido ao facto de o editor estar a correr ao mesmo tempo que a aplicação, esta funcionalidade não foi implementada através da análise dos ficheiros de código. Em vez disso, o objeto de contexto é analizado em tempo real para listar quais os símbolos que estão acessíveis.
+Como prova de conceito, também foi incorporado um sistema de \textit{auto-complete} que sugere símbolos que estejam declarados no nível base do contexto. Devido ao facto de o editor estar a correr ao mesmo tempo que a aplicação, esta funcionalidade não foi implementada através da análise dos ficheiros de código. Em vez disso, o objeto de contexto é analisado em tempo real para listar quais os símbolos que estão acessíveis.
 
 Esta funcionalidade é extremamente útil tendo em conta que a linguagem tem como público alvo músicos que podem não ser programadores experientes. Por isso mesmo, ter um ambiente que assista o utilizador a saber quais as variáveis e métodos que pode utilizar.
 
@@ -1017,7 +1103,7 @@ Os transformadores são uma solução para um problema prático que surgiu duran
 
 \subsubsection{O Problema}
 
-Um dos tipos de dados mais importantes na nossa linguagem é o tipo música, que como já referímos várias vezes pode ser representado como uma sequência de eventos músicais. Quando pensamos em sequências, é fácil imaginar uma variedade de operações genéricas possíveis de serem aplicadas nelas, como \texttt{map} e \texttt{filter}. 
+Um dos tipos de dados mais importantes na nossa linguagem é o tipo música, que como já referimos várias vezes pode ser representado como uma sequência de eventos musicais. Quando pensamos em sequências, é fácil imaginar uma variedade de operações genéricas possíveis de serem aplicadas nelas, como \texttt{map} e \texttt{filter}. 
 
 Mas também existem operações mais específicas ao nosso caso que podemos querer aplicar, como dada uma sequência de eventos, separar os \texttt{NoteEvent} em dois \texttt{NoteOnEvent} e \texttt{NoteOffEvent}. Isto à primeira vista pode parecer um simples \texttt{flatMap}, em que alguns eventos são transformados em dois a serem inseridos na sequência. No entanto, uma vez que os eventos nas nossas sequências devem viajar sempre ordenados, não podemos simplesmente inserir o evento \textit{off} junto do \textit{on}, porque podem existir outros eventos que comecem ao mesmo tempo ou depois da nossa nota começar, mas antes dela acabar.
 
@@ -1025,7 +1111,7 @@ Nesse caso basta construirmos uma algoritmo simples que guarde num \textit{buffe
 
 E como este, existem vários algoritmos que podem ser usados e reutilizados em diversas partes da aplicação com os mais diversos propósitos de transformar sequências de eventos.
 
-O problema surge quando a fonte da música pode ser sincrona (no caso de uma expressão da nossa linguagem) ou assíncrona (no caso de um teclado ou piano, em que os eventos vão sendo gerados em tempo real). \textit{Python} suporta assincronismo através do módulo \texttt{asyncio} que pode ser usado em conjunto com a sintaxe \textit{async/await}.
+O problema surge quando a fonte da música pode ser sincrona (no caso de uma expressão da nossa linguagem) ou assíncrona (no caso de um teclado ou piano, em que os eventos vão sendo gerados em tempo real). \textit{Python} suporta assincronia através do módulo \texttt{asyncio} que pode ser usado em conjunto com a sintaxe \textit{async/await}.
 
 Para simplificar os exemplos seguintes, tomemos o caso da operação genérica \textit{map}. As suas implementações, nas variantes síncrona e assíncrona, poderiam ser descritas como visto na listagem \ref{lst:transformers-map}.
 
@@ -1043,14 +1129,14 @@ Como podemos ver, quando a única diferença no algoritmo é se a \textbf{fonte 
 \begin{itemize}
  \item Para cada algoritmo criar duas versões, uma síncrona e outra assíncrona. Mas isto levava a duplicação de código particularmente má, porque o que iria mudar eram apenas \textbf{duas palavras} em todas as funções.
  
- \item Usar sempre a versão assíncrona, mesmo quando a fonte dos dados é síncrona. Isto porque é sempre possível converter uma sequência de dados síncrona em assíncrona, mas o inverso já não é. O problema desta solução é o facto de as funções assíncronas terem \textit{cor}\footnote{\url{https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/}}, e só poderem ser chamadas por funções da mesma cor. Qualquer função que potencialmente lidasse com expressões músicais teria de passar a ser assíncrona. E como a nossa linguagem é dinamicamente tipada, potencialmente qualquer expressão pode retornar uma sequência músical, logo \textbf{todas as expressões} na nossa linguagem teriam de ser executadas em modo assíncrono, o que traria uma penalisação a nível de \textit{performance} difícil de justificar.
+ \item Usar sempre a versão assíncrona, mesmo quando a fonte dos dados é síncrona. Isto porque é sempre possível converter uma sequência de dados síncrona em assíncrona, mas o inverso já não é. O problema desta solução é o facto de as funções assíncronas terem \textit{cor}\footnote{\url{https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/}}, e só poderem ser chamadas por funções da mesma cor. Qualquer função que potencialmente lidasse com expressões musicais teria de passar a ser assíncrona. E como a nossa linguagem tem tipos dinâmicos, potencialmente qualquer expressão pode retornar uma sequência musical, logo \textbf{todas as expressões} na nossa linguagem teriam de ser executadas em modo assíncrono, o que traria uma penalização a nível de \textit{performance} difícil de justificar.
 \end{itemize}
 
 
 \subsubsection{A Solução Escolhida}
 A solução passou por criar uma abstração a que chamamos \textbf{Transformador}, que contém um bocado das duas opções anteriores: Os algoritmos são declarados apenas uma vez, e são depois envoltos num \textit{transformador} que disponibiliza duas interfaces públicas, uma síncrona e outra assíncrona. Cada transformador tem uma interface pública composta por 4 funções que permitem simular um iterador: \verb|add_input( ev )|, \verb|end_input()|, \verb|add_output( ev )| e \verb|end_output()|.
 
-Para evitar chamar manualmente as funções e tratar do controlo do fluxo de execução manualmente, são incluidos dois métodos de classe em todos os transformadores que permiter correr um iterador (síncrono ou assíncrono). As funções, chamadas \texttt{iter} e \texttt{aiter} recebem (e retornam) respetivamente um interador síncrono e assíncrono.
+Para evitar chamar manualmente as funções e tratar do controlo do fluxo de execução manualmente, são incluídos dois métodos de classe em todos os transformadores que permitem correr um iterador (síncrono ou assíncrono). As funções, chamadas \texttt{iter} e \texttt{aiter} recebem (e retornam) respetivamente um iterador síncrono e assíncrono.
 
 Vejamos agora um exemplo do transformador \textbf{map} na listagem \ref{lst:transformers-map}. Pode parecer bastante mais verbosa do que as funções \textit{map} iniciais, mas é importante notar que este custo é fixo: só esta parte do algoritmo muda, e todo o resto seria igual. Como os transformadores utilizados no projeto são bem mais complexos do que este pequeno exemplo (podendo ter mais de uma centena de linhas de código), este custo fixo de escrever cerca de seis linhas de código \textit{boilerplate} por transformador não é um problema tão grande.
 
@@ -1079,7 +1165,7 @@ for ev in MapTransformer.iter( range( 5 ), lambda e: e * 2 ):
 Na listagem \ref{lst:transformers-map-usage} podemos ver a utilização do transformador aplicada a uma lista (já que também implementam a interface de um iterador). O método \texttt{aiter} poderia ser usado de forma análoga com um \textit{async for} e com um iterador assíncrono.
 
 \chapter{Manual de Utilização}
-O resultado final do processo de desenho e desenvolvimento descrito a cima foi um módulo \textit{Python} publicado no repositório \textit{PyPi} chamado \texttt{musikla}. Este módulo pode ser usado através da linha de comandos, ou os seus sub-modulos podem ser usados diretamente num projeto \textit{Python}.
+O resultado final do processo de desenho e desenvolvimento descrito a cima foi um módulo \textit{Python} publicado no repositório \textit{PyPi} chamado \texttt{musikla}. Este módulo pode ser usado através da linha de comandos, ou os seus sub-módulos podem ser usados diretamente num projeto \textit{Python}.
 
 Nesta secção vamos fazer uma pequena \textit{overview} dos diversos modos de como o módulo pode ser utilizado (versão da documentação mais completa disponível em na \href{https://github.com/pedromsilvapt/miei-dissertation}{web}).
 
@@ -1092,23 +1178,23 @@ pip install musikla
 É importante notar que uma dependência central da linguagem é a biblioteca nativa \textit{FluidSynth}. Apesar de existir uam versão \texttt{2.x}, essa não é suportada, pelo que é necessário o utilizador certeficar-se que o seu sistema tem a versão \texttt{1.x} instalada.
 
 \section{Módulos}
-O projeto musikla está dividido em bastantes sub-módulos, os mais importantes dos quais são listados aqui:
+O projeto \textbf{musikla} está dividido em bastantes sub-módulos, os mais importantes dos quais são listados aqui:
 
 \begin{description}
- \item[musikla.core.theory] Contém classes e funções auxiliares relativas à teoria músical, utilizadas por diveros outros sub-módulos.
- \item[musikla.core.events.transformers] Alberga os transformadores responsáveis por separar notas músicais em eventos On/Off, por exemplo, ou por tentar agrupar notas concurrentes em acordes, se for o caso disso, entre muitos mais.
+ \item[musikla.core.theory] Contém classes e funções auxiliares relativas à teoria músical, utilizadas por diversos outros sub-módulos.
+ \item[musikla.core.events.transformers] Alberga os transformadores responsáveis por separar notas musicais em eventos On/Off, por exemplo, ou por tentar agrupar notas concorrentes em acordes, se for o caso disso, entre muitos mais.
  \item[musikla.core.events] Contém as classes que representam os eventos musicais em memória, desde os mais óbvios, como o \texttt{NoteEvent}, \texttt{ChordEvent} ou \texttt{RestEvent}, mas também outros menos óbvios como o \texttt{ControlChangeEvent}, por exemplo.
  \item[musikla.core] Disponibiliza muitas das classes mais fundamentais para o funcionamento da linguagem, tais como \texttt{Context}, \texttt{Music}, \texttt{Instrument}, \texttt{Voice}, \texttt{SymbolsScope}, entre outros.
  \item[musikla.parser.abstract\_syntax\_tree] Contém as classes que representam os diversos nós da \acrshort{ast}.
  \item[musikla.parser] Disponibiliza as classes \texttt{Parser}, responsáveis por criar uma \acrshort{ast} com base numa \textit{string} ou num ficheiro contendo código Musikla, bem como a classe \texttt{CodePrinter} responsável pelo processo oposto, transformando de volta uma \acrshort{ast} numa \textit{string} usando a sintaxe da linguagem.
  \item[musikla.audio.sequencers] Alberga os diversos sequênciadores (formatos de saída) suportados nativamente pela linguagem.
- \item[musikla.audio] Contém as classes \texttt{Player} e \texttt{InteractivePlayer} que permitem reproduzir sequências musícais para os sequenciadores.
+ \item[musikla.audio] Contém as classes \texttt{Player} e \texttt{InteractivePlayer} que permitem reproduzir sequências musicais para os sequenciadores.
  \item[musikla.libraries] Disponibilizam as várias classes que definem as funções e símbolos expostos para a linguagem Musikla pela biblioteca \textit{standard}.
  \item[musikla] O módulo  principal, contém as duas classes responsáveis por inicializar todos os sistemas necessários para a linguagem funcionar, \texttt{CliApplication} e \texttt{Script}.
 \end{description}
 
 \section{Configuração}
-Quando a aplicação é inicializada, é opcionalmente carregado um ficheiro \texttt{musikla.ini} se este se encontrar na pasta \textit{Home} do computador do utilizador. Este ficheiro permite configurar diversos dos valores por predefinição utilizados pela linguagem. A maioria destas propriedades pode ser substituida e costumizada em cada execução quando a linguagem é executada pelo terminal.
+Quando a aplicação é inicializada, é opcionalmente carregado um ficheiro \texttt{musikla.ini} se este se encontrar na pasta \textit{Home} do computador do utilizador. Este ficheiro permite configurar diversos dos valores por predefinição utilizados pela linguagem. A maioria destas propriedades pode ser substituída e costumizada em cada execução quando a linguagem é executada pelo terminal.
 
 \begin{lstlisting}[caption={Exemplo de um ficheiro de configuração da linguagem},label={lst:configuration-file}]
 [Musikla]
