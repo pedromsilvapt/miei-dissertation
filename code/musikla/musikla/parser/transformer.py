@@ -146,6 +146,9 @@ class MusiklaTransformer(Transformer):
 
         return IfStatementNode( tree.children[ 0 ], tree.children[ 1 ], position = position )
 
+    def if_body ( self, tree ):
+        return tree.children[ 0 ]if tree.children else None
+
     def return_statement ( self, tree ):
         position = self._get_position( tree )
 

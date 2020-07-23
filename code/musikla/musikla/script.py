@@ -30,10 +30,10 @@ def load_paths ( config : ConfigParser, section : str, option : str ) -> List[st
     return paths_str.split( ":" )
 
 class Script:
-    def __init__ ( self, code : Union[str, Node] = None, context : Context = None, config : ConfigParser = None, symbols : Dict[str, Any] = {} ):
+    def __init__ ( self, code : Union[str, Node] = None, context : Context = None, config : ConfigParser = None, symbols : Dict[str, Any] = {}, parser_read_cache : bool  = True ):
         self.prelude_context : Context = context or Context.create()
         self.context : Context = self.prelude_context.fork( symbols = self.prelude_context.symbols.fork( True ) )
-        self.parser : Parser = Parser()
+        self.parser : Parser = Parser( read_cache = parser_read_cache )
         self.player : Player = Player()
         self.config : ConfigParser = config or load_config()
         self.tasks : Set[asyncio.Task] = set()

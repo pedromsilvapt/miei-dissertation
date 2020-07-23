@@ -34,14 +34,14 @@ class ErrorReporter:
             
             if self._is_newline( self.contents[ i ] ):
                 if line_offsets_count < max_lines:
-                    line_offsets.append( i )
+                    line_offsets.append( i + 1 )
 
                     line_offsets_count += 1
                 else:
                     if error_line >= 0 and start_line == error_line:
                         break
 
-                    line_offsets[ line_offsets_index ] = i
+                    line_offsets[ line_offsets_index ] = i + 1
 
                     start_line += 1
                 
@@ -78,8 +78,8 @@ class ErrorReporter:
         println( Back.RED + " " + self.error_phase + " " + Style.RESET_ALL + " in " + Fore.CYAN + ( self.file or "<in memory>" ) + Style.RESET_ALL + ":" + line + ":" + col  )
         
         for i in range( len( line_offsets ) - 1 ):
-            start = line_offsets[ i ] + 1
-            end = line_offsets[ i + 1 ] + 1
+            start = line_offsets[ i ]
+            end = line_offsets[ i + 1 ]
 
             number = start_line + i + 1
 

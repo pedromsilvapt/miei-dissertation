@@ -6,11 +6,17 @@ from ..music_node import MusicSequenceBase
 
 class ForLoopStatementNode( MusicSequenceBase ):
     def __init__ ( self, variable : List[str], it : Node, body : Node, position : Tuple[int, int, int] = None ):
+        from ..expressions.block_node import BlockNode
+
         super().__init__( position )
 
         self.variables : List[str] = variable
         self.it : Node = it
         self.body : Node = body
+        
+        if isinstance( self.body, BlockNode ):
+            self.body.fork_context = False
+            self.body.create_stack_frame = False
 
     def values ( self, context ):
         for i in Value.eval( context, self.it ):

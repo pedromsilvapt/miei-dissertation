@@ -115,7 +115,7 @@ class CliApplication:
         script = Script( symbols = {
             'sys\\args': internal_args,
             'sys\\vars': Object( options.variables or [] )
-        } )
+        }, parser_read_cache = not options.skip_parser_cache )
 
         if options.profile:
             print( "PARSE (AUTOLOAD): ", script.parser.time_spent * 1000, "ms" )

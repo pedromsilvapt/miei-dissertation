@@ -11,13 +11,13 @@ from .transformer import MusiklaTransformer
 
 
 class Parser():
-    def __init__ ( self ):
+    def __init__ ( self, read_cache : bool = True, write_cache : bool = True ):
         self.debug : bool = False
 
         self.time_spent : float = 0
         self.lark_time_spent : float = 0
-        self.read_cache : bool = True
-        self.write_cache : bool = True
+        self.read_cache : bool = read_cache
+        self.write_cache : bool = write_cache
 
         cache_path = Path( __file__ ).parent / "grammar.lark.pickle"
         

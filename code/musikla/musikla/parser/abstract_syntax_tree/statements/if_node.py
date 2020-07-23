@@ -6,11 +6,21 @@ from .statement_node import StatementNode
 
 class IfStatementNode( StatementNode ):
     def __init__ ( self, condition : Node, body : Node, else_body : Node = None, position : Tuple[int, int, int] = None ):
+        from ..expressions.block_node import BlockNode
+
         super().__init__( position )
 
         self.condition : Node = condition
         self.body : Node = body
         self.else_body : Optional[Node] = else_body
+
+        if isinstance( self.body, BlockNode ):
+            self.body.fork_context = False
+            self.body.create_stack_frame = False
+
+        if isinstance( self.else_body, BlockNode ):
+            self.else_body.fork_context = False
+            self.else_body.create_stack_frame = False
 
     def __eval__ ( self, context : Context ):
         condition_value = self.condition.eval( context )

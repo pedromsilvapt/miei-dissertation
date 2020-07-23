@@ -10,12 +10,17 @@ class BlockNode( ExpressionNode ):
         super().__init__( position )
 
         self.body = StackFrameNode( body, position = position )
+        self.fork_context : bool = True
+        self.create_stack_frame : bool = True
 
     def __eval__ ( self, context : Context ):
-        forked = context.fork( symbols = context.symbols.fork( opaque = False ) )
+        forked = context.fork( symbols = context.symbols.fork( opaque = False ) ) if self.fork_context else context
 
         try:
-            return self.body.eval( forked )
+            if self.create_stack_frame:
+                return self.body.eval( forked )
+            else:
+                return self.body.child.eval( forked )
         finally:
             context.join( forked )
 

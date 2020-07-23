@@ -343,6 +343,7 @@ class StandardLibrary(Library):
         context.symbols.assign( "sequencers\\Debug", CallablePythonValue( seqs.DebugSequencer ) )
         context.symbols.assign( "sequencers\\FluidSynth", CallablePythonValue( seqs.FluidSynthSequencer ) )
 
+        context.symbols.assign( "Music", CallablePythonValue( Music ) )
         context.symbols.assign( "Metronome", CallablePythonValue( Metronome ) )
         context.symbols.assign( "met", CallablePythonValue( Metronome ) )
 

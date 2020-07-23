@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="musikla", # Replace with your own username
-    version="0.6.0",
+    version="0.7.0",
     author="Pedro M. Silva",
     author_email="pemiolsi@hotmail.com",
     description="A programming environment for music accompaniements and keyboards",
