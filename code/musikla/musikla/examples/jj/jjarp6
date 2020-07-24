@@ -1,0 +1,62 @@
+#:accord = I22 S4/4 T120 L/4;
+#setvoice( $accord );
+
+$t=120;
+
+I22 S4/4 T120 L/4;
+
+cc( 64; 0 );
+
+$trans = 0; 
+
+#$e1 = ( c r/2 [cdef]/2 [cdef]/2 r/2 [cdef] );
+
+fun e1() => ( c r/2 d/2 r [cdef]/2 r/2 ) ;
+fun e2() => ( c5/2  );
+fun e3() => ( c r/2 d/2 r [cdef]/2 r/2 ) ;
+fun e3() => ( c/2*5 );
+fun e4() => ( c5/2 r/2 | r [cdef][cdef] );
+fun e5() => ( [cdef]);
+
+$pat = $e1;
+# keyboard\midi()::map( fun($k,$m) => $m + $trans );
+
+#  interter o teclado !  
+#    keyboard\midi()::map( fun($k,$m) => c'' - int( $m::first_note() ) );
+
+$keyboard = keyboard\piano();
+
+# $keyboard = (keyboard\midi() + @keyboard {
+#     q: [^Gdim];
+#     w: [Dm] ;
+#     e: [Am] ;
+#     r: [EM] ;
+#     t: [Bdim] ;
+#     y: [FM] ;
+#     u: [DM] ;
+# 
+#     a: [Bdim] ;
+#     s: [FM] ;
+#     d: [CM] ;
+#     f: [GM] ;
+#     g: [Dm] ;
+#     h: [Am] ;
+#     j: [Em] ;
+# 
+#     8: { $pat = $e1 };
+#     9: { $pat = $e2 };
+#     0: { $pat = $e3 };
+#     0: { $pat = $e3 };
+#     7: { $pat = $e5 };
+# 
+# #    [c] : [C7] * $pat ;
+# #    [d] : [D7] * $pat ;
+# #    [e] : [E7] * $pat ;
+# #    [f] : [F7] * $pat ;
+# #    [g] : [G7] * $pat ;
+# #    [a] : [A7] * $pat ;
+#     z : { $t = $t * 1.1; setattr( getctx()::voice, "tempo", $t )  } ;
+#     x : { $t = $t / 1.1; setattr( getctx()::voice, "tempo", $t )  } ;
+#     c : { $trans += 1 } ;
+#     v : { $trans -= 1 } ;
+# })::map( fun($k,$m) => $m * $pat() + $trans );
