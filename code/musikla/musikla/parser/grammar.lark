@@ -226,7 +226,7 @@ note_pitch: NOTE_ACCIDENTAL? NODE_PITCH_RAW
 
 NOTE_ACCIDENTAL: "^" | "^^" | "__" | "_"
 
-NODE_PITCH_RAW: /[cdefgab]/ "'"*
+NODE_PITCH_RAW.-1: /[cdefgab]/ "'"*
               | /[CDEFGAB]/ ","*
 
 modifier: "T"i INTEGER              -> tempo_mod

@@ -540,7 +540,7 @@ class MusiklaTransformer(Transformer):
 
         x = len( tree.children )
 
-        if tree.children and type( tree.children[-1] ) is int:
+        if tree.children and ( type( tree.children[-1] ) is int or type( tree.children[-1] ) is float ):
             value = tree.children[ -1 ]
             x = -1
 
