@@ -14,7 +14,7 @@ $keyboard = @keyboard {
     q: [Fm7] * $pat;
     w: [Cm7] * $pat;
     e: [Gm7] * $pat;
-# dá erro    r: [Dm7] * $pat;
+    r: [Dm7] * $pat;
     t: [Am7] * $pat;
     y: [Em7] * $pat;
     u: [Bm7] * $pat;
@@ -26,8 +26,6 @@ $keyboard = @keyboard {
     g: [Am] * $pat;
     h: [Em] * $pat;
     j: [Bm] * $pat;
-
-    r: $g::reset();
 
     8: { $pat = $e1 };
     9: { $pat = $e2 };
