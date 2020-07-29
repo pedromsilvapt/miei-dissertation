@@ -35,25 +35,21 @@ class IfStatementNode( StatementNode ):
         return result
 
     def to_source ( self, printer : CodePrinter ):
-        printer.add_token( 'if ' )
+        from ..expressions.group_node import GroupNode
+        from ..expressions.block_node import BlockNode
 
-        printer.begin_block( '(', ')' )
+        printer.add_token( 'if ' )
 
         self.condition.to_source( printer )
 
-        printer.end_block()
-
-        printer.begin_block()
+        if not isinstance( self.condition, GroupNode ) and not isinstance( self.body, BlockNode ):
+            printer.add_token( " then " )
+        else:
+            printer.add_token( " " )
 
         self.body.to_source( printer )
-
-        printer.end_block()
 
         if self.else_body is not None:
             printer.add_token( " else " )
 
-            printer.begin_block()
-
             self.else_body.to_source( printer )
-
-            printer.end_block()

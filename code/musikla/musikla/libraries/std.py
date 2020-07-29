@@ -11,6 +11,7 @@ from musikla.parser.abstract_syntax_tree.context_modifiers import ContextModifie
 from musikla.audio.sequencers.sequencer import Sequencer
 from musikla.audio import Player
 from typing import Any, List, Union, cast
+from pathlib import Path
 from fractions import Fraction
 import musikla.audio.sequencers as seqs
 
@@ -74,6 +75,16 @@ def function_eval ( context : Context, code, rule : str = None ) -> Any:
         code = function_parse( context, code, rule = rule )
     
     return Value.assignment( Value.eval( context, code ) )
+
+def function_pyeval ( context : Context, code ) -> Any:
+    from musikla.parser.abstract_syntax_tree.python_node import PythonNode
+    
+    return PythonNode.eval( context, code, True )
+
+def function_pyexec ( context : Context, code ) -> Any:
+    from musikla.parser.abstract_syntax_tree.python_node import PythonNode
+    
+    return PythonNode.execute( context, code, False )
 
 SequencerLike = Union[str, List[str], Sequencer]
 
@@ -300,6 +311,8 @@ class StandardLibrary(Library):
         context.symbols.assign( "ast_to_code", CallablePythonValue( function_ast_to_code ) )
         context.symbols.assign( "parse", CallablePythonValue( function_parse ) )
         context.symbols.assign( "eval", CallablePythonValue( function_eval ) )
+        context.symbols.assign( "pyeval", CallablePythonValue( function_pyeval ) )
+        context.symbols.assign( "pyexec", CallablePythonValue( function_pyexec ) )
         context.symbols.assign( "make_sequencer", CallablePythonValue( function_make_sequencer ) )
         context.symbols.assign( "save", CallablePythonValue( function_save ) )
         context.symbols.assign( "getcwd", CallablePythonValue( function_getcwd ) )
@@ -348,3 +361,6 @@ class StandardLibrary(Library):
         context.symbols.assign( "met", CallablePythonValue( Metronome ) )
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )
+
+        
+        context.script.import_module( self.context, Path( __file__ ).parent / "std.mkl", save_cache = False )

@@ -3,7 +3,6 @@ from typing import List, Optional
 class CodePrinter:
     def __init__ ( self, ident : int = 4 ):
         self.ident : int = ident
-        self.tokens : List[str] = []
         self.stack : List['CodeBlock'] = [ CodeBlock( 0, None, None, 'always' ) ]
 
     def block ( self, opening : Optional[str] = '{', closing : Optional[str] = '}', multiline : str = 'auto' ) -> 'CodeBlockContext':
@@ -26,10 +25,17 @@ class CodePrinter:
 
         self.stack[ -1 ].add_block( block )
 
+    def clear ( self ):
+        self.stack = [ CodeBlock( 0, None, None, 'always' ) ]
+
     def print ( self, node ) -> str:
         node.to_source( self )
 
-        return ''.join( self.stack[ -1 ].tokens )
+        result = ''.join( self.stack[ -1 ].tokens )
+
+        self.clear()
+
+        return result
 
 class CodeBlockContext:
     def __init__ ( self, printer : CodePrinter, opening : Optional[str] = '{', closing : Optional[str] = '}', multiline_strat : str = 'auto' ):

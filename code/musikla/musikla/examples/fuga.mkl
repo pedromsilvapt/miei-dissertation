@@ -1,16 +1,42 @@
-S8/4 T140 L/4 V120;
-
-setinstrument( 1 );
-cc( 64, 0 );
+## Usage examples
+# musikla ./musikla/examples/fuga.mkl
+# musikla ./musikla/examples/fuga.mkl -v version 1 -v sheet fuga-2.html
 
 fun fugue ( $subj, $resp ) => 
-    ( $subj $resp | stretch( r, $subj ) ; ( $subj + 7 ) );
+    ( $subj $resp | r ** $subj ( $subj + 7 ) );
 
-# Flat: A B e
-$subj = r c/2 B/2 c G _A c/2 B/2 c d
-        G c/2 B/2 c d F/2 G/2 _A2 G/2 F/2;
+$sheet_name = $sys\vars::get( 'sheet', none );
 
-$resp = E/2 c/2 B/2 A/2   G/2 F/2 _E/2 D/2   C _e d c
-        _B A _B c   ^F G _A F;
+$version = int( $sys\vars::get( 'version', 0 ) );
 
-play( fugue( $subj, $resp ) );
+if $version == 0 {
+    S8/4 T140 L/4 V120;
+
+    setinstrument( 1 );
+    cc( 64, 0 );
+
+    # Flat: A B e
+    $subj = r c/2 B/2 c G _A c/2 B/2 c d
+            G c/2 B/2 c d F/2 G/2 _A2 G/2 F/2;
+
+    $resp = E/2 c/2 B/2 A/2   G/2 F/2 _E/2 D/2   C _e d c
+            _B A _B c   ^F G _A F;
+} else if $version == 1 {
+    S2/4 L1/8 T60;
+
+    $subj = CC GG  AA G2  FF EE  DD C2;
+
+    $resp = CC FF  EE E2  GG FF  EE E2;
+};
+
+$music = fugue( $subj, $resp );
+
+$os = pymodule( 'os' );
+
+if $sheet_name isnot none {
+    save( $music, $__dir__ + '/' + $sheet_name );
+
+    $os::system( $__dir__ + '/' + $sheet_name );
+};
+
+play( $music );
