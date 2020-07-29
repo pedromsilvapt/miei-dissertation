@@ -210,7 +210,7 @@ chord: _LSQR chord_note_pitch CHORD_SUFFIX _RSQR note_value?  -> chord_shortcut
 chord_note_pitch: NOTE_ACCIDENTAL? NODE_PITCH_RAW             -> note_pitch
 
 CHORD_SUFFIX: "m3" | "M3"
-            | "m7" | "M7" | "dom7" | "7" | "m7b5" | "dim7" | "mM7"
+            | "m7b5" | "m7" | "M7" | "dom7" | "7" | "dim7" | "mM7"
             | "5"
             | "M" | "m" | "aug" | "dim" | "+"
 
@@ -224,7 +224,7 @@ note_value: "/" INTEGER          -> note_value_frac
 
 note_pitch: NOTE_ACCIDENTAL? NODE_PITCH_RAW
 
-NOTE_ACCIDENTAL: "^" | "^^" | "__" | "_"
+NOTE_ACCIDENTAL: "^^" | "^" | "__" | "_"
 
 NODE_PITCH_RAW.-1: /[cdefgab]/ "'"*
               | /[CDEFGAB]/ ","*

@@ -40,5 +40,4 @@ class ForLoopStatementNode( MusicSequenceBase ):
             
             self.it.to_source( printer )
 
-        with printer.block():
-            self.body.to_source( printer )
+        self.body.to_source( printer )

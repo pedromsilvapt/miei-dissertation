@@ -69,15 +69,15 @@ class Context():
         return ctx
 
     def __init__ ( self, 
-                   shared : SharedContext = SharedContext(), 
+                   shared : SharedContext = None, 
                    voice : Voice = None,
                    cursor : int = 0,
-                   symbols : SymbolsScope = SymbolsScope(),
+                   symbols : SymbolsScope = None,
                  ):
-        self.shared : SharedContext = shared
+        self.shared : SharedContext = shared or SharedContext()
         self.voice : Optional[Voice] = voice
         self.cursor : int = cursor
-        self.symbols : SymbolsScope = symbols
+        self.symbols : SymbolsScope = symbols or SymbolsScope()
 
     @property
     def script ( self ) -> 'Script':
@@ -117,7 +117,7 @@ class Context():
     def is_linked ( self, library : Library ) -> bool:
         return self.symbols.lookup( library.__class__, container = 'libraries' ) != None
 
-    def link ( self, library : Library, script ):
+    def link ( self, library : Library, script = None ):
         if not self.is_linked( library ):
             library.context = self
 

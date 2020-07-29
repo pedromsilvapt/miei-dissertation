@@ -1,5 +1,5 @@
 from musikla.parser.printer import CodePrinter
-from typing import Tuple
+from typing import Tuple, Union
 from .node import Node
 from musikla.core import Context
 import inspect
@@ -26,7 +26,7 @@ class PythonNode( Node ):
         return val.__name__
 
     def create_export_decorator ( self, context : Context ):
-        def export ( name : str = None ):
+        def export ( name : Union[str, any] = None ):
             nonlocal context
 
             def export_instance ( val ):
@@ -39,7 +39,12 @@ class PythonNode( Node ):
 
                 return val
             
-            return export_instance
+            if name is not None and type(name) is not str:
+                val, name = name, None
+
+                return export_instance( val )
+            else:
+                return export_instance
 
         return export
 

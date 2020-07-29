@@ -29,6 +29,9 @@ from .abstract_syntax_tree.macros import VoiceDeclarationMacroNode
 
 from fractions import Fraction
 
+def isnumber ( n ):
+    return type( n ) is int or type( n ) is float or isinstance( n, Fraction )
+
 @v_args( tree = True )
 class MusiklaTransformer(Transformer):
     def __init__(self, file : str = None, file_id : int = None, visit_tokens : bool = True):
@@ -540,7 +543,7 @@ class MusiklaTransformer(Transformer):
 
         x = len( tree.children )
 
-        if tree.children and ( type( tree.children[-1] ) is int or type( tree.children[-1] ) is float ):
+        if tree.children and isnumber( tree.children[ -1 ] ):
             value = tree.children[ -1 ]
             x = -1
 
@@ -591,9 +594,9 @@ class MusiklaTransformer(Transformer):
 
     def note_value_frac ( self, tree ):
         if len( tree.children ) == 2:
-            return tree.children[ 0 ] / tree.children[ 1 ]
+            return Fraction( tree.children[ 0 ], tree.children[ 1 ] )
         else:
-            return 1 / tree.children[ 0 ]
+            return Fraction( 1, tree.children[ 0 ] )
 
     def note_pitch ( self, tree ):
         if len( tree.children ) == 1:
