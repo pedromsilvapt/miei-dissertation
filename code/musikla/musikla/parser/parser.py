@@ -1,10 +1,9 @@
-import sys
 import time
+import hashlib
+import tempfile
 from pathlib import Path
-from lark import Lark, LarkError, UnexpectedInput
-from typing import Any, List, Optional, Tuple, cast
-from musikla.core.events import NoteEvent
-from musikla.core.theory import NoteAccidental, Note, Chord
+from lark import Lark, UnexpectedInput
+from typing import Optional
 from .error_reporter import ErrorReporter
 from .abstract_syntax_tree import Node
 from .transformer import MusiklaTransformer
@@ -24,25 +23,9 @@ class Parser():
             write_cache = self.write_cache
         )
 
-        # cache_path = Path( __file__ ).parent / "grammar.lark.pickle"
-        
-        # if not self.read_cache or not cache_path.exists():
-        #     with open( Path( __file__ ).parent / "grammar.lark", "r" ) as f:
-        #         self.internal_parser = Lark( f.read(), parser='lalr', debug=False, propagate_positions = True, maybe_placeholders = True )
-
-        #     if self.write_cache:
-        #         with open( cache_path, "wb" ) as f:
-        #             self.internal_parser.save(f)
-        # else:
-        #     with open( cache_path, "rb" ) as f:
-        #         self.internal_parser = Lark.load(f)
-
         self.specific_parsers = dict()
 
     def get_cache_path ( self, rule : Optional[str], content : str ) -> Path:
-        import hashlib
-        import tempfile
-
         cache_path = Path( tempfile.gettempdir() )
 
         if rule is not None:

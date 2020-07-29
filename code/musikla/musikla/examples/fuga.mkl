@@ -1,3 +1,7 @@
+## Usage examples
+# musikla ./musikla/examples/fuga.mkl
+# musikla ./musikla/examples/fuga.mkl -v version 1 -v sheet fuga-2.html
+
 fun fugue ( $subj, $resp ) => 
     ( $subj $resp | r ** $subj ( $subj + 7 ) );
 
@@ -27,15 +31,12 @@ if $version == 0 {
 
 $music = fugue( $subj, $resp );
 
+$os = pymodule( 'os' );
+
 if $sheet_name isnot none {
     save( $music, $__dir__ + '/' + $sheet_name );
 
-    system( $__dir__ + '/' + $sheet_name );
+    $os::system( $__dir__ + '/' + $sheet_name );
 };
 
 play( $music );
-
-@python
-import os
-
-export( os.system )

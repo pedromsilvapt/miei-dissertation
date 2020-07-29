@@ -1,0 +1,10 @@
+fun pymodule ( $module ) {
+    $module_name = $module::split( '.' )::[ -1 ];
+
+    pyexec( 
+"import " + $module + "
+export( 'module_ref' )( " + $module + " )"
+    );
+
+    return $module_ref;
+};

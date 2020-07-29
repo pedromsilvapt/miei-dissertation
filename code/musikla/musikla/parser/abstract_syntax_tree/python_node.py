@@ -1,10 +1,53 @@
 from musikla.parser.printer import CodePrinter
-from typing import Tuple, Union
+from typing import Tuple, Union, Any
 from .node import Node
 from musikla.core import Context
 import inspect
 
 class PythonNode( Node ):
+    
+    @staticmethod
+    def get_auto_name ( val ):
+        return val.__name__
+
+    @staticmethod
+    def create_export_decorator ( context : Context ):
+        def export ( name : Union[str, any] = None ):
+            nonlocal context
+
+            def export_instance ( val ):
+                nonlocal name, context
+
+                if name is None:
+                    name = PythonNode.get_auto_name( val )
+                
+                context.symbols.assign( name, val )
+
+                return val
+            
+            if name is not None and type(name) is not str:
+                val, name = name, None
+
+                return export_instance( val )
+            else:
+                return export_instance
+
+        return export
+
+    def execute ( context : Context, code : Union[str, Any], is_expression : bool = False ):
+        if type( code ) is str:
+            code = compile( code, "<embedded python>", 'eval' if is_expression else 'exec' )
+
+        globals = {}
+
+        if is_expression:
+            locals = PythonContext( context )
+        else:
+            globals[ 'export' ] = PythonNode.create_export_decorator( context )
+            locals = {}
+
+        return eval( code, globals, locals )
+
     def __init__ ( self, code : str, is_expression : bool = False, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
@@ -22,43 +65,8 @@ class PythonNode( Node ):
             printer.add_token( '@python ' )
             printer.add_token( self.code )
 
-    def get_auto_name ( self, val ):
-        return val.__name__
-
-    def create_export_decorator ( self, context : Context ):
-        def export ( name : Union[str, any] = None ):
-            nonlocal context
-
-            def export_instance ( val ):
-                nonlocal name, context
-
-                if name is None:
-                    name = self.get_auto_name( val )
-                
-                context.symbols.assign( name, val )
-
-                return val
-            
-            if name is not None and type(name) is not str:
-                val, name = name, None
-
-                return export_instance( val )
-            else:
-                return export_instance
-
-        return export
-
     def __eval__ ( self, context : Context ):
-        globals = {}
-
-        if not self.is_expression:
-            globals[ 'export' ] = self.create_export_decorator( context )
-            locals = {}
-        else:
-            locals = PythonContext( context )
-        
-
-        return eval( self.bytecode, globals, locals )
+        return PythonNode.execute( context, self.bytecode, self.is_expression )
 
 class PythonContext:
     def __init__ ( self, context : Context ):
