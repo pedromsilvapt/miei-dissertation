@@ -24,6 +24,8 @@ class FunctionDeclarationStatementNode( StatementNode ):
     def exec ( self, symbols_scope : SymbolsScope, context : Context, *args, **kargs ):
         forked = context.fork( symbols = symbols_scope.fork() )
 
+        forked.symbols.assign( '__callerctx__', context, local = True )
+
         for i in range( len( self.arguments ) ):
             ( name, arg_mod, default_value ) = self.arguments[ i ]
 

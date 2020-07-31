@@ -8,17 +8,17 @@ python: "@python" PYTHON_STATEMENTS
           | import 
           | for_loop_statement 
           | while_loop_statement 
-//          | if_statement
           | return_statement 
           | assignment
           | expression
 
-assignment: expression ASSIGNMENT_OP expression
+assignment: expression ASSIGNMENT_OP expression                         -> assignment
+          | expression ("," expression) ","?  ASSIGNMENT_OP expression  -> multi_assignment
 
 voice_assignment: VOICE_IDENTIFIER "=" voice_assignment_body
 
 voice_assignment_body: VOICE_CALL expression _RPAR  -> voice_assignment_inherit
-                     | expression                           -> voice_assignment_base
+                     | expression                   -> voice_assignment_base
 
 import: "import" IDENTIFIER  -> import_global
       | "import" STRING      -> import_local
