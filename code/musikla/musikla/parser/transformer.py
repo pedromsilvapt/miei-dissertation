@@ -21,7 +21,7 @@ from .abstract_syntax_tree.expressions import InComparisonOperatorNode, NotInCom
 
 from .abstract_syntax_tree.expressions import NotOperatorNode, GroupNode, BlockNode, PropertyAccessorNode
 
-from .abstract_syntax_tree.statements import StatementsListNode, VariableDeclarationStatementNode, FunctionDeclarationStatementNode
+from .abstract_syntax_tree.statements import StatementsListNode, VariableDeclarationStatementNode, MultiVariableDeclarationStatementNode, FunctionDeclarationStatementNode
 from .abstract_syntax_tree.statements import ForLoopStatementNode, WhileLoopStatementNode, IfStatementNode, ReturnStatementNode, ImportStatementNode
 
 from .abstract_syntax_tree.macros import KeyboardDeclarationMacroNode, KeyboardShortcutMacroNode, KeyboardShortcutDynamicMacroNode, KeyboardShortcutComprehensionMacroNode, KeyboardForLoopMacroNode, KeyboardWhileLoopMacroNode, KeyboardIfMacroNode, KeyboardBlockMacroNode
@@ -77,12 +77,20 @@ class MusiklaTransformer(Transformer):
         position = self._get_position( tree )
 
         return PythonNode( tree.children[ 0 ], False, position = position )
+
     def assignment ( self, tree ):
         position = self._get_position( tree )
 
         operator = tree.children[ 1 ][ :-1 ]
 
         return VariableDeclarationStatementNode( tree.children[ 0 ], tree.children[ 2 ], operator = operator, position = position )
+
+    def multi_assignment ( self, tree ):
+        position = self._get_position( tree )
+
+        operator = tree.children[ -2 ][ :-1 ]
+
+        return MultiVariableDeclarationStatementNode( tree.children[ :-2 ], tree.children[ -1 ], operator = operator, position = position )
 
     def voice_assignment ( self, tree ):
         position = self._get_position( tree )

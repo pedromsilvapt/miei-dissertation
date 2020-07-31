@@ -362,5 +362,6 @@ class StandardLibrary(Library):
 
         context.symbols.assign( "voices\\create", CallablePythonValue( function_voices_create ) )
 
-        
-        context.script.import_module( self.context, Path( __file__ ).parent / "std.mkl", save_cache = False )
+        # TODO: Make tests expose a script object
+        if context.script is not None:
+            context.script.import_module( self.context, Path( __file__ ).parent / "std.mkl", save_cache = False )

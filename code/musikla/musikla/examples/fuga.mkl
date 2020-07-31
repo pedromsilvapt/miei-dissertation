@@ -31,12 +31,12 @@ if $version == 0 {
 
 $music = fugue( $subj, $resp );
 
-$os = pymodule( 'os' );
+$system = pymodule( 'os', 'system' );
 
 if $sheet_name isnot none {
     save( $music, $__dir__ + '/' + $sheet_name );
 
-    $os::system( $__dir__ + '/' + $sheet_name );
+    $system( $__dir__ + '/' + $sheet_name );
 };
 
 play( $music );
