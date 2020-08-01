@@ -6,15 +6,16 @@
 %% Chapter with lots of dummy text
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Casos de Estudo}
-Neste capítulo iremos analisar possibilidades de uso da linguagem. Alguns desses exemplos são até já parcialmente ou totalmente funcionais quando executados no protótipo desenvolvido nesta fase inicial. Outros exemplos fazem uso de funcionalidades planeadas mas ainda não implementadas, e que serão devidamente identificados quando necessário.
-Nestes exemplos podem também ser usados pequenos excertos de músicas para demonstrar a utilização da linguagem, e a forma como esses excertos podiam ser representados com a nossa sintaxe.
+Neste capítulo iremos analisar possibilidades de uso da linguagem. Alguns desses exemplos são até já parcialmente ou totalmente funcionais quando executados pelo interpretador de referência desenvolvido nesta dissertação. Outros exemplos fazem uso de funcionalidades planeadas mas ainda não implementadas, e que serão devidamente identificados quando necessário.
+Nestes exemplos podem também ser usados pequenos excertos de músicas para demonstrar a utilização da linguagem, e a forma como esses excertos podiam ser representados com a nossa sintaxe. Estes casos de estude não são apenas uma forma de mostrar como os vários componentes da aplicação funcionam em conjunto, mas são também uma forma de especificação da linguagem. É muitas vezes mais fácil decidir qual a melhor forma de implementar uma funcionalidade quando temos vários casos de estudo de qual é a forma que podemos tirar melhor proveito da mesma.
 
 \section{Tocar Música}
+\label{casestudies:westworld}
 \begin{lstlisting}[caption=Exemplo da sintaxe para criação de música,language=PHP]
 # Title: Westworld Main Theme
 
-:piano = (1; S6/8 T70 L/8 V120 );
-:violin = :piano(41);
+:piano = I1 S6/8 T70 L/8 V120;
+:violin = :piano(I41);
 
 $chorus = :piano (A*11 G F*12 | A,6 A,5 G, F,6*2)*3;
 
@@ -31,8 +32,9 @@ Nas duas primeiras linhas deste exemplo podemos verifica a utilização de duas 
 Depois podemos ver a utilização de variáveis (\texttt{\$chorus} e \texttt{melody}) para estruturar e guardar conjuntos de notas, neste caso.
 É possível ver também o quão conciso fica descrever padrões ou conjuntos de notas repetidas através do operador de repetição (\texttt{*}). O operador de paralelo (\texttt{|}) permite depois tocar notas em paralelo ao mesmo tempo.
 
-\section{Simples Fuga}
-O caso de estudo anterior mostra como é possível declarar algumas notas, e aproveitar operadores simples como a repetição para reduzir a redundância no código. Neste caso de estudo vamos um pouco mais à frente e vemos como podemos declarar uma função, que usa as suas variáveis em mais do que um sítio e de diferentes formas.
+\section{Fuga de Duas Vozes}
+\label{casestudies:fugue}
+O caso de estudo anterior mostra como é possível declarar algumas notas, e aproveitar operadores simples como a repetição para reduzir a redundância no código. Neste caso de estudo usamos conceitos mais avançados e vemos como podemos declarar uma função, que usa as suas variáveis em mais do que um sítio e de diferentes formas para produzir o resultado final.
 \begin{lstlisting}[caption=Exemplo da declaração da estrutura e conteúdo de uma simples fuga de duas vozes,language=PHP]
 # Fugue 2 in C minor in Book I of the J.S. Bach’s Well-Tempered Clavier
 fun fugue ( $subj, $resp ) => 
@@ -49,6 +51,10 @@ $resp = _E/2 c/2 B/2 A/2   G/2 F/2 _E/2 D/2   C _e d c
 play( fugue( $subj, $resp ) );
 \end{lstlisting}
 
+Também nos permite analisar que as músicas podem conter estruturas não imediatamente óbvias à primeira vista. A função recebe duas excertos musicais \texttt{\$subj} e \texttt{\$resp}, e toca-os em sequência. Mas para além disso, durante o terceiro e quarto compassos, também toca em paralelo uma versão do \texttt{\$subj} transposta 7 semitons. 
+
+E este é apenas um pequeno exemplo do tipo de transformações e operações que podem ser efetuadas de modo não destrutivo sobre os acompanhamentos musicais. Se quisermos mudar alguma nota em \texttt{\$subj}, quando reproduzirmos o ficheiro novamente, essa alteração irá refletir-se automaticamente na versão transposta também.
+
 \begin{figure}[ht]
   \centering
   {%
@@ -56,17 +62,15 @@ play( fugue( $subj, $resp ) );
   \setlength{\fboxrule}{0pt}%
   \fbox{\includegraphics[width=.85\linewidth]{../../code/musikla/musikla/examples/paper/fugue.png}}%
   }%
-  \caption{Generated music sheet for fugue example, audio version available \href{https://drive.google.com/file/d/1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF/view}{\underline{here}}\protect\footnotemark.}
+  \caption{Pauta musical gerada pela linguagem, versão áudio disponível \href{https://drive.google.com/file/d/1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF/view}{\underline{aqui}}\protect\footnotemark.}
   \label{fig:fugue}
 \end{figure}
 
-Também nos permite analisar que as músicas podem conter estruturas não imediatamente óbvias à primeira vista. A função recebe duas excertos musicais \texttt{\$subj} e \texttt{\$resp}, e toca-os em sequência. Mas para além disso, durante o terceiro e quarto compassos, também toca em paralelo uma versão do \texttt{\$subj} transposta 7 semitons. 
+\footnotetext{Fuga \url{https://drive.google.com/file/d/1dIfvnhhKn73Vpp0W6ss6RLsv6PQ_HFTF/view}}
 
-E este é apenas um pequeno exemplo do tipo de transformações e operações que podem ser efetuadas de modo não destrutivo sobre os acompanhamentos musicais. Se quisermos mudar alguma nota em \texttt{\$subj}, quando reproduzirmos o ficheiro novamente, essa alteração irá refletir-se automaticamente na versão transposta também.
 
 \section{Definir um teclado}
-
-No início do capítulo \textbf{4.1.1} e \textbf{4.1.2} podemos ver um pequeno excerto de música que é tocada autonomamente pela linguagem. Aqui poderemos ver como construir um teclado virtual personalizado para tocar essa música, bem como a sequência de teclas a premir para a reproduzir.
+No início do capítulo \ref{casestudies:westworld} e \ref{casestudies:fugue} podemos ver um pequeno excerto de música que é tocada autonomamente pela linguagem. Aqui poderemos ver como construir um teclado virtual personalizado para tocar essa música, bem como a sequência de teclas a premir para a reproduzir.
     
 \begin{lstlisting}[caption=Exemplo da sintaxe para criação de teclados,language=PHP]
 # Title: Soft to Be Strong
@@ -74,7 +78,7 @@ No início do capítulo \textbf{4.1.1} e \textbf{4.1.2} podemos ver um pequeno e
 V70 L1 T120;
 
 fun toggle_sustain ( ref $enabled ) {
-    if $enabled { cc( 64; 0 ) } else { cc( 64; 127 ) };
+    if $enabled then cc( 64, 0 ) else cc( 64, 127 );
 
     $enabled = not $enabled;
 };
@@ -95,11 +99,13 @@ $sustained = true;
 % TODO Add back
 % \includemovie[text=\underline{Clicar para Reproduzir Aúdio}, attach=false]{}{}{../../code/SoundPlaygroundPy/examples/marina.wav}
 
+A sequência de teclas a ser premida neste exemplo é: \textbf{\texttt{A 5 5 5 4 S 3 2 1 D S A 5 6 7 D 7 7 6 S 6 9 8 9 6 7}}. Os tempos de cada tecla são relativamente uniformes e podem ser facilmente deduzidos ouvindo a versão sonora deste extrato musical, disponível \href{https://drive.google.com/file/d/1ncy4vlCbbiGQ14lurfsU4LCCUBK0ve13/view?usp=sharing}{aqui}\footnote{Soft to Be Strong \url{https://drive.google.com/file/d/1ncy4vlCbbiGQ14lurfsU4LCCUBK0ve13/view?usp=sharing}}.
+
 No início deste exemplo podemos ver a declaração de uma função \textbf{toggle\_sustain}, que recebe como parâmetro uma variável por referência. O que isto significa é que qualquer alteração ao valor da variável dentro desta função, reflete-se também na variável que for passada à função quando esta é chamada. 
 
 Lá dentro fazemos uso da função \texttt{cc} que permite controlar diversos controlos \acrshort{midi}. Neste caso, o controlo \textit{64} refere-se ao pedal de \textit{sustain} de um piano (que deixa as notas a tocar durante mais algum tempo mesmo depois da sua tecla ser levantada). O valor 0 (\textit{zero}) que lhe é passado significa desligar esse pedal, e o valor \textit{127} significa ligar esse pedal. No futuro, apesar de ser sempre possível recorrer a este tipo de funções de baixo nível, irão ser adicionadas à biblioteca \textit{standard} as funções mais comuns (como por exemplo, \texttt{sustainoff()} e \texttt{sustainon()}).
 
-Depois podemos ver a declaração de dois teclados virtuais (a linguagem permite mais do que um teclado ativo ao mesmo tempo). O primeiro mapeia a algumas teclas (\texttt{a, s, d, f e g}) o conjunto de acordes usados nesta música. Para além disso também define alguns modificares a serem usados por este teclado (cujo significado é discutido no capítulo \ref{modifiers}).
+Depois podemos ver a declaração de dois teclados virtuais (a linguagem permite mais do que um teclado ativo ao mesmo tempo). O primeiro mapeia a algumas teclas (\texttt{a, s, d, f e g}) o conjunto de acordes usados nesta música. Para além disso também define alguns modificares a serem usados por este teclado (cujo significado é discutido na sub-secção \ref{modifiers}).
 
 O segundo teclado funciona de forma similar, atribuindo às teclas de 1 a 9 notas individuais a serem tocadas. Neste teclado podemos também ver que notas musicais não são os únicos elementos que podem ser associados a teclas. Também é possível descrever expressões arbitrárias (como neste caso, a chamada da função \texttt{toggle\_sustain( \$sustained )} associada à tecla \textbf{c}).
 
@@ -156,21 +162,19 @@ Este exemplo faz uso de funções disponibilizadas na biblioteca \textit{standar
 # Use a "standard" keyboard piano
 $piano = keyboard\piano();
 # Maybe even add a MIDI piano?
-$piano -= keyboard\midi();
+$piano += keyboard\midi();
 # Or declare a custom piano
-$piano -= @keyboard hold extend {
+$piano += @keyboard hold extend {
     a: [^Cm];       s: [BM];        d: [AM];
     f: [EM];        g: [^Fm];       
 };
 
-# Declares an array that will contain our buffers
-$bf = none;
 # Creates a keyboard that declares a set of buffers. By default, 
 # the numpad keys are used (creating 10 available buffer slots)
 # Save key is F8, Load key is F7
-$piano -= keyboard\bufpad( $bf );
+$piano += keyboard\bufpad();
 # Creates a keyboard that associates the interpreter accessible by the "\" key
-$piano -= keyboard\repl( ctx = getctx() );
+$piano += keyboard\repl();
 \end{lstlisting}
 
 \section{QWERTY Keyboard}
@@ -203,10 +207,10 @@ fun qwertyboard () {
     }::map( fun( $k, $events ) => $events + ivl( $octave, $semitone ) );
     
     $keyboard += @keyboard {
-        up => { $octave += 1 };
-        down => { $octave -= 1 };
-        right => { $semitone += 1 };
-        left => { $semitone -= 1 };
+        up: { $octave += 1 };
+        down: { $octave -= 1 };
+        right: { $semitone += 1 };
+        left: { $semitone -= 1 };
     };
     
     return $keyboard;
@@ -229,4 +233,4 @@ Para além disso também conseguimos observar que a integração dos teclados ab
 
 Para além disso, também concluímos que é importante que a biblioteca \textit{standard} inclua ferramentas genéricas e prontas a utilizar, tais como teclados com as teclas já preenchidas para os casos de uso mais comuns. Isto é útil para facilitar a utilização da linguagem por pessoas que possam sentir-se à vontade com pequenos \textit{scripts} que mudem algumas variáveis e chamem algumas funções, mas não tenham experiência suficiente para criar tudo de raiz.
 
-Por fim, é também algo importante permitir a execução de código (nem que seja apenas de expressões ou instruções singulares, uma de cada vez) em \textit{runtime}. Isto permite ir refinando o programa, principalmente os teclados que possam estar ativos, sem ser necessário terminar a execução do programa. Tal ação, para além de ser mais incomodativo e diminuir a produtividade do utilizador, também apresenta a desvantagem de fazer a aplicação perder a memória, e como tal o estado das variáveis e dos \textit{buffers} que pudessem estar a ser usados.
+Por fim, é também algo importante permitir a execução de código (nem que seja apenas de expressões ou instruções singulares, uma de cada vez) em \textit{runtime}. Isto permite ir refinando o programa, principalmente os teclados que possam estar ativos, sem ser necessário terminar a execução do programa. Tal ação, para além de ser mais incomodativo e diminuir a capacidade do utilizador, também apresenta a desvantagem de fazer a aplicação perder a memória, e como tal o estado das variáveis e dos \textit{buffers} que pudessem estar a ser usados.

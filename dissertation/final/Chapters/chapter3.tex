@@ -5,9 +5,8 @@
 %%
 %% Chapter with a short laext tutorial and examples
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{O problema e os seus desafios}
-Desenhar esta \acrfull{dsl} trás consigo os problemas comuns ao desenho de linguagens de programação, bem como desafios novos e únicos relativos ao domínio musical. Alguns desses desafios foram já bastante estudado pela miríade de linguagens de programação, tanto industriais como académicas, que já foram desenvolvidas, pelo que não serão o foco principal deste projeto. Pelo contrário, neste projeto serão focados com mais detalhe os desafios resultantes da integração da componente musical na linguagem.
-
+\chapter{O Problema e os seus Desafios}
+Daqui para a frente iremos chamar \textbf{Musikla} tanto à linguagem que desenhamos, mas também ao interpretador de referência desenvolvido. Desenhar a nossa linguagem trás consigo os problemas comuns ao desenho de linguagens de programação, bem como desafios novos e únicos relativos ao domínio musical. Alguns desses desafios foram já bastante estudado pela miríade de linguagens de programação, tanto industriais como académicas, que já foram desenvolvidas, pelo que não serão o foco principal deste projeto. Pelo contrário, neste projeto serão focados com mais detalhe os desafios resultantes da integração da componente musical na linguagem.
 
 O primeiro desses desafios é a introdução de um novo tipo de dados primitivo não existente na maioria das outras linguagens: \textbf{Música}. Este tipo de dados trás consigo a necessidade implícita de gerir o conceito de \textbf{tempo} na linguagem, tanto na geração de música \textit{realtime} como \textit{offline} (em que o tempo a que a música está a ser gerada pode ser mais rápido ou mais lento do que o tempo real). Este conceito de tempo também acaba por escapar para o campo da gramática e da sintaxe da linguagem, necessitando de uma forma de descrição do mesmo que seja flexível, mas não demasiado verbosa ou difícil de ler.
 
@@ -20,20 +19,20 @@ Nós podemos assim sumarizar os objetivos principais para a nossa linguagem da s
  \item \textbf{Dinâmica} Introduzir conceitos matemáticos ou de programação, tais como funções e variáveis, para a área musical.
  \item \textbf{Interatividade} Tornar possível criar teclados interativos diretamente a partir da linguagem, e que integrem facilmente com o resto  das funcionalidades  disponibilizadas.
  \item \textbf{\textit{Lazyness}} Tornar \textit{lazyness} a predefinição para as sequências músicais, gerando apenas os eventos estritamente necessários quando são necessários.
- \item \textbf{Eventos Variados} As sequências musicais devem poder descrever acompanhamentos musicais complexos, contento notas singulares, pausas, acordes, \textit{arpeggios}, vozes, e mais.
- \item \textbf{Múltiplos \textit{Inputs}} Para além de permitir que os acompanhamentos musicais sejam descritos na nossa linguagem, também deve ser possível que eles sejam importados ou convertidos de diferentes fontes, como dispositivos ou ficheiros \textit{MIDI}.
- \item \textbf{Múltiplos \textit{Outputs}} Guardar ou escrever para differentes \textit{outputs}, os eventos que forem gerados pela nossa aplicação.
+ \item \textbf{Eventos Variados} As sequências musicais devem poder descrever extratos musicais complexos, contento notas singulares, pausas, acordes, \textit{arpeggios}, vozes, e mais.
+ \item \textbf{Múltiplos \textit{Inputs}} Para além de permitir que os extratos musicais sejam descritos na nossa linguagem, também deve ser possível que eles sejam importados ou convertidos de diferentes fontes, como dispositivos ou ficheiros \textit{MIDI}.
+ \item \textbf{Múltiplos \textit{Outputs}} Guardar ou escrever para diferentes \textit{outputs}, os eventos que forem gerados pela nossa aplicação.
  \item \textbf{Extensibilidade} Tornar simples o processo de estender e customizar o projeto, sem ser necessário passos como clonar o projeto, recompilar ou modificar o seu código interno.
 \end{itemize}
 
 \section{Solução Proposta}
-A linguagem irá ser desenvolvida em \textit{Python}. A linguagem irá ser extensível, permitindo ao utilizador definir objetos ou funções em \textit{Python} e expô-los para dentro da linguagem, dando assim acesso à grande quantidade de módulos já existentes para os mais variados fins.
+Irá ser desenvolvido um interpretador para a linguagem em \textit{Python}. A linguagem irá ser extensível, permitindo ao utilizador definir objetos ou funções em \textit{Python} e expô-los para dentro da linguagem, dando assim acesso à grande quantidade de módulos já existentes para os mais variados fins.
 
 Como exemplo da extensibilidade da linguagem, irá também ser desenvolvido por cima dela uma biblioteca de construção de teclados virtuais que permitem associar a eventos de teclas notas ou sequências musicais, ou mesmo instruções a serem executadas na própria linguagem.
 
 Para resolver o problema da representação do tempo, toda a linguagem irá ter noção implícita desse conceito, mesmo que apenas algumas construções o utilizem. Isto significa que durante toda a execução, haverá uma variável de \textbf{contexto} que será implicitamente passada para todas instruções e todas as chamadas de funções que, entre outras coisas, irá manter registo da passagem do tempo. Desta forma os construtores que precisarem do contexto, como por exemplo a emissão de notas musicais, podem aceder ao tempo atual bem como modificá-lo.
 
-A existência deste \textbf{contexto} implícito significa que as funções \textit{Python} não podem ser expostas diretamente para a linguagem, mas graças à expressividade do \textit{Python} é possível construit uma \textit{Foreign Function Interface} que seja incrivelmente simples de usar e que evite que o utilizador tenha de mapear as funções manualmente. Em vez disso, pode simplesmente marcá-las como sendo \textbf{context-free} (funções que não têm noção da existência do contexto implícito), e elas serão então tratadas de forma apropriada.
+A existência deste \textbf{contexto} implícito significa que as funções \textit{Python} não podem ser expostas diretamente para a linguagem, mas graças à expressividade do \textit{Python} é possível construir uma \textit{Foreign Function Interface} que seja simples de usar e que evite que o utilizador tenha de mapear as funções manualmente. Em vez disso, pode simplesmente marcá-las como sendo \textbf{context-free} (funções que não têm noção da existência do contexto implícito), e elas serão então tratadas de forma apropriada.
 
 O tipo de dados \textbf{Música} irá ser implementado sobre o conceito de iteradores (e mais especificamente geradores) fornecido pelo \textit{Python} para tornar a criação de música \textit{lazy}. No entanto, este paradigma deve ser completamente opaco para o utilizador da linguagem: a decisão de usar o modelo de execução normal, ou funções geradores deve ser tomado em segundo plano pelo motor de execução da linguagem, sempre que este for necessário. Isto é, ao contrário da maioria das linguagens que exigem para a utilização de geradores que o utilizador declare explicitamente que quer "emitir" um valor através de alguma \textit{keyword}, geralmente \texttt{yield}, na nossa linguagem sempre que alguma função produzir um valor do tipo de música que não seja consumido de alguma forma (atribuído a uma variável ou passado a uma função, por exemplo), esse valor musical é \textbf{implicitamente emitido} para o gerador, uma vez que esse caso será o mais comum. Para evitar que o valor seja emitido, é necessário \textbf{descartá-lo manualmente} onde for caso disso. Se por outro lado a função lidar apenas com valores não-musicais, a sua execução irá seguir o modelo tradicional (onde a função termina a sua execução antes de retornar o controlo ao local onde foi chamada).
 \newpage
@@ -43,19 +42,19 @@ A gramática completa da linguagem pode ser vista no Anexo \ref{grammar}. Mas an
 V70 L1 T120;
 
 fun melody () {
-V120;
+    V120;
 
-r/4 ^g/4 ^g/4 ^g/4;
-^f/2 e/8 ^d3/8; 
-^c2;
+    r/4 ^g/4 ^g/4 ^g/4;
+    ^f/2 e/8 ^d3/8; 
+    ^c2;
 }
 
 fun accomp () {
-V50; sustainoff();
+    V50; sustainoff();
 
-^Cm;
-BM; 
-AM;
+    ^Cm;
+    BM; 
+    AM;
 }
 
 # Create the notes from a melody with a piano and accompany it with a violin in parallel
@@ -65,11 +64,11 @@ $notes = :piano melody() | :violin accomp();
 play( $notes * 2 );
 \end{lstlisting}
 
-O desenho da gramática da linguagem é composto aproximadamente por três partes, todas elas interligadas entre si.
+O desenho da gramática da linguagem é composto por três partes, todas elas interligadas entre si.
 \begin{description}
     \item[Instruções e Declarações] Similar a quase todas as linguagens de programação, esta parte cobre a declaração de funções, variáveis, operadores e expressões em geral.
-    \item[Acompanhamentos Musicais] Um tipo de expressões especial, que em vez de produzir números ou \textit{strings} literais, reconhece expressões musicais (notas, acordes, etc).
-    \item[Teclados Virtuais] Açúcar sintático para facilitar a declaração de teclados virtuais. Para além de alguns construtores próprios, faz uso das expressões gerais e de acompanhamentos musicais descritas acima.
+    \item[Extratos Musicais] Um tipo de expressões especial, que em vez de produzir números ou \textit{strings} literais, reconhece expressões musicais (notas, acordes, etc).
+    \item[Teclados Virtuais] Açúcar sintático para facilitar a declaração de teclados virtuais. Para além de alguns construtores próprios, faz uso das expressões gerais e de extratos musicais descritas acima.
 \end{description}
 
 \subsubsection{Instruções e Expressões}
@@ -85,8 +84,8 @@ Em termos de instruções suportadas, a linguagem irá ter as usuais:
     \item[Chamada de Funções] \verb|function_name( <arg1>, <arg2>, <...>, named_arg = <arg_n> );|
 \end{description}
 
-\subsubsection{Acompanhamentos Musicais}
-A gramática de expressões ou acompanhamentos musicais tem como base fundamental os seguintes blocos: notas, pausas e modificadores. As notas são identificadas pelas letras A até G, seguindo a notação de \textit{Helmholtz}\cite{helmholtz-pitch-notation} para denotar as respetivas oitavas. Podem também ser seguidas de um número ou de uma fração, indicando a duração da nota.
+\subsubsection{Extratos Musicais}
+A gramática de expressões ou extratos musicais tem como base fundamental os seguintes blocos: notas, pausas e modificadores. As notas são identificadas pelas letras A até G, seguindo a notação de \textit{Helmholtz}\cite{helmholtz-pitch-notation} para denotar as respetivas oitavas. Podem também ser seguidas de um número ou de uma fração, indicando a duração da nota.
 
 \begin{lstlisting}[caption={Exemplos de notas}]
 C,, C, C c c' c'' c''' c'/4 A1/4 B2
@@ -111,7 +110,7 @@ Os modificadores disponíveis são:
 \item[Velocity] A velocidade das notas, tendo o formato \texttt{[vV][0-9]+}.
 \item[Duração] A duração das notas, tendo o formato \texttt{[lL][0-9]+} ou \\ \texttt{[lL][0-9]+/[0-9]+}.
 \item[Tempo] O número de batidas por minuto (BPM) que definem a velocidade a que as notas são tocadas, tendo o formato \texttt{[tT][0-9]+}.
-\item[Assinatura de Tempo] Define a assinatura de tempo, que define o tipo de batida da música e o comprimento de uma barra na pauta musical. Tem o formato \texttt{[sS][0-9]+/[0-9]+}.
+\item[Compasso] Define o compasso, que descreve o tipo de batida da música e o comprimento de uma barra na pauta musical. Tem o formato \texttt{[sS][0-9]+/[0-9]+}.
 \item[Oitava] Permite mudar qual a oitava base (por predefinição 4). Tem o formato \texttt{[oO][0-9]}.
 \item[Instrumento] Qual o identificador numérico do instrumento (a começar em um) a utilizar (regra geral, seguindo o \textit{standard} General MIDI). Segue o formato \texttt{[iI][0-9]+}.
 \end{description}
@@ -129,7 +128,7 @@ Para além destas funcionalidades, também existe algum açúcar sintático para
 \end{lstlisting}
 
 \subsubsection{Teclados Virtuais}
-Para além de permitir declarar acompanhamentos musicais para serem tocados automaticamente, a linguagem permite declarar teclados virtuais. Associados às teclas do teclado podem estar notas, acordes, melodias, ou qualquer outro tipo de expressão suportado pela linguagem.
+Para além de permitir declarar extratos musicais para serem tocados automaticamente, a linguagem permite declarar teclados virtuais. Associados às teclas do teclado podem estar notas, acordes, melodias, ou qualquer outro tipo de expressão suportado pela linguagem.
 
 
 \begin{lstlisting}[caption=Exemplo da sintaxe de teclados virtuais,language=PHP]
@@ -169,7 +168,7 @@ $keyboard::map( $events => transpose( $events, octave = $octave ) );
 # It is possible to synchronize the keyboard with a grid to align the timings of key presses 
 # and releases to said grid
 $keyboard::with_grid( Grid::new( 1, 4 ) );
-# We can also control the keys manually
+# We can also simulate key presses and releases programmatically
 $keyboard::start( "ctrl+z" );
 $keyboard::stop_all();
 
