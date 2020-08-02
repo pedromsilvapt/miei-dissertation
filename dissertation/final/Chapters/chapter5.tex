@@ -5,7 +5,7 @@
 %%
 %% Chapter with lots of dummy text
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Desenvolvimento}
+\chapter{Desenvolvimento do Interpretador Musikla}
 O desenvolvimento do projeto pode ser dividido de grosso modo em três camadas. Nelas são cobertos um grupo abrangente de aspetos tanto da área do processamento de linguagens e do desenvolvimento de \acrshort{dsl}'s, da teoria musical, e do processamento digital de áudio. 
 
 Na camada da linguagem esteve mais proeminente a área de processamento de linguagens, por motivos óbvios. Mas nas decisões tomadas durante o desenvolvimento desta camada, estiveram sempre presentes também as necessidades específicas que a teoria musical (e a sua notação) impõem numa linguagem de programação.
@@ -14,7 +14,7 @@ Do mesmo modo, o interpretador faz claramente uso de tópicos do domínio do pro
 
 A última camada, de desenvolvimento de uma biblioteca, afeta composta pelos objetos e procedimentos que têm como objetivo facilitar a utilização da linguagem. Para isso foi necessário identificar os casos de utilização mais comuns e prioritários, de modo a guiar a construção destas interfaces para refletirem uma utilização real da linguagem e da aplicação.
 
-\section{Linguagem}
+\section{Análise Sintática}
 A camada sintática da aplicação pode ser conceptualmente dividida em duas fases:
 \begin{description}
     \item[Sintaxe] Esta fase caracteriza-se por delinear qual a sintaxe usada pela linguagem, bem como os construtores e operadores suportados;
@@ -23,10 +23,10 @@ A camada sintática da aplicação pode ser conceptualmente dividida em duas fas
 
 No entanto, a realidade é que a abordagem seguida (não só nesta camada mas como em todo o projeto) foi mais iterativa, dividindo cada fase em porções semi-independentes e intercalando as várias porções das diversas fases. Esta abordagem tem a vantagem de permitir ir testando e experimentando com o projeto mais cedo do que seria possível com um modelo de desenvolvimento em cascata.
 
-\subsection{Sintaxe}
+\subsection{Descrição Sintática}
 A sintaxe da linguagem é fortemente inspirada nas usualmente chamadas linguagens da família C, com recurso a parênteses curvos e chavetas para delínear os vários blocos da linguagem. No entanto, as expressões são complementadas com um novo conjunto de literais e operadores dedicados à componente músical da linguagem. Conseguir juntar estes dois mundos traz consigo alguns desafios que serão discutidos mais em detalhe em cada umas das secções seguintes.
 
-\subsubsection{\textbf{Literais}}
+\subsubsection{\textbf{Constantes ou Literais}}
 Literais referem-se ao conceito de sintaxe desenhada com o propósito de descrever dados (literais) no código. São usados em quase todas as linguagens de programação (e na nossa também) para descrever números, \textit{strings} e booleanos.
 
 A maior diferença nesta área entre a nossa linguagem e as restantes, foi a adição de literais responsáveis por modelar conceitos musicais, como notas, pausas e acordes. Esta sintaxe, tal como já foi mencionado anteriormente, foi inspirada pelo projeto \textit{abc notation}, com algumas modificações.
@@ -55,7 +55,7 @@ Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de
 \def\arraystretch{1.3}
 \begin{tabular}{|l|c|}
 \hline
-\textbf{}        & \textbf{Abreviações}           \\ \hline
+\textbf{}        & \textbf{Abreviaturas}           \\ \hline
 \textbf{Tríades} & M, m, aug, dim, +                \\ \hline
 \textbf{Quinta}  & 5                                \\ \hline
 \textbf{Sétimas} & m7, M7, dom7, 7, m7b5, dim7, mM7 \\ \hline
@@ -70,9 +70,9 @@ A decisão de envolver cada acorde com parênteses retos deveu-se ao facto de mu
 [CFG]/4 [^Fm] [C5]2
 \end{lstlisting}
 
-\subsubsection{\textbf{Modificadores}}
+\subsubsection{\textbf{Modificadores de Voz}}
 
-Para além de permitir descrever notas, também é possível ter modificadores de contexto que permitem alterar certas propriedades das notas e acordes. Duas destas propriedades (duração e oitava) podem ser depois customizadas em cada nota ou acorde, como já vimos. No entanto, em vez de estes valores substituírem simplesmente os valores predefinidos, eles ``complementam-se''.
+Para além de permitir descrever notas, também é possível ter modificadores de voz que permitem alterar certas propriedades das notas e acordes. Duas destas propriedades (duração e oitava) podem ser depois customizadas em cada nota ou acorde, como já vimos. No entanto, em vez de estes valores substituírem simplesmente os valores predefinidos, eles ``complementam-se''.
 
 Ou seja, se declararmos por exemplo que a duração base das notas é $\frac{1}{4}$. Quando definirmos alguma nota a seguir com a duração de $\frac{1}{2}$, a sua duração real irá ser calculada da seguinte forma $\frac{1}{4} \times \frac{1}{2} = \frac{1}{8}$.
 
@@ -113,9 +113,8 @@ A solução tomada inicialmente foi utilizar ponto-e-vírgula para substituir a 
 A solução escolhida no final foi um compromisso entre as duas opções: tanto a vírgula como o ponto-e-vírgula podem ser usados como separadores de argumentos, com a exceção de quando o argumento é uma nota musical, onde o ponto-e-vírgula tem de ser obrigatoriamente usado. Assim sendo, poderíamos rescrever o exemplo anterior da seguinte forma \texttt{function\_name(C; A; \$a, 2)}, passando a função a receber agora os quatro argumentos como seria inicialmente esperado.
 
 \subsection{Gramática}
-A sintaxe que descrevemos acima foi implementada com recurso ao gerador de \textit{parsers} com base em gramáticas \acrshort{peg}, \textbf{Arpeggio} (cujo nome é irónico, tendo em conta o tema desta dissertação).
-
-Aqui vamos analisar brevemente uma versão simplificada da gramática (a versão completa usada pela aplicação pode ser vista em maior detalhe no Apêndice \ref{grammar}). Nesta versão simplificada, incluída para facilitar a leitura, não se preocupa com coisas como por exemplo recursividade à esquerda, ou precedência de operadores. Obviamente, na gramática real foram usadas as técnicas usuais para cobrir esses casos.
+Aqui vamos analisar brevemente uma versão simplificada da gramática (a versão completa usada pela aplicação pode ser vista no Apêndice \ref{grammar}). Nesta versão simplificada, incluída para facilitar a leitura, não aborda detalhes como recursividade à esquerda, ou precedência de operadores. Obviamente, na gramática real foram usadas as técnicas usuais para cobrir esses casos.
+A notação da linguagem Musikla cobre várias sub-gramáticas, tanto da parte musícal, descrição de teclados mas também instruções e expressões de uma programação de linguagem genérica, que iremos abordar de seguida.
 
 \subsubsection{Corpo}
 Comecemos pela descrição geral do corpo de um ficheiro Musikla. O corpo é composto por uma lista de \textit{statements} (ou instruções) que são obrigatoriamente separados por pontos e vírgula (sendo apenas o último opcional). 
@@ -171,12 +170,12 @@ if <- "if" "(" expression ")" "{" body "}" "else" "{" body "}"
 
 return_statement <- "return" expression?
 \end{lstlisting}
-A nível de instruções, a nossa gramática é bastante banal e não carece de muitos comentários.
+A nível de instruções, a nossa gramática segue o habitual e não carece de muitos comentários.
 
 \subsubsection{Expressões}
 As nossas expressões, como já foi dito, estão aqui listadas. O conceito de recursividade à esquerda é ignorado nestes exemplos por questões de simplicidade, e a precedência de operadores binários é denotada apenas informalmente pela ordem das produções, começando pelo operador com menos precedência e subindo até aos operadores com mais precedência.
 
-Os \textit{arrays} e \textit{objetos} são bastante similares à sintaxe usada no \textit{python}, com a distinção de que para evitarem ambiguidades com outras produções da gramática, têm de ser precedidos com o símbolo \texttt{@}.
+Os \textit{arrays} e \textit{objetos} são bastante similares à sintaxe usada no \textit{python}, com a distinção de que para evitar ambiguidades com outras produções da gramática, têm de ser precedidos com o símbolo \texttt{@}.
 
 Alguns das outras regras (como notas ou teclados, que são aceites como expressões) serão descritas nas próximas sub-secções.
 \begin{lstlisting}[caption={Produções de expressões na gramática},language={}]
@@ -231,7 +230,7 @@ object_key <- identifier / float / integer / string
 
 \subsubsection{Música}
 No que toca a música, a sintaxe tenta seguir ao máximo a notação usada pelo projeto \textbf{abc}. As suas particularidades também já foram discutidas em bastante detalhe ao longo deste documento, pelo que as produções colocadas aqui não necessitam de muitos comentários.
-\begin{lstlisting}[caption={Produções de expressões na gramática},language={}]
+\begin{lstlisting}[caption={Produções de elementos musicais na gramática},language={}]
 note <- note_pitch note_value?
 
 note_value <- "/" integer
@@ -266,18 +265,18 @@ modifier
 \end{lstlisting}
 
 \subsubsection{Teclados}
-As produções para descrever teclados são um ponto fulcral na nossa gramática e na utilização da nossa linguagem em geral. Nós quisemos que elas permitissem descrever teclados de uma forma concisa, mas ainda assim dando bastante poder ao utilizador na forma como o utiliza.
+As produções para descrever teclados são um ponto fulcral na gramática e na utilização da linguagem em geral. Quisemos que elas permitissem descrever teclados de uma forma concisa, mas ainda assim dando bastante poder ao utilizador na forma como o utiliza.
 
 Com isso em mente, podemos ver que os teclados têm um corpo que difere do corpo geral da linguagem, mas ao mesmo tempo mantém algumas similaridades, nomeadamente, o facto de cada instrução no corpo ser separada por um ponto e vírgula.
 
 No entanto, as instruções no corpo de um teclado são diferentes: a instrução mais básica, denominada por \textit{shortcut}, pode ser imaginada como um par tecla e ação (com mais alguma informação adicional, como por exemplo, argumentos do evento).
 
-Mas para além disso, também há outras instruções aceites que permitem aos nossos teclados serem gerados dinamicamente: \texttt{for}, \texttt{while} e \texttt{if}. Os cabeçalhos destas instruções são de grosso modo iguais aos das suas versões \textit{general-purpose}, mas nos seus corpos aceitam só instruções de teclados também.
+Para além disso, também há outras instruções aceites que permitem aos nossos teclados serem gerados dinamicamente: \texttt{for}, \texttt{while} e \texttt{if}. Os cabeçalhos destas instruções são de grosso modo iguais aos das suas versões \textit{general-purpose}, mas nos seus corpos aceitam só instruções de teclados também.
 
 Por fim, existe mais uma instrução válida, \textit{block}, que permite colocar instruções normais e sem restrições, envoltas num par de chavetas. Isto é útil quando precisamos de declarar alguma variável dentro do teclado para evitar, por exemplo, repetir um pedaço de código múltiplas vezes.
 
-\begin{lstlisting}[caption={Produções de declaração de teclados na gramática},language={}]
-keyboard <- "@keyboard" alphanumeric* group? "{" keyboard_body "}"
+\begin{lstlisting}[caption={Produções associadas a teclados na gramática},language={}]
+keyboard <- "@keyboard" identifier* group? "{" keyboard_body "}"
 
 keyboard_body <- keyboard_body_statement ( ";" keyboard_body_statement )* ";"?
 
@@ -298,16 +297,16 @@ keyboard_block <- "{" body "}"
 
 keyboard_shortcut <- keyboard_shortcut_key keyboard_argument_list? ":" expression
 
-keyboard_shortcut_key <- alphanumeric ("+" alphanumeric)* alphanumeric*
-                       / string_value alphanumeric*
-                       / "[" expression "]" alphanumeric*
+keyboard_shortcut_key <- identifier ("+" identifier)* identifier*
+                       / string_value identifier*
+                       / "[" expression "]" identifier*
 
 keyboard_argument_list <- "(" ( variable ( r"[,;]" variable )* )? ")"
 \end{lstlisting}
 
 % começa cinco linhas numa nova página
-\subsection{Parser}
-Para implementar o \textit{parser} da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} descendente recursivo com recurso a \textit{memoization} para melhorar a \textit{performance}.
+\subsection{Reconhecedor Sintático}
+Para implementar o reconhecedor sintático ou \textit{parser} da linguagem, foi utilizado o módulo \textit{Python} \textbf{Arpeggio}, um módulo que implementa um algoritmo de \textit{parsing} \acrshort{peg} descendente recursivo com recurso opcional a \textit{memoization} para melhorar a \textit{performance}.
 
 \begin{lstlisting}[caption={Excerto da gramática desenvolvida}]
 main <- body EOF;
@@ -323,7 +322,7 @@ var_declaration <- "$" namespaced _ "=" _ expression;
 // ...
 \end{lstlisting}
 
-A gramática PEG desenvolvida para o projeto foi depois complementada por uma classe \textbf{Parser}, responsável por gerar a \acrshort{ast} da linguagem. Para isso recorremos ao \textit{Visitor Pattern}, com um método para cada regra não-terminal da gramática (todos prefixados com \texttt{visit\_}).
+A gramática \acrshort{peg} desenvolvida para o projeto foi depois complementada por uma classe \textbf{Parser}, responsável por gerar a \acrshort{ast} da linguagem. Para isso recorremos ao \textit{Visitor Pattern}, com um método para cada regra não-terminal da gramática (todos prefixados com \texttt{visit\_}).
 
 \begin{lstlisting}[caption={Métodos responsáveis por criarem a AST}]
 def visit_body ( self, node, children ): ...
@@ -370,7 +369,7 @@ A sua grande vantagem é permitir, a partir de uma única definição, gerar ver
 \newpage
 
 \subsubsection{Documentação}
-Também foi escrita documentação para a linguagem\footnote{\url{https://pedromsilvapt.github.io/miei-dissertation/}}, que inclui informação sobre a sintaxe, exemplos de \textit{scripts} funcionais escritos em \textit{musikla}, e uma \acrshort{api} com a descrição das várias funções disponibilizadas, as suas assinaturas e alguns exemplos de utilização.
+Também foi escrita documentação para a linguagem disponível \href{https://pedromsilvapt.github.io/miei-dissertation/}{online}\footnote{\url{https://pedromsilvapt.github.io/miei-dissertation/}}, que inclui informação sobre a sintaxe, exemplos de \textit{scripts} funcionais escritos em \textit{musikla}, e uma \acrshort{api} com a descrição das várias funções disponibilizadas, as suas assinaturas e alguns exemplos de utilização.
 
 A documentação foi escrita em \textit{Markdown}, e convertida para \acrshort{html} usando o projeto \textbf{mkdocs}\footnote{\url{https://www.mkdocs.org/}}. Os exemplos de código disponibilizados na documentação são coloridos pelo módulo \textbf{Pygments}, usando a definição de linguagem que descrevemos na secção anterior.
 
@@ -423,7 +422,7 @@ Esta informação é depois utilizada para preencher os campos e mostrar o relat
 
 \newpage
 
-\section{Interpretador}
+\section{Semântica Dinâmica}
 As linguagens compiladas usualmente recorrem à compilação \acrfull{aot}, onde o código é transformado em código máquina antes de ser executado (durante a fase de compilação). Esta é a solução que consegue geralmente oferecer melhor \textit{performance}, menor consumo de memória e tempos de \textit{startup} mais rápido. Por outro lado, obriga a um passo de compilação separado sempre que o código fonte é alterado, e regra geral necessita de tipos de dados estáticos para melhor tirar partido das vantagens de \textit{performance}.
 
 No que toca a linguagens interpretadas temos mais opções. Podemos então dividir os seus modos de execução em três categorias distintas, cada uma com possíveis vantagens e desvantagens, bem como diferenças na dificuldade de implementação que são bastante salientes.
@@ -460,7 +459,7 @@ A variável de contexto guarda o estado da execução, e deve conter toda a info
  
  Se prestarmos atenção, podemos estar aqui a detetar um padrão bastante comum na área da programação: o modelo \textbf{fork-join}.
  
- E é fácil perceber que faz sentido. Apesar de estarmos a lidar com notas e eventos musicais, fundamentalmente estamos a criar ramos paralelos de execução, e queremos no final aguardar o seu resultado e uníficá-lo com o ramo original. Se substituirmos ramo por \textit{thread} para o caso da programação, ou \textit{contexto} para o nosso caso, vemos a equivalência de contextos.
+ Apesar de estarmos a lidar com notas e eventos musicais, fundamentalmente estamos a criar ramos paralelos de execução, e queremos no final aguardar o seu resultado e uníficá-lo com o ramo original. Se substituirmos ramo por \textit{thread} para o caso da programação, ou \textit{contexto} para o nosso caso, vemos a equivalência entre os conceitos.
  
  Como tal, para além do estado (as três variáveis) que o objeto de contexto engloba, este providencia também algumas operações bastante simples e úteis:
  
@@ -490,7 +489,7 @@ O próprio conceito de \textit{scope} implica por si só uma hierarquia, e de fa
 \end{description}
 
 \subsection{Módulos}
-O interpretador dispõe também da possibilidade de executar código separado em vários ficheiros, cada um sendo considerado um módulo. O utilizador pode configurar uma lista de pastas (num conceito similar à variável de ambiente \texttt{\$PATH}) onde serão procurados módulos quando alguma instrução \texttt{import} é avaliada. Também é possível passar um caminho absoluto ou relativo ao módulo que iniciou a importação.
+O Musikla dispõe também da possibilidade de executar código separado em vários ficheiros, cada um sendo considerado um módulo. O utilizador pode configurar uma lista de pastas (num conceito similar à variável de ambiente \texttt{\$PATH}) onde serão procurados módulos quando alguma instrução \texttt{import} é avaliada. Também é possível passar um caminho absoluto ou relativo ao módulo que iniciou a importação.
 
 Cada ficheiro importado é executado apenas uma vez durante a primeira importação, e no final o seu \textit{scope} é guardado em \textit{cache} para ser usado em futuras importações.
 
@@ -656,6 +655,19 @@ $chords ** $melody | $melody;
 No exemplo presente na listagem \ref{lst:ops-retime}, temos duas variáveis com durações diferentes. A primeira, \textbf{\texttt{\$chords}}, tem a duração total de \textbf{$\frac{1}{2}$} ($4 \times \frac{1}{8}$). Por sua vez, a segunda variável, \textbf{\texttt{\$melody}}, tem a duração de \textbf{2} ($16 \times \frac{1}{8}$). As duas durações podiam ser ajustadas manualmente (bastando multiplicar a duração de cada acorde por 4), mas isso implicava que qualquer mudança na melodia exigia recalcular as proporções manualmente. E também nem todas as situações apresentam contas tão simples como $2 \div \frac{1}{2}$. Deste modo, os cálculos são feitos automaticamente pela aplicação e estão sempre atualizadas.
 
 \section{Biblioteca Standard}
+A biblioteca \textit{standard} que é incluída com o interpretador Musikla foi também um dos grandes desafios do desenvolvimento deste projeto. Obviamente, o seu desenvolvimento ocorreu de uma forma faseada, ao mesmo tempo que a linguagem e o interpretador eram desenvolvidos. Isso significa que desenvolver a biblioteca não é apenas a tarefa de adicionar novas funcionalidades, mas também de reescrever ou adaptar functionalidades existentes que tenham sido adicionadas numa fase inicial do desenvolvimento da linguagem. Por essa razão as suas interfaces públicas podiam estar desenhadas à volta de uma linguagem que tinha menos funcionalidades que a versão atual, sejam elas objetos, listas ou passagem de argumentos com nome.
+
+No diagrama abaixo podemos ver uma lista dos módulos que são disponibilizados pela linguagem. As funções e classes listadas abaixo são apenas um pequeno exemplo do que é implementado na biblioteca. A documentação mais completa pode ser encontrada \href{https://pedromsilvapt.github.io/miei-dissertation/}{online}.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.87\textwidth]{img/standard_library.png}
+\end{center}
+\caption{Organização do projeto}
+\end{figure}
+
+Todos estes módulos, por serem tão comuns e essenciais, são sempre carregados automaticamente antes de executar um \textit{script} Musikla, pelo que não há necessidade de os importar manualmente.
+
 \subsection{Inputs \& Outputs}
 Durante a execução, os eventos musicais são representados em memória por objetos \textit{Python} que derivam da classe base \textbf{MusicEvent}, e estão agrupados em sequências pelos objetos que derivam da classe \textbf{Music}.
 
@@ -832,7 +844,7 @@ Se passarmos das propriedades de configuração para a grelha resultante, na ver
 
 \begin{figure}[h]
 \begin{center}
-    \includegraphics[width=0.85\textwidth]{img/grids_3_1.png}
+    \includegraphics[width=0.75\textwidth]{img/grids_3_1.png}
 \end{center}
 \vspace*{-5mm}
 \caption{Áreas em que a grelha irá mover os eventos, e qual o separador a que pertencem.}
@@ -1164,10 +1176,35 @@ for ev in MapTransformer.iter( range( 5 ), lambda e: e * 2 ):
 
 Na listagem \ref{lst:transformers-map-usage} podemos ver a utilização do transformador aplicada a uma lista (já que também implementam a interface de um iterador). O método \texttt{aiter} poderia ser usado de forma análoga com um \textit{async for} e com um iterador assíncrono.
 
-\chapter{Manual de Utilização}
+
+\section{Resumo do Desenvolvimento}
+O processo de desenvolvimento foi bastante ágil, sendo estruturado de uma forma iterativa, em que a cada semana eram implementadas novas funcionalidades. Estas podiam depois ser postas à prova, aplicadas a casos de estudo, e possivelmente melhoradas numa iteração futura.
+
+O tempo dedicado a cada um dos componentes da linguagem Musikla foi intercalado entre a análise sintática, semântica dinâmica e a biblioteca \textit{standard}. Nem todas as funcionalidades exigiram esforço ou tempo equivalentes, e apesar de linhas de código não mapearem perfeitamente para tempo despendido, permitem ter alguma noção aproximada do mesmo.
+
+\begin{table}[h]
+\centering
+\def\arraystretch{1.3}
+\begin{tabular}{lcc}
+\rowcolor[HTML]{EFEFEF} 
+\textbf{Componente}          & \multicolumn{1}{l}{\cellcolor[HTML]{EFEFEF}\textbf{Linhas de Código}} & \multicolumn{1}{l}{\cellcolor[HTML]{EFEFEF}\textbf{Percentagem}} \\
+\textbf{Análise Sintática}   & 1090                                                                  & 11\%                                                             \\
+\textbf{Semântica Dinâmica}  & 5268                                                                  & 53\%                                                             \\
+\textbf{Biblioteca Standard} & 3527                                                                  & 36\%                                                             \\ \hline
+\textbf{Total}               & 9885                                                                  & 100\%                                                           
+\end{tabular}
+\caption{Linhas de código (sem linhas vazias ou de comentário) do projeto Musikla}
+\label{tab:loc}
+\end{table}
+
+Obviamente sendo estes números apenas uma contagem das linhas atuais, não são uma representação total de tudo o que foi programado, pois não têm em conta partes do código que foram  reescritas ao longo do desenvolvimento, como foi o caso da gramática e do reconhecedor sintático, por exemplo.
+
+Para além destes componentes, foi desenvolvido para ser usado na documentação um utilitário em \textit{JavaScript}\footnote{Código disponível em \url{https://github.com/pedromsilvapt/miei-dissertation/blob/master/code/musikla/docs/assets/generator.js}} com cerca de 500 linhas de código, que permite descrever e gerar os diagramas sobre grelhas (também usados nesta dissertação). A documentação está escrita no formato \textit{Markdown} e conta também com um pouco mais de 700 linhas de texto. Este número não pode no entanto ser comparado diretamente com as linhas de código, já que texto em prosa e código são conceitos diferentes. Ainda assim ajudam a ter ideia do que foi feito, para além da escrita da desta dissertação, do artigo publicado e do desenvolvimento do interpretador Musikla.
+
+\chapter{Guia Rápido de Utilização}
 O resultado final do processo de desenho e desenvolvimento descrito a cima foi um módulo \textit{Python} publicado no repositório \textit{PyPi} chamado \texttt{musikla}. Este módulo pode ser usado através da linha de comandos, ou os seus sub-módulos podem ser usados diretamente num projeto \textit{Python}.
 
-Nesta secção vamos fazer uma pequena \textit{overview} dos diversos modos de como o módulo pode ser utilizado (versão da documentação mais completa disponível em na \href{https://github.com/pedromsilvapt/miei-dissertation}{web}).
+Nesta secção vamos fazer uma pequena \textit{overview} dos diversos modos de como o módulo pode ser utilizado (versão da documentação mais completa disponível em na \href{https://pedromsilvapt.github.io/miei-dissertation/}{web}).
 
 A instalação é bastante simples, sendo suficiente correr o comando seguinte comando:
 
@@ -1175,7 +1212,7 @@ A instalação é bastante simples, sendo suficiente correr o comando seguinte c
 pip install musikla
 \end{lstlisting}
 
-É importante notar que uma dependência central da linguagem é a biblioteca nativa \textit{FluidSynth}. Apesar de existir uam versão \texttt{2.x}, essa não é suportada, pelo que é necessário o utilizador certeficar-se que o seu sistema tem a versão \texttt{1.x} instalada.
+É importante notar que uma dependência central da linguagem é a biblioteca nativa \textit{FluidSynth}. Apesar de existir uma versão \texttt{2.x}, essa não é suportada, pelo que é necessário o utilizador certificar-se que o seu sistema tem a versão \texttt{1.x} instalada.
 
 \section{Módulos}
 O projeto \textbf{musikla} está dividido em bastantes sub-módulos, os mais importantes dos quais são listados aqui:
@@ -1236,5 +1273,5 @@ musikla file.mkl --soundfont custom_soundfont.sf2
     -o musikla_port -f midi --port
 \end{lstlisting}
 
-O comando pode ter uma lista de seuquênciadores (ou \textit{outputs}) para utilizar. Estes devem vir sempre no fim do comando, depois de todos os argumentos e opções globais, e são identificados pela opção \texttt{-o} ou \texttt{--output}. O tipo do sequênciador é geralmente inferido pelo valor passado ao output, mas caso haja ambiguidade, é possível identificar manualmente o formato com a opção \texttt{-f} out \texttt{--format}. Também são passadas a esse \textit{output} todas as opções que estiverem depois do \texttt{-o} e até ao fim do comando, ou até ao próximo \texttt{-o} encontrado. As opções aceites variam com o formato do \textit{output}.
+O comando pode ter uma lista de seuquênciadores (ou \textit{outputs}) para utilizar. Estes devem vir sempre no fim do comando, depois de todos os argumentos e opções globais, e são identificados pela opção \texttt{-o} ou \texttt{--output}. O tipo do sequênciador é geralmente inferido pelo valor passado ao output, mas caso haja ambiguidade, é possível identificar manualmente o formato com a opção \texttt{-f} ou \texttt{--format}. Também são passadas a esse \textit{output} todas as opções que estiverem depois do \texttt{-o} e até ao fim do comando, ou até ao próximo \texttt{-o} encontrado. As opções aceites variam com o formato do \textit{output}.
 
