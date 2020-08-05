@@ -11,7 +11,7 @@ from .keyboard import Keyboard
 
 class KeyboardBuffer:
     @staticmethod
-    def save_all ( context : Context, file : str, buffers : Dict[int, 'KeyboardBuffer'] ):
+    def save_all ( context : Context, file : str, buffers ):
         from musikla.parser.printer import CodePrinter
         from musikla.libraries.music import function_to_mkl
         import musikla.parser.abstract_syntax_tree as ast
