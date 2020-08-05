@@ -210,22 +210,23 @@ class Keyboard:
         
         return keyboard
 
-    def map ( self, mapper : Node ) -> 'Keyboard':
+    def map ( self, context : Context, mapper : Node ) -> 'Keyboard':
+        mapper = Value.eval( context, mapper ) if isinstance( mapper, Node ) else mapper
+
         keyboard = self.clone()
 
         for key, action in self.keys.items():
             keyboard.keys[ key ] = action.clone(
-                expr = FunctionExpressionNode( mapper, [ ConstantNode( action.key ), action.expr ] )
+                expr = FunctionExpressionNode( ConstantNode( mapper ), [ ConstantNode( action.key ), action.expr ] )
             )
 
         return keyboard
 
-    def with_grid ( self, grid, mode : str = 'start_end' ) -> 'Keyboard':
-        body = PropertyAccessorNode( ConstantNode( grid ), StringLiteralNode( 'align' ), True )
+    def with_grid ( self, context : Context, grid, mode : str = 'start_end' ) -> 'Keyboard':
+        def _mapper ( context : Context, k, music ):
+            return grid.align( context, music, mode )
 
-        body = FunctionExpressionNode( body, [ VariableExpressionNode( 'music' ), StringLiteralNode( mode ) ] )
-
-        return self.map( FunctionDeclarationStatementNode( None, [ ( 'k', None, None ), ( 'music', None, None ) ], body ) )
+        return self.map( context, _mapper )
 
     def __add__ ( self, other ):
         from .library import KeyboardLibrary

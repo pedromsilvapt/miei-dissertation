@@ -237,9 +237,7 @@ fun keyboard\midi ( $toggle = false, in $transpose = 0, $range_start = C,,,,; $r
     return $kb;
 };
 
-fun keyboard\repl ( $key = "\\", $ctx = none ) {
-    $ctx = $ctx or getctx();
-
+fun keyboard\repl ( $key = "\\", $ctx = $__callerctx__ ) {
     return @keyboard release {
         [ $key ]: { withctx( $ctx, keyboard\open_repl() ) };
     };
@@ -258,8 +256,7 @@ fun keyboard\bufslot( $bf = keyboard\Buffer( start = false ), $key = "p" ) {
     };
 };
 
-# '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-fun keyboard\bufpad( ref $buffers, $keys = @[ 82, 79, 80, 81, 126, 75, 76, 77, 71, 72, 73 ], $savename = "buffers.mkl", $load_key = 'f7', $save_key = 'f8' ) {
+fun keyboard\bufpad( ref $buffers = @{}, $keys = @[ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ], $savename = "buffers.mkl", $load_key = 'f7', $save_key = 'f8' ) {
     $buffers = @{};
 
     $saving_file = false;
