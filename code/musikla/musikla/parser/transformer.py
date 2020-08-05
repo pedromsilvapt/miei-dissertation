@@ -700,4 +700,4 @@ class MusiklaTransformer(Transformer):
         return float( token )
 
     def STRING ( self, token ):
-        return str( token[1:-1] )
+        return StringLiteralNode.escaped( token[1:-1], quote = token[ 0 ] )

@@ -29,34 +29,41 @@ class FunctionDeclarationStatementNode( StatementNode ):
         for i in range( len( self.arguments ) ):
             ( name, arg_mod, default_value ) = self.arguments[ i ]
 
-            arg_context = context
-            is_provided : bool = True
-            
+            argument_node, default_node = None, default_value
+
             if len( args ) > i:
-                node = args[ i ]
+                argument_node = args[ i ]
             elif name in kargs:
-                node = kargs[ name ]
-            elif default_value != None:
-                node = default_value
-                arg_context = forked
-                is_provided = False
-            else:
+                argument_node = kargs[ name ]
+            elif default_value == None:
                 raise Exception( f"Mandatory argument { name } was not given." )
 
             if arg_mod == 'expr':
-                forked.symbols.assign( name, node )
-            elif arg_mod == 'ref' and is_provided:
-                if not isinstance( node, VariableExpressionNode ):
+                forked.symbols.assign( name, argument_node )
+            elif ( arg_mod == 'ref' or arg_mod == 'in' ) and argument_node is not None:
+                is_variable = isinstance( argument_node, VariableExpressionNode )
+
+                if arg_mod == 'ref' and not is_variable:
                     raise BaseException( f"Only variable references can be passed to a function (function { self.name }, parameter { name })" )
-                
-                forked.symbols.using( context.symbols.pointer( node.name ), name )
-            elif arg_mod == 'in' and is_provided:
-                if is_provided and isinstance( node, VariableExpressionNode ):
-                    forked.symbols.using( context.symbols.pointer( node.name ), name )
+
+                # TODO: Should ref pointers be shallow? Since ref can mutate
+                # the value, it could be sensible for them to be so
+                if is_variable:
+                    pointer = context.symbols.pointer( argument_node.name )
+
+                    if pointer is None:
+                        context.symbols.assign( argument_node.name, None )
+                    else:
+                        forked.symbols.using( pointer, name )
                 else:
-                    forked.symbols.assign( name, Value.assignment( node.eval( arg_context.fork() ) ) )
+                    forked.symbols.assign( name, Value.assignment( argument_node.eval( context.fork() ) ) )
             else:
-                forked.symbols.assign( name, Value.assignment( node.eval( arg_context.fork() ) ) )
+                if argument_node is not None:
+                    value = Value.assignment( argument_node.eval( context.fork() ) )
+                else:
+                    value = Value.assignment( default_node.eval( forked.fork() ) )
+                
+                value = forked.symbols.assign( name, value )
 
         return self.body.eval( forked )
     
