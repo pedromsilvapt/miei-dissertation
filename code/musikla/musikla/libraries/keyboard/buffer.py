@@ -23,7 +23,7 @@ class KeyboardBuffer:
         body.statements.append( ast_st.VariableDeclarationStatementNode( 'buffers', ast_ex.ObjectLiteralNode( [] ) ) )
 
         for key, buffer in buffers.items():
-            set_fn = ast_ex.PropertyAccessorNode( ast_ex.VariableExpressionNode( 'buffers' ), ast_ex.StringLiteralNode( 'set' ) )
+            set_fn = ast_ex.PropertyAccessorNode( ast_ex.VariableExpressionNode( 'buffers' ), ast_ex.StringLiteralNode( 'set' ), False )
 
             key_p = ast_ex.NumberLiteralNode( key )
             music_p = function_to_mkl( context, buffer.to_music(), ast = True ) \
