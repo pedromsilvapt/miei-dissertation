@@ -50,7 +50,7 @@ class PropertyAccessorNode( Node ):
 
         self.expression.to_source( printer )
 
-        if isinstance( self.name, StringLiteralNode ):
+        if self.as_attr and isinstance( self.name, StringLiteralNode ):
             printer.add_token( '::' + self.name.value )
         else:
             with printer.block( '::[', ']' ):
