@@ -1,0 +1,36 @@
+#!/usr/bin/python3 /usr/local/bin/musikla 
+
+sfload("/home/jj/svn/main/musica/sf2/Blanchet-1720.sf2","cravo")
+setinstrument( 4, 1, "cravo" );
+
+cc(64,0);
+$semit = 0;
+$oct = 0 ;
+
+$piano  = keyboard\piano();            # computer keyboard
+$piano += keyboard\midi();             # midi keyboard
+
+# Colocar o map antes dos keyboards que não produzem música
+$piano = $piano::map( fun($k,$events) => $events + 12*$oct + $semit ); 
+
+$piano += keyboard\bufpad();           # rec + play
+
+$piano += @keyboard {
+    up       : change_tone(1, 0);
+    down     : change_tone(-1, 0);
+    right    : change_tone(0, 1);
+    left     : change_tone(0, -1);
+    page_up   : setinstrument( 4, 1, "cravo" );
+    page_down : setinstrument( 1, 1, "cravo" );
+};
+
+fun change_tone ($o, $s) {
+    using($oct);
+    using($semit);
+
+    $oct += $o;
+    $semit += $s;
+
+    print( "transposing:", $oct, "+", $semit );
+};
+
