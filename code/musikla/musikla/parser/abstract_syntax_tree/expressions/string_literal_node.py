@@ -47,6 +47,8 @@ class StringLiteralNode( ExpressionNode ):
                         rv = quote
                     
                     if rv is not None:
+                        skip = True
+
                         if escaped_str is None:
                             escaped_str = value[ :i ] + rv
                         else:
@@ -56,5 +58,7 @@ class StringLiteralNode( ExpressionNode ):
 
         if escaped_str is None:
             escaped_str = value
+        else:
+            escaped_str += value[cursor:]
         
         return escaped_str
