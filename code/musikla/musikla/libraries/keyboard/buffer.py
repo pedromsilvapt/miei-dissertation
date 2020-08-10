@@ -1,10 +1,10 @@
-from musikla.core import symbols_scope
+from musikla.core.events.transformers.transformer import Transformer
 from musikla.core.events.transformers.balance_notes import BalanceNotesTransformer
 from musikla.core.events.transformers.compose_notes import ComposeNotesTransformer
 from musikla.audio.player import PlayerLike
 from musikla.audio.interactive_player import InteractivePlayer
 from musikla.core.context import Context
-from musikla.core.music import Music, MusicBuffer, SharedMusic
+from musikla.core.music import Music, MusicBuffer
 from musikla.core.events import MusicEvent
 from typing import Dict, List, Optional, cast
 from .keyboard import Keyboard
@@ -73,6 +73,9 @@ class KeyboardBuffer:
         self.collected_events : List[MusicEvent] = []
         self.player : PlayerLike = lib.player
         
+        self.loop : bool = False
+        self.mode : str = 'music'
+
         if keyboards is None:
             self.keyboards = lib.keyboards
         else:
@@ -88,7 +91,7 @@ class KeyboardBuffer:
             return 0
 
     @property
-    def started ( self ) -> bool:
+    def recording ( self ) -> bool:
         return self.music_buffer is not None
 
     def on_new_player ( self, keyboard : Keyboard, player : InteractivePlayer ):
@@ -106,13 +109,19 @@ class KeyboardBuffer:
 
             for kb in self.keyboards: kb.add_new_player_observer( self.on_new_player )
 
-    def stop ( self ):
+    def stop ( self, discard : bool = False ):
         if self.music_buffer is not None:
-            st : int = self.start_time or 0
-            
-            collected : List[MusicEvent] = [ ev.clone( timestamp = ev.timestamp - st + self.duration ) for ev in self.music_buffer.collect() ]
+            if not discard:
 
-            self.collected_events.extend( collected )
+                collected : List[MusicEvent] = list( self.music_buffer.collect() )
+
+                if collected:
+                    # We consider the start time as being the first event's timestamp
+                    st : int = collected[ 0 ].timestamp
+
+                    collected = [ ev.clone( timestamp = ev.timestamp - st + self.duration ) for ev in collected ]
+
+                    self.collected_events.extend( collected )
 
             self.music_buffer = None
 
@@ -121,9 +130,17 @@ class KeyboardBuffer:
             self.start_time = None
     
     def clear ( self ):
-        self.stop()
+        self.stop( discard = True )
 
         self.collected_events.clear()
+
+    def toggle ( self, clear : bool = True ):
+        if self.recording:
+            self.stop()
+        else:
+            if clear: self.clear()
+
+            self.start()
 
     def __len__ ( self ):
         return len( self.collected_events )
@@ -131,8 +148,57 @@ class KeyboardBuffer:
     def __bool__ ( self ):
         return bool( self.collected_events )
 
+    @property
+    def duration_live ( self ):
+        # Note that this method might return lower values than previous calls
+        
+        # When we are recording and we have at least on 
+        if self.music_buffer is not None and self.music_buffer.buffer:
+            st : int = self.music_buffer.buffer[ 0 ].timestamp
+
+            return self.player.get_time() - st + self.duration
+        else:
+            return self.duration
+
+    def to_events ( self ):
+        events = self.collected_events
+        events = BalanceNotesTransformer.iter( events )
+        events = ComposeNotesTransformer.iter( events )
+
+        return events
+
+    def to_events_live ( self, get_time = None, now : bool = False ):
+        if self.music_buffer is not None:
+            buffered : List[MusicEvent] = self.music_buffer.buffer
+
+            if buffered:
+                # We consider the start time as being the first event's timestamp
+                st : int = buffered[ 0 ].timestamp
+
+                buffered = [ ev.clone( timestamp = ev.timestamp - st + self.duration ) for ev in buffered ]
+
+                if now and get_time is None:
+                    st : int = buffered[ 0 ].timestamp
+
+                    get_time = lambda: self.duration_live
+
+
+            events = self.collected_events + buffered
+        
+            events = BalanceNotesTransformer.iter( events, get_time = get_time )
+            events = ComposeNotesTransformer.iter( events )
+
+            return events
+        else:
+            return self.to_events()
+
     def to_music ( self ):
-        return Music( [ *self.collected_events ] ).transform( BalanceNotesTransformer ).transform( ComposeNotesTransformer ).shared()
+        return Music( self.to_events() ).shared()
+
+    def to_music_live ( self ):
+        return Music( self.to_events_live() ).shared()
 
     def from_music ( self, music : Music ):
+        self.clear()
+
         self.collected_events = list( music )

@@ -1,0 +1,3 @@
+$bimpy = pymodule( 'bimpy' );
+$SingleWindow, $KeyboardBufferPreview, $EventsPreview 
+    = pymodule( 'musikla.graphics', @[ 'SingleWindow', 'KeyboardBufferPreview', 'EventsPreview' ] );

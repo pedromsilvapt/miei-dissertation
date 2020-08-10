@@ -113,8 +113,7 @@ class VirtualPlayer:
                 virtual_action, _ = self._active_actions[ action ]
             else:
                 virtual_action = action.clone( 
-                    sync = True, 
-                    is_active = False,
+                    sync = True,
                     is_pressed = False,
                     interactive_player = None 
                 )

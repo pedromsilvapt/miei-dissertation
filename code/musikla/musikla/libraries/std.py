@@ -1,3 +1,4 @@
+from musikla.core.symbols_scope import Pointer
 from musikla.parser.printer import CodePrinter
 from musikla.core.events.event import MusicEvent
 from musikla.core import Context, Library, CallableValue, Voice, Metronome, Instrument, Music, Value, Ref
@@ -31,6 +32,9 @@ def function_pack ( context : Context, into = None, ctx = None, prefix : str = N
 
             if hasattr( into, p_key ) and not ignore_existing:
                 raise BaseException( f"pack(): Cannot pack attribute '{ p_key }' of '{ type(into) }', attribute already exists." )
+
+            if isinstance( value, Pointer ):
+                value = value.scope.lookup( value.name )
 
             setattr( into, p_key, value )
     

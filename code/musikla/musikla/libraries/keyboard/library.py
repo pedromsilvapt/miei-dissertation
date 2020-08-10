@@ -195,7 +195,7 @@ class KeyboardLibrary(Library):
 
     @property
     def pressed ( self ) -> Iterator[KeyAction]:
-        return ( action for action in self.actions if action.is_active )
+        return ( action for action in self.actions if action.is_playing )
 
     @property
     def pressed_keys ( self ) -> Iterator[KeyboardEvent]:

@@ -46,6 +46,8 @@ class Script:
 
         self.player.custom_error_printer = self.print_error
 
+        self.import_paths.insert( 0, Path( __file__ ).parent / 'libraries' )
+
         self.prelude_context.symbols.assign( 'script', self, local = True )
         # Some core code may depend on the script variable to get a hold of it at runtime
         # But in some child context, the user might have locally binded a custom value to the symbol named "script"

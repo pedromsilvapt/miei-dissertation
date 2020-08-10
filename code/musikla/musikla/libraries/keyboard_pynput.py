@@ -131,13 +131,14 @@ class KeyboardPynputEventSource( EventSource ):
 
             self.keyboard_listener.start()
 
-            self.mouse_listener = mouse.Listener(
-                on_move = lambda x, y: loop.call_soon_threadsafe( self.on_move, virtual_keyboard, x, y ),
-                on_click = lambda x, y, button, pressed: loop.call_soon_threadsafe( self.on_click, virtual_keyboard, x, y, button, pressed ),
-                on_scroll = lambda x, y, dx, dy: loop.call_soon_threadsafe( self.on_scroll, virtual_keyboard, x, y, dx, dy )
-            )
+            # TODO: Conflicts with GLFW resizing and moving windows. Figure a solution
+            # self.mouse_listener = mouse.Listener(
+            #     on_move = lambda x, y: loop.call_soon_threadsafe( self.on_move, virtual_keyboard, x, y ),
+            #     on_click = lambda x, y, button, pressed: loop.call_soon_threadsafe( self.on_click, virtual_keyboard, x, y, button, pressed ),
+            #     on_scroll = lambda x, y, dx, dy: loop.call_soon_threadsafe( self.on_scroll, virtual_keyboard, x, y, dx, dy )
+            # )
 
-            self.mouse_listener.start()
+            # self.mouse_listener.start()
 
     def close ( self ):
         if self.keyboard_listener is not None:

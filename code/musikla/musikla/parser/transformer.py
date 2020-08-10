@@ -354,7 +354,7 @@ class MusiklaTransformer(Transformer):
         
         else_body = tree.children[ 2 ] if len( tree.children ) > 2 else None
 
-        return KeyboardIfMacroNode( tree.children[ 0 ], tree.children[ 0 ] or [], else_body, position = position )
+        return KeyboardIfMacroNode( tree.children[ 0 ], tree.children[ 1 ] or [], else_body, position = position )
     
     def keyboard_block ( self, tree ):
         position = self._get_position( tree )

@@ -38,15 +38,15 @@ class PythonNode( Node ):
         if type( code ) is str:
             code = compile( code, "<embedded python>", 'eval' if is_expression else 'exec' )
 
-        globals = {}
+        custom_globals = {}
 
         if is_expression:
-            locals = PythonContext( context )
+            custom_locals = PythonContext( context )
         else:
-            globals[ 'export' ] = PythonNode.create_export_decorator( context )
-            locals = {}
+            custom_globals[ 'export' ] = PythonNode.create_export_decorator( context )
+            custom_locals = {}
 
-        return eval( code, globals, locals )
+        return eval( code, custom_globals, custom_locals )
 
     def __init__ ( self, code : str, is_expression : bool = False, position : Tuple[int, int, int] = None ):
         super().__init__( position )

@@ -58,6 +58,25 @@ class Voice:
 
         return event
 
+    def get_beats_per_bar ( self ) -> int:
+        return self.time_signature[ 0 ]
+
+    def get_beat_value_absolute ( self ) -> Fraction:
+        ( u, l ) = self.time_signature
+
+        if u >= 6 and u % 3 == 0:
+            return Fraction( 3, 2 * l )
+        else:
+            return Fraction( 1, l )
+
+    def get_bar_value_absolute ( self ) -> Fraction:
+        """Returns how long a measure should be, in note fractions"""
+        return self.get_beat_value_absolute() * self.get_beats_per_bar()
+
+    def get_bar_duration_absolute ( self ) -> int:
+        """Returns how long a measure should be, in milliseconds"""
+        return self.get_duration_absolute( self.get_bar_value_absolute() )
+
     def get_value ( self, value : float = None ) -> float:
         if value == None:
             return self.value

@@ -13,7 +13,7 @@ python: "@python" PYTHON_STATEMENTS
           | expression
 
 assignment: expression ASSIGNMENT_OP expression                         -> assignment
-          | expression ("," expression) ","?  ASSIGNMENT_OP expression  -> multi_assignment
+          | expression ("," expression)+ ","?  ASSIGNMENT_OP expression  -> multi_assignment
 
 voice_assignment: VOICE_IDENTIFIER "=" voice_assignment_body
 

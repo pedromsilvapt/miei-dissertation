@@ -218,7 +218,7 @@ fun keyboard\piano (
 
 fun first_note ( $n ) => if $n is $Music then $n::first_note() else $n;
 
-fun keyboard\midi ( $toggle = false, in $transpose = 0, $range_start = C,,,,; $range_end = g''''' ) {
+fun keyboard\midi ( $toggle = false, in $transpose = 0, $range_start = C,,,,; $range_end = g''''', $template = none ) {
     $kb = keyboard\create();
 
     $bottom = first_note( $range_start );
@@ -246,7 +246,7 @@ fun keyboard\repl ( $key = "\\", $ctx = $__callerctx__ ) {
 fun keyboard\bufslot( $bf = keyboard\Buffer( start = false ), $key = "p" ) {
     return @keyboard {
         [ $key ]: {
-            if $bf::started {
+            if $bf::recording {
                 $bf::stop();
             } else {
                 $bf::clear();
@@ -256,7 +256,7 @@ fun keyboard\bufslot( $bf = keyboard\Buffer( start = false ), $key = "p" ) {
     };
 };
 
-fun keyboard\bufpad( ref $buffers = @{}, $keys = @[ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ], $savename = "buffers.mkl", $load_key = 'f7', $save_key = 'f8' ) {
+fun keyboard\bufpad( ref $buffers = @{}, $keys = @[ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ], $savename = "buffers.mkl", $load_key = 'f7', $save_key = 'f8', $window_key = none ) {
     $buffers = @{};
 
     $saving_file = false;
@@ -305,24 +305,21 @@ fun keyboard\bufpad( ref $buffers = @{}, $keys = @[ '0', '1', '2', '3', '4', '5'
 
         for $i in range( len( $keys ) ) {
             # Bind a variable with the key stored in the array at the given index
-            { $key = $keys::[$i] };
+            { 
+                $key = $keys::[$i];
 
+                $buffers::set( $i, keyboard\Buffer( start = false ) );
+            };
 
             # Starts and stops the buffer from recording
             [ keyboard\KeyStroke( $key, ctrl = true ) ]: {
                 $bf = $buffers::get( $i, none );
-
-                if $bf == none {
-                    $bf = keyboard\Buffer();
-
-                    $buffers::set( $i, $bf );
+                
+                if $bf::recording {
+                    $bf::stop();
                 } else {
-                    if $bf::started {
-                        $bf::stop();
-                    } else {
-                        $bf::clear();
-                        $bf::start();
-                    };
+                    $bf::clear();
+                    $bf::start();
                 };
             };
 
@@ -330,18 +327,149 @@ fun keyboard\bufpad( ref $buffers = @{}, $keys = @[ '0', '1', '2', '3', '4', '5'
             [ keyboard\KeyStroke( $key ) ] toggle: {
                 $bf = $buffers::get( $i, none );
                 
-                if ($bf != none) {
+                if $bf != none and not $bf::empty {
                     return $bf::to_music();
                 };
             };
         };
+
+        if ( $window_key isnot none ) {
+            [ $window_key ]: keyboard\bufpad_window( $bufpad );
+        };
     };
 
-    return pack( into = $_kb, exclude = @[ 'keys' ] );
+    # For the pack method
+    $buffer_keys = $keys;
+
+    $bufpad = pack( into = $_kb, exclude = @[ 'keys' ] );
+
+    return $bufpad;
+};
+
+fun keyboard\bufpad_window ( $bufpad ) {
+    import graphics;
+
+    $keys = @[];
+
+    for $i, $key in enumerate( $bufpad::buffer_keys ) {
+        $keys::append( BufferPanel( $i, $key, $bufpad::buffers::get( $i ), $bufpad::[ $key ] ) );
+    };
+
+    return SingleWindow( "Recording Buffers", fun () {
+        for $panel in $keys {
+            $panel::render();
+        };
+    } );
 };
 
 @python
-
 @export()
 def _spreadfn ( fn, args ):
     return fn( *args )
+
+@export()
+def _vertical_separator ( margin : int = 5, color : int = 0xFF000000 ):
+    import bimpy
+
+    cursor = bimpy.get_cursor_screen_pos()
+
+    start_p = bimpy.Vec2( cursor.x + margin, cursor.y )
+    end_p = bimpy.Vec2( cursor.x + margin, cursor.y + bimpy.get_text_line_height_with_spacing() )
+
+    bimpy.add_line( start_p, end_p, color, 1.0 )
+
+    bimpy.set_cursor_pos_x( bimpy.get_cursor_pos_x() + margin * 2 + 5 )
+
+
+@export()
+class BufferPanel:
+    def __init__ ( self, index, key, buffer, key_action ):
+        from musikla.graphics import KeyboardBufferPreview
+        import bimpy
+
+        self.id = "buffer_keys_" + str( index )
+        self.index = index
+        self.key = key
+        self.key_str = str( self.key )
+        self.buffer = buffer
+        self.key_action = key_action
+        self.preview = KeyboardBufferPreview( buffer, width = 0, height = 100 )
+
+        self.bool_obj = bimpy.Bool()
+
+    def render ( self ):
+        import bimpy
+        global _vertical_separator
+        
+        bimpy.push_id_str( self.id );
+
+        if self.index > 0:
+            bimpy.separator()
+            bimpy.set_cursor_pos_y( bimpy.get_cursor_pos_y() + 10 )
+        
+        ### Buffer Header
+        bimpy.text( self.key_str )
+
+        bimpy.same_line( 30 )
+
+        if bimpy.small_button( "Recording" if self.buffer.recording else "Record" ):
+            self.buffer.toggle()
+        
+        bimpy.same_line()
+        
+        if bimpy.small_button( "Playing" if self.key_action.is_playing else "Play" ):
+            self.key_action.on_press( getctx().script.player )
+
+        bimpy.same_line()
+
+        self.bool_obj.value = self.buffer.loop
+        bimpy.checkbox( "Loop", self.bool_obj )
+        self.buffer.loop = self.bool_obj.value
+
+        bimpy.same_line()
+
+        _vertical_separator()
+
+        bimpy.text( "MODE" )
+
+        bimpy.same_line()
+        
+        if bimpy.radio_button( "Performance", self.buffer.mode == 'performance' ):
+            self.buffer.mode = 'performance'
+        
+        bimpy.same_line()
+        
+        if bimpy.radio_button( "Music", self.buffer.mode == 'music' ):
+            self.buffer.mode = 'music'
+
+        ### Buffer Content
+        # $bimpy::set_cursor_pos_x( $bimpy::get_cursor_pos_x() + 50 );
+        
+        bimpy.text( "" )
+
+        bimpy.same_line(30)
+
+        if bimpy.small_button( "Save" ):
+            self.buffer.toggle()
+
+        bimpy.same_line()
+
+        if bimpy.small_button( "Load" ):
+            self.buffer.toggle()
+
+        bimpy.same_line()
+
+        if bimpy.small_button( "Clear" ):
+            self.buffer.clear()
+
+        bimpy.same_line()
+        bimpy.text(str(self.buffer.duration_live))
+
+        ### Buffer Preview
+        width = int( bimpy.get_window_content_region_width() )
+
+        self.preview.preview.width = width
+
+        self.preview.render()
+
+        bimpy.pop_id()

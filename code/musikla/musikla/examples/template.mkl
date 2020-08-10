@@ -1,5 +1,6 @@
-# Note that the use of the "+=" operator on keyboards is meant to avoid duplicated keys
+import graphics;
 
+# Note that the use of the "+=" operator on keyboards is meant to avoid duplicated keys
 $majorChord = keyboard\build_chord_key( "0 2 4" );
 $minorChord = keyboard\build_chord_key( "0 _2 4" );
 
@@ -25,13 +26,16 @@ $piano += @keyboard {
     down: { $key -= 1; };
 };
 
+@keyboard {
+    space: r0;
+};
+
 # Maybe even add a MIDI piano?
 $piano += keyboard\midi();
 
-# Declares an array that will contain our buffers
-$bf = none;
 # Creates a keyboard that declares a set of buffers. By default, 
 # the numpad keys are used (creating 10 available buffer slots)
 # $piano += keyboard\bufpad( $bf );
+$piano -= keyboard\bufpad( window_key = "'" );
 # Creates a keyboard that associates the interpreter accessible by the "\" key
 $piano += keyboard\repl( ctx = getctx() );

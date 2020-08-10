@@ -19,11 +19,14 @@ class KeyAction:
         self.extend : bool = extend
         self.release : bool = release
 
-        self.is_active : bool = False
         self.is_pressed : bool = False
 
         self.interactive_player : Optional[InteractivePlayer] = None
         self.sync : bool = False
+
+    @property
+    def is_playing ( self ):
+        return self.interactive_player is not None and self.interactive_player.is_playing
 
     def play ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any], cb : Callable = None ):
         forked_context : Optional[Context] = None
@@ -73,7 +76,7 @@ class KeyAction:
 
         self.interactive_player = None
 
-    def on_press ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any], cb : Callable = None ):
+    def on_press ( self, context : Context, player : PlayerLike, parameters : Dict[str, Any] = {}, cb : Callable = None ):
         binary = self.key.binary
 
         if not binary and self.is_pressed:
