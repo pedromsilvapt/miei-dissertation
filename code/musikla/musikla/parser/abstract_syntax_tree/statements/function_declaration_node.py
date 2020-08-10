@@ -6,11 +6,12 @@ from ..stack_frame_node import StackFrameNode
 from typing import Tuple
 
 class FunctionDeclarationStatementNode( StatementNode ):
-    def __init__ ( self, name, arguments, body, position : Tuple[int, int, int] = None ):
+    def __init__ ( self, name, arguments, body, using = None, position : Tuple[int, int, int] = None ):
         super().__init__( position )
 
         self.name = name
         self.arguments = arguments
+        self.using = using or []
         self.body = StackFrameNode( body, position = position )
 
     def __eval__ ( self, context : Context ):
@@ -25,6 +26,9 @@ class FunctionDeclarationStatementNode( StatementNode ):
         forked = context.fork( symbols = symbols_scope.fork() )
 
         forked.symbols.assign( '__callerctx__', context, local = True )
+
+        for variable_name in self.using:
+            forked.symbols.using( variable_name )
 
         for i in range( len( self.arguments ) ):
             ( name, arg_mod, default_value ) = self.arguments[ i ]

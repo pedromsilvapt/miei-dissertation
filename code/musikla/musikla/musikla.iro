@@ -28,7 +28,7 @@ file_extensions []     = mkl;
 ################################################################
 
 __MY_CONSTANT \= (\b[a-z][a-z0-9]*)
-__KEYWORD \= (fun|and|or|not|if|else|for|while|in|notin|is|isnot|none|return|ref|expr)(?=[ \t({}),;+\-*/])
+__KEYWORD \= (import|fun|using|and|or|not|if|else|for|while|in|notin|is|isnot|none|return|ref|expr)(?=[ \t({}),;+\-*/])
 __IDENTIFIER \= (?:[a-zA-Z\_][a-zA-Z0-9\_]*)
 __NAMESPACED \= ($${__IDENTIFIER}(\\$${__IDENTIFIER})*)
 

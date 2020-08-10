@@ -158,8 +158,10 @@ keyboard_arguments_separator: "," | ";"
 // END Keyboard
 
 // Function Declaration
-function_declaration: _FUN [IDENTIFIER] _LPAR [arguments] _RPAR _LBRAK [body] _RBRAK    -> function_statements
-                    | _FUN [IDENTIFIER] _LPAR [arguments] _RPAR _ARROW expression         -> function_expression
+function_declaration: _FUN [IDENTIFIER] _LPAR [arguments] _RPAR [using] _LBRAK [body] _RBRAK      -> function_statements
+                    | _FUN [IDENTIFIER] _LPAR [arguments] _RPAR [using] _ARROW expression         -> function_expression
+
+using: _USING VARIABLE_NAME ("," VARIABLE_NAME)*
 
 arguments: argument ( _arguments_sep argument )*
 
@@ -257,6 +259,7 @@ IDENTIFIER.2: /[a-zA-Z_][a-zA-Z0-9_\\]*/
 ALPHANUMERIC.2: /[a-zA-Z0-9_]+/
 
 _FUN.4: "fun"
+_USING.4: "using"
 _WHILE.4: "while"
 _FOR.4: "for"
 _IF.4: "if"

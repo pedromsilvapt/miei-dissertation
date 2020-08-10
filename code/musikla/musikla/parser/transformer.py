@@ -409,18 +409,25 @@ class MusiklaTransformer(Transformer):
 
         name = tree.children[ 0 ]
 
-        body = tree.children[ 2 ]
+        using = tree.children[ 2 ]
 
-        return FunctionDeclarationStatementNode( name, tree.children[ 1 ] or [], body, position )
+        body = tree.children[ 3 ]
+
+        return FunctionDeclarationStatementNode( name, tree.children[ 1 ] or [], body, using, position )
 
     def function_expression ( self, tree ):
         position = self._get_position( tree )
 
         name = tree.children[ 0 ]
+        
+        using = tree.children[ 2 ]
 
-        body = StatementsListNode( [ tree.children[ 2 ] ] )
+        body = StatementsListNode( [ tree.children[ 3 ] ] )
 
-        return FunctionDeclarationStatementNode( name, tree.children[ 1 ] or [], body, position )
+        return FunctionDeclarationStatementNode( name, tree.children[ 1 ] or [], body, using, position )
+    
+    def using ( self, tree ):
+        return list( tree.children )
 
     def arguments ( self, tree ):
         return list( tree.children )
