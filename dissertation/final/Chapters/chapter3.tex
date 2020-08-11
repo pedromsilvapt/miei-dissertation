@@ -35,7 +35,7 @@ Para resolver o problema da representação do tempo, toda a linguagem irá ter 
 A existência deste \textbf{contexto} implícito significa que as funções \textit{Python} não podem ser expostas diretamente para a linguagem, mas graças à expressividade do \textit{Python} é possível construir uma \textit{Foreign Function Interface} que seja simples de usar e que evite que o utilizador tenha de mapear as funções manualmente. Em vez disso, pode simplesmente marcá-las como sendo \textbf{context-free} (funções que não têm noção da existência do contexto implícito), e elas serão então tratadas de forma apropriada.
 
 O tipo de dados \textbf{Música} irá ser implementado sobre o conceito de iteradores (e mais especificamente geradores) fornecido pelo \textit{Python} para tornar a criação de música \textit{lazy}. No entanto, este paradigma deve ser completamente opaco para o utilizador da linguagem: a decisão de usar o modelo de execução normal, ou funções geradores deve ser tomado em segundo plano pelo motor de execução da linguagem, sempre que este for necessário. Isto é, ao contrário da maioria das linguagens que exigem para a utilização de geradores que o utilizador declare explicitamente que quer "emitir" um valor através de alguma \textit{keyword}, geralmente \texttt{yield}, na nossa linguagem sempre que alguma função produzir um valor do tipo de música que não seja consumido de alguma forma (atribuído a uma variável ou passado a uma função, por exemplo), esse valor musical é \textbf{implicitamente emitido} para o gerador, uma vez que esse caso será o mais comum. Para evitar que o valor seja emitido, é necessário \textbf{descartá-lo manualmente} onde for caso disso. Se por outro lado a função lidar apenas com valores não-musicais, a sua execução irá seguir o modelo tradicional (onde a função termina a sua execução antes de retornar o controlo ao local onde foi chamada).
-\newpage
+
 \subsection{Gramática da Linguagem}
 A gramática completa da linguagem pode ser vista no Anexo \ref{grammar}. Mas antes de abordarmos em mais detalhe como irá der desenhada a gramática da linguagem, podemos abordar dois pequenos exemplos que demonstram a geração de notas musicais.
 \begin{lstlisting}[caption=Exemplo da sintaxe proposta da linguagem,language=PHP]
@@ -213,21 +213,21 @@ O facto de a linguagem ser desenvolvida em \textit{Python} significa que é extr
 \end{itemize}
 
 \subsection{Álgebra Musical}
-Dentro da própria linguagem, e acompanhado das construções de programação como ciclos, variáveis, condicionais e tudo o resto, queremos disponibilizar uma \textit{álgebra} que envolva tanto a parte musical como dos teclados e que permita de certa forma manipulá-los. Para isso, a linguagem tem os seguintes tipos de dados (entre outros):
+Dentro da própria linguagem, e acompanhado das construções de programação como ciclos, variáveis, condicionais e tudo o resto, queremos disponibilizar uma \textit{álgebra} que envolva tanto a parte musical como dos teclados e que permita de certa forma manipulá-los. Para isso, a linguagem tem os tipos:
 
 \medskip
-
 \noindent
 \textbf{Descrição}  \hfill  \textbf{Tipo} \ \  \\
 Sequências de Notas, Acordes, WAVEs, etc \dotfill  \texttt{Music}  \\
 Oitavas, tons, semitons \dotfill  \texttt{Interval} \\
 Metadados (compasso, batidas por minutos, etc) \dotfill  \texttt{Voice} \\
-Dicionário de Tecla \texttt{->} Música ou Função \dotfill  \texttt{Keyboard} \\
+Dicionário de Tecla \texttt{->} Música ou Função \dotfill  \texttt{Keyboard} 
+
+\medskip
 
 Para operar entre estes tipos, existem um conjunto de operações que são tão comuns que merecem ser implementadas através de operadores sintáticos. Devemos notar que o mesmo operador pode ser usado para ações diferentes com base nos tipos dos seus operandos. Sendo a nossa linguagem dinâmica, este tipo de \textit{overloading} deve acontecer em \textit{runtime}.
 
 \medskip
-
 \noindent
 \textbf{Função} \hfill \textbf{Operador} \ \ \\
 \texttt{concat ( Music, Music ) -> Music} \dotfill \texttt{a b} \\
@@ -237,12 +237,13 @@ Para operar entre estes tipos, existem um conjunto de operações que são tão 
 \texttt{transpose ( Music, Interval | Int ) -> Music} \dotfill \texttt{a + b} \\
 \texttt{retime ( Music, Music | Float ) -> Music} \dotfill \texttt{a ** b} \\
 \texttt{union ( Keyboard, Keyboard ) -> Keyboard} \dotfill \texttt{a + b} \\
-\texttt{exclusion ( Keyboard, Keyboard ) -> Keyboard} \dotfill \texttt{a - b} \\
+\texttt{exclusion ( Keyboard, Keyboard ) -> Keyboard} \dotfill \texttt{a - b} 
+
+\medskip
 
 Para além dos operadores disponibilizados, existe um conjunto de funções que permite transformar e compor de maneiras mais avançadas objetos dos variados tipos. Algumas dessas funções (com as assinaturas simplificada relativamente à sua função real, para efeitos de claridade) são listadas de seguida:
 
 \medskip
-
 \noindent
 \textbf{Descrição} \hfill \textbf{Função} \ \ \\
 Leitura de MIDI \dotfill \texttt{readmidi( File | Port ) -> Music} \\
@@ -254,4 +255,4 @@ Transformar Teclados \dotfill \texttt{map( Keyboard, Fn ) -> Keyboard} \\
 Filtrar Teclados \dotfill \texttt{filter( Keyboard, Fn ) -> Keyboard} \\
 Transformar Música \dotfill \texttt{map( Music, Fn ) -> Music} \\
 Filtrar Música \dotfill \texttt{filter( Music, Fn ) -> Music} \\
-Cortar Música \dotfill \texttt{slice( Music, Start, End ) -> Music} \\
+Cortar Música \dotfill \texttt{slice( Music, Start, End ) -> Music} 

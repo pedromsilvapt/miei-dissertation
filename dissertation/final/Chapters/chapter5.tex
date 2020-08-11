@@ -86,7 +86,7 @@ Podemos então ver a lista dos modificadores aceites pela linguagem, bem como ex
 \begin{tabular}{|l|c|c|c|}
 \hline
 \textbf{Nome} & \textbf{Modificador}                                            & \textbf{Exemplo}                                        & \textbf{Predefinição} \\ \hline
-Instrumento   & I$N$                                                            & I46                                                     & I0           \\ \hline
+Instrumento   & I$N$                                                            & I46                                                     & I1           \\ \hline
 Velocidade    & V$N$                                                            & V100                                                    & V127         \\ \hline
 Tempo         & T$N$                                                            & T120                                                    & T60          \\ \hline
 Duração       & \begin{tabular}[c]{@{}c@{}}L$N$\\ L/$N$\\ L$D$/$N$\end{tabular} & \begin{tabular}[c]{@{}c@{}}L2\\ L/4\\ L3/8\end{tabular} & L1           \\ \hline
@@ -334,8 +334,24 @@ def visit_statement ( self, node, children ): ...
 def visit_var_declaration ( self, node, children ): ...
 \end{lstlisting}
 
+\subsection{Conversão de PEG para LALR}
+Uma vez estando a gramática relativamente estabilizada, foi medida a sua \textit{performance}, marcando o tempo que ela demorava a reconhecer os ficheiros em formato Musikla da biblioteca \textit{standard} (que são carregados sempre que algum \textit{script} Musikla é executado). Os valores obtidos rondavam em média os 600 milissegundos. Apesar de ser aceitável atualmente, não inspiravam confiança caso o tamanho da biblioteca crescesse no futuro (o que irá certamente acontecer, e que causará esse tempo aumentar). Principalmente por essa razão, decidimos converter a gramática \acrshort{peg} para uma gramática \acrfull{lalr} (que pode ser visualizada no apêndice \ref{app:grammar-lalr}).
+
+Para esse efeito escolhemos a biblioteca \textbf{lark}\footnote{Lark Website \url{https://lark-parser.readthedocs.io/en/latest/}}. Esta biblioteca tem várias funcionalidades que captaram o nosso interesse:
+\begin{description}
+ \item[Múltiplos Reconhecedores] A biblioteca permite escolher entre três reconhecedores para a mesma gramática, cada um oferecendo vantagens e desvantagens específicas:
+    \begin{description}
+     \item[Earley] Permite reconhecer qualquer gramática livre de contexto, até capaz de reconhecer gramáticas ambíguas (e deixar o utilizador resolver as ambiguidades, ou receber todas as possíveis interpretações de um dado \textit{input} perante uma gramática ambígua).
+     \item[LALR] Menos poderosa mas bastante mais eficiente em memória e velocidade, reconhecendo o \textit{input} em tempo linear $O(n)$.
+    \end{description}
+ \item[Sintaxe Rica] Inspirada pela notação EBNF\footnote{Extended Backus–Naur form \url{https://en.wikipedia.org/wiki/Extended\_Backus-Naur\_form}} com funcionalidades extra que fazem escrever, ou no nosso caso portar a gramática, uma tarefa bastante simples. 
+ \item[Lexer Incremental] Em vez de reconhecer os \textit{tokens} de uma vez e os passar depois ao reconhecedor sintático, permite que os \textit{tokens} vão sendo reconhecidos dependendo do contexto em que o reconhecedor sintático se encontra. Assim, regras terminais que podiam ser ambíguas e reconhecer o mesmo \textit{input}, são facilmente desambiguadas com base no sítio em que estão.
+\end{description}
+
+O resultado final foi uma gramática bastante similar à anterior, mas cujo reconhecedor sintático é aproximadamente 10 vezes mais rápido (demorando agora cerca de 50 milissegundos para reconhecer a biblioteca \textit{standard}). As maiores diferenças da gramática passam pela forma como os \textit{whitespaces} são tratados. Estes são ignorados pelo reconhecedor sintático, o que não faz mal pois na linguagem Musikla apenas a chamada de funções é \textit{whitespace-aware}. Parênteses curvos colados a algum \textit{token} são uma chamada de função, enquanto que separados são um agrupamento de expressões. Para fazermos esta distinção, alguns\textit{tokens} que precedem a chamada de uma função no reconhecedor léxico têm duas versões: uma que inclui o parênteses de abertura no próprio \textit{token}, sem espaços antes, e que permite identificar a chamada de uma função.
+
 \subsection{Tooling}
-Para além da gramática e do \textit{parser} da linguagem, que são indispensáveis para o funcionamento do projeto, foram também implementados algumas funcionalidades adicionais com o intuito de facilitar a utilização da nossa linguagem, que só vamos cobrir brevemente.
+Para além das gramáticas e do \textit{parser} da linguagem, que são indispensáveis para o funcionamento do projeto, foram também implementados algumas funcionalidades adicionais com o intuito de facilitar a utilização da nossa linguagem, que só vamos cobrir brevemente.
 
 \subsubsection{Syntax Highlighting}
 Para oferecer \textit{syntax highlighting} para a nossa linguagem, que a nosso ver torna a experiência de programar com a mesma muito mais agradável, utilizamos uma linguagem chamada \textbf{Iro}\footnote{\url{https://eeyo.io/iro/}}. Esta linguagem é uma \acrshort{dsl} que permite descrever a sintaxe através de expressões regulares, e associar estilos a cada uma. 
@@ -655,7 +671,7 @@ $chords ** $melody | $melody;
 No exemplo presente na listagem \ref{lst:ops-retime}, temos duas variáveis com durações diferentes. A primeira, \textbf{\texttt{\$chords}}, tem a duração total de \textbf{$\frac{1}{2}$} ($4 \times \frac{1}{8}$). Por sua vez, a segunda variável, \textbf{\texttt{\$melody}}, tem a duração de \textbf{2} ($16 \times \frac{1}{8}$). As duas durações podiam ser ajustadas manualmente (bastando multiplicar a duração de cada acorde por 4), mas isso implicava que qualquer mudança na melodia exigia recalcular as proporções manualmente. E também nem todas as situações apresentam contas tão simples como $2 \div \frac{1}{2}$. Deste modo, os cálculos são feitos automaticamente pela aplicação e estão sempre atualizadas.
 
 \section{Biblioteca Standard}
-A biblioteca \textit{standard} que é incluída com o interpretador Musikla foi também um dos grandes desafios do desenvolvimento deste projeto. Obviamente, o seu desenvolvimento ocorreu de uma forma faseada, ao mesmo tempo que a linguagem e o interpretador eram desenvolvidos. Isso significa que desenvolver a biblioteca não é apenas a tarefa de adicionar novas funcionalidades, mas também de reescrever ou adaptar functionalidades existentes que tenham sido adicionadas numa fase inicial do desenvolvimento da linguagem. Por essa razão as suas interfaces públicas podiam estar desenhadas à volta de uma linguagem que tinha menos funcionalidades que a versão atual, sejam elas objetos, listas ou passagem de argumentos com nome.
+A biblioteca \textit{standard} que é incluída com o interpretador Musikla foi também um dos grandes desafios do desenvolvimento deste projeto. Obviamente, o seu desenvolvimento ocorreu de uma forma faseada, ao mesmo tempo que a linguagem e o interpretador eram desenvolvidos. Isso significa que desenvolver a biblioteca não é apenas a tarefa de adicionar novas funcionalidades, mas também de reescrever ou adaptar funcionalidades existentes que tenham sido adicionadas numa fase inicial do desenvolvimento da linguagem. Por essa razão as suas interfaces públicas podiam estar desenhadas à volta de uma linguagem que tinha menos funcionalidades que a versão atual, sejam elas objetos, listas ou passagem de argumentos com nome.
 
 No diagrama abaixo podemos ver uma lista dos módulos que são disponibilizados pela linguagem. As funções e classes listadas abaixo são apenas um pequeno exemplo do que é implementado na biblioteca. A documentação mais completa pode ser encontrada \href{https://pedromsilvapt.github.io/miei-dissertation/}{online}.
 
@@ -663,7 +679,7 @@ No diagrama abaixo podemos ver uma lista dos módulos que são disponibilizados 
 \begin{center}
     \includegraphics[width=0.87\textwidth]{img/standard_library.png}
 \end{center}
-\caption{Organização do projeto}
+\caption{Organização dos módulos \textit{standard} do projeto}
 \end{figure}
 
 Todos estes módulos, por serem tão comuns e essenciais, são sempre carregados automaticamente antes de executar um \textit{script} Musikla, pelo que não há necessidade de os importar manualmente.
@@ -681,7 +697,7 @@ O verdadeiro objetivo da linguagem é que seja extensível, de modo a que qualqu
 
 Os \textit{outputs} podem ser globais, ou seja, aplicarem-se aos eventos emitidos pela aplicação. Neste caso são geralmente passados como argumentos de linha de comandos, ou adicionados durante a execução através da função \texttt{\$script::player::add\_sequencer()}. Também é possível gravar apenas expressões de música específicas com a função \texttt{save()}.
 \subsubsection{FluidSynth}
-Esta biblioteca serve apenas como \textbf{output} para a linguagem, e permite sintetizar sons a partir de ficheiros \textit{SoundFont}. Os sons gerados podem depois ser passados diretamente para as colunas do computador, ou guardados em disco num ficheiro de música.
+A biblioteca \textbf{FluidSynth} serve como \textbf{output} para a linguagem, e permite sintetizar sons a partir de ficheiros \textit{SoundFont}. Os sons gerados podem depois ser passados diretamente para as colunas do computador, ou guardados em disco num ficheiro de música.
 
 Para implementar este \textit{output}, utilizamos o projeto \textit{pyfluidsynth}\cite{pyfluidsynth} para interoperar o nosso código \textit{Python} com a biblioteca \textit{FluidSynth}, escrita em \textit{C}. Como os \textit{bindings} do projeto em \textit{Python} não cobriam toda a \acrshort{api} da biblioteca que nós necessitávamos, optamos por realizar um \textit{fork} dos \textit{bindings}, o que nos permitiu depois efetuar as alterações necessárias à nossa medida.
 
@@ -689,20 +705,20 @@ O objeto principal disponibilizado pelo \textit{FluidSynth} é o objeto \texttt{
 
 Felizmente a biblioteca também providencia um objeto para isso: \texttt{Sequencer}.  Para o efeito registamos um \textit{callback} na nossa aplicação que recebe o evento e é responsável por o aplicar ao \texttt{Synth}. Depois, sempre que algum evento é gerado, chamamos a função \texttt{Sequencer.timer()} e passamos-lhe o \textit{timestamp} em que deve ser executado o evento, bem como o evento em si e o \textit{callback} a chamar quando o temporizador concluir. Uma das vantagens é o facto de o FluidSynth já disponibilizar uma interface segura de acesso entre \textit{threads}\cite{henningsson2011fluidsynth}.
 
-A maioria dos eventos da nossa linguagem são inspirados pelo \textit{standard} MIDI, tal como a é desenhada a \acrshort{api} do sintetizador do \textit{FluiSynth}, pelo que aplicação dos eventos passa geralmente apenas por chamar a função correta e fornecer-lhe os parâmetros carregados pelo evento. Há no entanto uma exceção à regra, algo que iremos aprofundar mais à frente, e que é a possibilidade de reproduzir, para além de notas musicais, mas ficheiros musicais também. Infelizmente o \textit{FluidSynth} não suporta diretamente este tipo de utilização, mas com alguma criatividade foi possível implementá-la usando as ferramentas que nos eram disponibilizadas.
+A maioria dos eventos da nossa linguagem são inspirados pelo \textit{standard} MIDI, tal como a é desenhada a \acrshort{api} do sintetizador do \textit{FluiSynth}, pelo que aplicação dos eventos passa geralmente apenas por chamar a função correta e fornecer-lhe os parâmetros carregados pelo evento. Há no entanto uma exceção à regra, algo que iremos aprofundar mais à frente, e que é a possibilidade de reproduzir, para além de notas musicais, reproduzir ficheiros musicais. Infelizmente o \textit{FluidSynth} não suporta diretamente este tipo de utilização, mas com alguma criatividade foi possível implementá-la usando as ferramentas que nos eram disponibilizadas.
 
 A sintetização de notas efetuada pelo \textit{FluidSynth} recorre aos ficheiros \textit{Soundfont}, que podem ser descritos de uma forma muito simplista como um dicionário que associa a cada nota de cada instrumento um \textit{buffer} contendo o som a ser reproduzido, mais algumas configurações que permitem ajustar o som gerado a diversas situações (duração da nota, velocidade, entre outras).
 
 Estas fontes de som podem ser carregadas para o \textit{FluidSynth} e através do método \texttt{Synth.sfload()} e passando-lhe o caminho do ficheiro. Mas para além de fontes carregadas do disco, também é disponibilizada uma estrutura \texttt{RamSFont} que permite criar, representar e editar uma fonte de som completamente em memória, que pode ser depois associada ao sintetizador pelo método \texttt{Synth.add\_sfont()}.
 
-Sempre que algum evento musical traz consigo um ficheiro de música para ser reproduzido, nós associamos o conteúdo desse ficheiro a uma nota de um instrumento virtual da \texttt{RamSFont} que criamos. Quando o mesmo ficheiro é pedido para ser reproduzido várias vezes, a mesma nota do mesmo instrumento é utilizada, evitando estar sempre a ler os conteúdos do ficheiro. Este evento musical é depois convertido num evento de reprodução de notas, com a informação da nota e do instrumento a usar sendo preenchidas automaticamente com o nosso instrumento virtual.
+Sempre que algum evento musical traz consigo um ficheiro de música para ser reproduzido, nós associamos o conteúdo desse ficheiro a uma nota de um instrumento virtual da \texttt{RamSFont} que criamos. Quando é pedido para reproduzir o mesmo ficheiro várias vezes, a mesma nota do mesmo instrumento é utilizada, evitando estar sempre a ler os conteúdos do ficheiro. Este evento musical é depois convertido num evento de reprodução de notas, com a informação da nota e do instrumento a usar sendo preenchidas automaticamente com o nosso instrumento virtual.
 
 Desta forma, podemos reproduzir ficheiros arbitrários de som em conjunto com as notas musicais de uma forma transparente para o utilizador.
 
 No entanto, um obstáculo que encontramos durante a implementação desta funcionalidade foi o facto de os sons associados a notas com um valor inteiro inferior a 15 (cada instrumento pode ter 128 notas, entre 0-127) tinham o seu \textit{pitch} distorcido, mesmo quando eram passadas as \textit{flags} para que os sons fossem reproduzidos sem ajustamento do \textit{pitch}. Este comportamento no entanto desaparecia acima de notas com o valor 15, pelo que adotamos esse valor como a nossa base (o que desperdiça 15 lugares em cada instrumento que poderiam ser associados a sons). Como na \textit{SoundFont} podemos utilizar também vários instrumentos, isso significava que ainda assim conseguíamos reproduzir $127 \times 113 = 14351$ sons distintos, o que é bastante mais do que suficiente para a maioria dos casos.
 
 \subsubsection{MIDI}
-Mais uma biblioteca que achamos importante incluir de base foi o suporte para leitura e escrita de dados MIDI. Isto tanto pelo facto de que o \textit{standard} MIDI é um dos mais utilizados no mundo da música, mas também porque a nossa implementação da linguagem, particularmente relativa à representação dos eventos musicais em memória, foi fortemente inspirada por este formato. Dessa forma, implementar funções de transformação dos não exigiu demasiado esforço. Para o efeito, utilizamos o módulo \textit{Python} \texttt{mido}, que permite ler e escrever eventos MIDI, tanto de portas como de ficheiros em disco.
+Uma funcionalidade extremamente importante e necessária para incluir de base foi o suporte para leitura e escrita de dados MIDI. Isto tanto pelo facto de que o \textit{standard} MIDI é um dos mais utilizados no mundo da música, mas também porque a nossa implementação da linguagem, particularmente relativa à representação dos eventos musicais em memória, foi fortemente inspirada por este formato. Dessa forma, implementar funções de transformação dos não exigiu demasiado esforço. Para o efeito, utilizamos o módulo \textit{Python} \texttt{mido}, que permite ler e escrever eventos MIDI, tanto de portas como de ficheiros em disco.
 
 A nível de leitura (\textbf{input}), o módulo disponibiliza uma função \texttt{readmidi()} que permite ler eventos musicais de um ficheiro ou porta MIDI, retornando um objeto do tipo \textbf{Music}. A função aceita os seguintes parâmetros (sendo os parâmetros de ficheiro ou de porta mutuamente exclusivos):
 
@@ -715,7 +731,7 @@ A nível de leitura (\textbf{input}), o módulo disponibiliza uma função \text
   \item[String] O nome de uma única porta para estar à escuta de eventos.
  \end{description}
  \item[voices] \textit{(Opcional)} Uma lista de vozes para mapear a cada canal MIDI a que os eventos pertencem. Quando nenhuma voz é especificada, a voz atual presente no contexto é utilizada para todos os canais.
- \item[cutoff\_sequence] \textit{(Opcional)} Uma sequência de notas ou eventos músicais que, quando recebidos pelas portas MIDI, são utilizados como sinal para terminar imediatamente a leitura e retornar a sequência de eventos já capturada. È ignorada quando a fonte de leitura é um ficheiro.
+ \item[cutoff\_sequence] \textit{(Opcional)} Uma sequência de notas ou eventos músicais que, quando recebidos pelas portas MIDI, são utilizados como sinal para terminar imediatamente a leitura e retornar a sequência de eventos já capturada. É ignorada quando a fonte de leitura é um ficheiro.
  \item[ignore\_message\_types] \textit{(Opcional)} Uma lista de \textit{strings} com os nomes de mensagens MIDI que devem ser ignoradas.
 \end{description}
 
@@ -730,13 +746,13 @@ A maior diferença é, no entanto, o facto de que o formato \textit{abc} é est�
 
 Para colmatar este facto, os eventos, antes de serem convertidos para o formato \textit{abc}, são introduzidos numa \textit{pipeline} que executa uma série de passos de modo a tornar a conversão mais simples. De grosso modo, os passos pela ordem que são executados, são os seguintes:
 
-\begin{itemize}
+\begin{enumerate}
  \item Em primeiro lugar o sistema tenta converter quaisquer notas que possam estar a ser emitidas como eventos \textit{on/off} separados. Isto acontece quando, por exemplo, o teclado é usado, o que pode implicar começar a tocar as notas sem saber quando o utilizador as vai parar. Os pares de eventos são então convertidos num só evento com a informação do início e da duração da nota.
  \item Em segundo lugar, o sistema tenta identificar as notas paralelas que possam estar a ser emitidas e que possam pertencer a um acorde. Isto acontece mais uma vez quando, ao invés de usar a sintaxe de acordes presente na linguagem, o usa o teclado para gerar o acorde através de notas/teclas diferentes ativadas ao mesmo tempo.
  \item Em terceiro lugar, as notas que pertençam à mesma voz mas que tenham \textit{overlap} na sua duração, são colocadas em linhas diferentes. Mais uma vez, isto acontece mais frequentemente quando o teclado é usado, onde o utilizador pode estar a tocar notas concorrentemente da forma que quiser.
  \item Em quarto lugar, são inferidos eventos pausa quando duas notas consecutivas pertencentes à mesma voz têm um intervalo. Mais uma vez, isto acontece mais frequentemente quando o utilizador toca com o teclado. Mas neste caso pode também acontecer quando as notas são declaradas pela sintaxe da linguagem, como por exemplo na seguinte situação \texttt{A ( B | C )}, onde as notas \texttt{A} e \texttt{B} ficam na mesma pauta. A nota C, no entanto, como se sobrepõe com a nota \texttt{B}, pelo passo anterior, seria movida para a sua pauta. No entanto, esta pauta não teria nada ao início, e por isso precisa de uma pausa. Seria conceptualmente equivalente ao resultado de \texttt{(A B) | (r C)}.
  \item Finalmente em quinto lugar, são introduzidos eventos especiais na sequência musical para identificar, para cada voz em separado, quando devem ser introduzidos novos compassos, ou novas pautas na partitura. Do mesmo modo, isto implica que notas e acordes cuja duração não caiba num compasso, sejam divididos quantas vezes forem necessários, e conectados através de \gls{ligaduras}.
-\end{itemize}
+\end{enumerate}
 
 Estas transformações são reutilizáveis (não estão fortemente acopladas ao formato \textit{abc}) e são implementadas utilizando o conceito de transformadores, que iremos abordar mais à frente neste documento.
 
@@ -829,7 +845,7 @@ Não nos esqueçamos que o objetivo da grelha é alinhar eventos, movendo os eve
 
 Na listagem \ref{lst:grids-2} podemos ver a definição de uma grelha simétrica (as propriedades \textit{left} e \textit{right} são iguais). O valor de \textit{forgiveness} implica que eventos que estejam a mais de 372 milissegundos de distância de qualquer um dos separadores são ignorados pela grelha, isto é, o seu tempo não se mexe. O valor de \textit{forgiveness}, o que significa que eventos que estejam a menos de 125 milissegundos de um dos separadores são também ignorados pela grelha. Neste exemplo, são apenas movidos os eventos que estejam entre 125 e 375 milissegundos de distância de um dos separadores.
 
-Note-se que cada propriedade poderia ser costumizada para a esquerda e para a direita. Isto é, o exemplo a cima podia ser reescrito da seguinte forma:
+Note-se que cada propriedade poderia ser costumizada para a esquerda e para a direita. Isto é, o exemplo acima podia ser reescrito da seguinte forma:
 
 \begin{lstlisting}[caption={Código alternativo de definição da grelha representada na figura \ref{fig:grids-2}, com as propriedades \textit{left} e \textit{right}},label={lst:grids-3}]
 $grid = Grid( 1,
@@ -874,7 +890,7 @@ Para além de permitir construir expressões que geram sequências de eventos mu
 };
 \end{lstlisting}
 
-Esses eventos podem então ser teclas de um teclado, mas também de um piano conectado ao computador, ou eventos do rato, ou de qualquer outro dispositivo de \acrshort{io} que as pessoas queiram adaptar, bastando para isso herdar a classe\texttt{KeyboardEvent}.
+Esses eventos podem então ser teclas de um teclado, mas também de um piano conectado ao computador, ou eventos do rato, ou de qualquer outro dispositivo de \acrshort{io} que as pessoas queiram adaptar, bastando para isso herdar a classe \texttt{KeyboardEvent}.
 
 \subsubsection{Tipos de Eventos}
 Os tipos de evento mais comum são teclas de teclado e de piano. Por essa mesma razão implementamos açúcar sintático na definição desses eventos  (que são implementados pelas classes \texttt{KeyStroke} e \texttt{PianoKey}, respetivamente).
@@ -937,7 +953,7 @@ Os \textbf{modificadores} permitem customizar o comportamento do teclado quando 
 
 Assim, se quisermos replicar o comportamento de um piano, por exemplo, em que premir a tecla começa a tocar uma nota, e liberta-la para a nota, podemos usar os modificadores \texttt{hold extend} em conjunto.
 
-\begin{lstlisting}[caption={Aplicar o modificar \texttt{hold extend} a um teclado inteiro}]
+\begin{lstlisting}[caption={Aplicar o modificador \texttt{hold extend} a um teclado inteiro}]
 @keyboard hold extend {
     a: c;
     s: d:
@@ -1202,7 +1218,7 @@ Obviamente sendo estes números apenas uma contagem das linhas atuais, não são
 Para além destes componentes, foi desenvolvido para ser usado na documentação um utilitário em \textit{JavaScript}\footnote{Código disponível em \url{https://github.com/pedromsilvapt/miei-dissertation/blob/master/code/musikla/docs/assets/generator.js}} com cerca de 500 linhas de código, que permite descrever e gerar os diagramas sobre grelhas (também usados nesta dissertação). A documentação está escrita no formato \textit{Markdown} e conta também com um pouco mais de 700 linhas de texto. Este número não pode no entanto ser comparado diretamente com as linhas de código, já que texto em prosa e código são conceitos diferentes. Ainda assim ajudam a ter ideia do que foi feito, para além da escrita da desta dissertação, do artigo publicado e do desenvolvimento do interpretador Musikla.
 
 \chapter{Guia Rápido de Utilização}
-O resultado final do processo de desenho e desenvolvimento descrito a cima foi um módulo \textit{Python} publicado no repositório \textit{PyPi} chamado \texttt{musikla}. Este módulo pode ser usado através da linha de comandos, ou os seus sub-módulos podem ser usados diretamente num projeto \textit{Python}.
+O resultado final do processo de desenho e desenvolvimento descrito acima foi um módulo \textit{Python} publicado no repositório \textit{PyPi} chamado \texttt{musikla}. Este módulo pode ser usado através da linha de comandos, ou os seus sub-módulos podem ser usados diretamente num projeto \textit{Python}.
 
 Nesta secção vamos fazer uma pequena \textit{overview} dos diversos modos de como o módulo pode ser utilizado (versão da documentação mais completa disponível em na \href{https://pedromsilvapt.github.io/miei-dissertation/}{web}).
 
@@ -1212,7 +1228,7 @@ A instalação é bastante simples, sendo suficiente correr o comando seguinte c
 pip install musikla
 \end{lstlisting}
 
-É importante notar que uma dependência central da linguagem é a biblioteca nativa \textit{FluidSynth}. Apesar de existir uma versão \texttt{2.x}, essa não é suportada, pelo que é necessário o utilizador certificar-se que o seu sistema tem a versão \texttt{1.x} instalada.
+É importante notar que uma dependência central da linguagem é a biblioteca nativa \textit{FluidSynth}. Apesar de existir uma versão \texttt{2.x}, essa não é suportada atualmente, pelo que é necessário o utilizador certificar-se que o seu sistema tem a versão \texttt{1.x} instalada.
 
 \section{Módulos}
 O projeto \textbf{musikla} está dividido em bastantes sub-módulos, os mais importantes dos quais são listados aqui:
@@ -1224,7 +1240,7 @@ O projeto \textbf{musikla} está dividido em bastantes sub-módulos, os mais imp
  \item[musikla.core] Disponibiliza muitas das classes mais fundamentais para o funcionamento da linguagem, tais como \texttt{Context}, \texttt{Music}, \texttt{Instrument}, \texttt{Voice}, \texttt{SymbolsScope}, entre outros.
  \item[musikla.parser.abstract\_syntax\_tree] Contém as classes que representam os diversos nós da \acrshort{ast}.
  \item[musikla.parser] Disponibiliza as classes \texttt{Parser}, responsáveis por criar uma \acrshort{ast} com base numa \textit{string} ou num ficheiro contendo código Musikla, bem como a classe \texttt{CodePrinter} responsável pelo processo oposto, transformando de volta uma \acrshort{ast} numa \textit{string} usando a sintaxe da linguagem.
- \item[musikla.audio.sequencers] Alberga os diversos sequênciadores (formatos de saída) suportados nativamente pela linguagem.
+ \item[musikla.audio.sequencers] Alberga os diversos sequenciadores (formatos de saída) suportados nativamente pela linguagem.
  \item[musikla.audio] Contém as classes \texttt{Player} e \texttt{InteractivePlayer} que permitem reproduzir sequências musicais para os sequenciadores.
  \item[musikla.libraries] Disponibilizam as várias classes que definem as funções e símbolos expostos para a linguagem Musikla pela biblioteca \textit{standard}.
  \item[musikla] O módulo  principal, contém as duas classes responsáveis por inicializar todos os sistemas necessários para a linguagem funcionar, \texttt{CliApplication} e \texttt{Script}.
