@@ -90,13 +90,13 @@
     a4paper,            % the paper size/format
     12pt,               % 10pt, 11pt(*), 12pt
     final,              % draft, final  <= Replace 'draft' with 'final' in final version
-    oneside
+    twoside
   },
   media=screen,         % screen(*), paper
           % behavior to be defined in school options based in "\novathesis@opt@media"
           % definitions for screen: left and right margins are equal, colored links
           % definitions for paper: left and right margins are different, black links
-  oneside
+  twoside
 ]{novathesis}
 
 
@@ -219,7 +219,7 @@
 
 % Autor
 % use [f] for female and [m] for male
-\authorname[m]{Pedro M. Silva}{Pedro Silva}
+\authorname[m]{Pedro Miguel Oliveira da Silva}{Pedro Silva}
 \authordegree{Master of Science}
 
 % Date
@@ -231,7 +231,7 @@
 % for instance \adviser[m]{John Doe Adviser Name}{}{} 
 % use "\\&" if necessary to break the lines in the apprpriate place
 % use [f] for female and [m] for male
-\adviser[m]{José João Almeida}{Full Professor}{\\& Universidade do Minho} 
+\adviser[m]{José João Dias de Almeida}{Auxiliar Professor}{\\& Universidade do Minho} 
 % you may use "\newline" to force a new line
 % \adviser[m]{John Doe Male Adviser Name}{Associate\\& Professor}{Some University Somewhere}
 % \adviser[m]{John Doe Third Adviser Name}{Associate\\& Professor}{Some University Somewhere}
@@ -339,7 +339,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \printchapthers    % Print document chapters
 %% jj \printbib    % Print the bibliography
-\printbibliography    % Print the bibliography
+\printbib    % Print the bibliography
 % \printotherlists   % Alternative location to print the other lists (if you uncomment this one, comment the other one above)
 \printotherlists   % If option 'otherlistsat=back', print other lists of contents according to instructions given above, otherwise do nothing
 \printappendixes  % Print appendixes, if any!

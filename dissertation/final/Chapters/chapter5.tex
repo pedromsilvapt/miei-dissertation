@@ -61,7 +61,7 @@ Por conveniência, para evitar ao utilizador ter de introduzir todas as notas de
 \textbf{Sétimas} & m7, M7, dom7, 7, m7b5, dim7, mM7 \\ \hline
 \end{tabular}
 \caption{Lista de abreviaturas possíveis de serem acrescentadas a seguir a uma nota para especificar um acorde.}
-\label{tab:modifiers-list}
+\label{tab:chord-suffixes}
 \end{table}
 
 A decisão de envolver cada acorde com parênteses retos deveu-se ao facto de muitas abreviaturas serem já populares no domínio da notação musical, e como tal o ideal era não as mudar. No entanto, algumas dessas abreviaturas poderiam entrar em conflito com outros componentes da declaração da nota. Por exemplo, \texttt{C7} poderia ser tanto um acorde de sétima como uma nota com duração de 7. Com a separação por parênteses retos, a ambiguidade deixa de existir, sendo óbvio que \texttt{[C7]} é um acorde de sétima, e \texttt{C7} é uma nota com duração 7.
@@ -337,15 +337,15 @@ def visit_var_declaration ( self, node, children ): ...
 \subsection{Conversão de PEG para LALR}
 Uma vez estando a gramática relativamente estabilizada, foi medida a sua \textit{performance}, marcando o tempo que ela demorava a reconhecer os ficheiros em formato Musikla da biblioteca \textit{standard} (que são carregados sempre que algum \textit{script} Musikla é executado). Os valores obtidos rondavam em média os 600 milissegundos. Apesar de ser aceitável atualmente, não inspiravam confiança caso o tamanho da biblioteca crescesse no futuro (o que irá certamente acontecer, e que causará esse tempo aumentar). Principalmente por essa razão, decidimos converter a gramática \acrshort{peg} para uma gramática \acrfull{lalr} (que pode ser visualizada no apêndice \ref{app:grammar-lalr}).
 
-Para esse efeito escolhemos a biblioteca \textbf{lark}\footnote{Lark Website \url{https://lark-parser.readthedocs.io/en/latest/}}. Esta biblioteca tem várias funcionalidades que captaram o nosso interesse:
+Para esse efeito escolhemos o gerador de reconhecedores sintáticos \textbf{lark}\footnote{Lark Website \url{https://lark-parser.readthedocs.io/en/latest/}}. Esta ferramenta tem várias funcionalidades que captaram o nosso interesse:
 \begin{description}
- \item[Múltiplos Reconhecedores] A biblioteca permite escolher entre três reconhecedores para a mesma gramática, cada um oferecendo vantagens e desvantagens específicas:
+ \item[Gerar Múltiplos Reconhecedores] A biblioteca permite escolher entre dois reconhecedores para a mesma gramática, cada um oferecendo vantagens e desvantagens específicas:
     \begin{description}
      \item[Earley] Permite reconhecer qualquer gramática livre de contexto, até capaz de reconhecer gramáticas ambíguas (e deixar o utilizador resolver as ambiguidades, ou receber todas as possíveis interpretações de um dado \textit{input} perante uma gramática ambígua).
      \item[LALR] Menos poderosa mas bastante mais eficiente em memória e velocidade, reconhecendo o \textit{input} em tempo linear $O(n)$.
     \end{description}
  \item[Sintaxe Rica] Inspirada pela notação EBNF\footnote{Extended Backus–Naur form \url{https://en.wikipedia.org/wiki/Extended\_Backus-Naur\_form}} com funcionalidades extra que fazem escrever, ou no nosso caso portar a gramática, uma tarefa bastante simples. 
- \item[Lexer Incremental] Em vez de reconhecer os \textit{tokens} de uma vez e os passar depois ao reconhecedor sintático, permite que os \textit{tokens} vão sendo reconhecidos dependendo do contexto em que o reconhecedor sintático se encontra. Assim, regras terminais que podiam ser ambíguas e reconhecer o mesmo \textit{input}, são facilmente desambiguadas com base no sítio em que estão.
+ \item[Reconhecedor Léxico Incremental] Em vez de reconhecer os \textit{tokens} de uma vez e os passar depois ao reconhecedor sintático, permite que os \textit{tokens} vão sendo reconhecidos dependendo do contexto em que o reconhecedor sintático se encontra. Assim, regras terminais que podiam ser ambíguas e reconhecer o mesmo \textit{input}, são facilmente desambiguadas com base no sítio em que estão.
 \end{description}
 
 O resultado final foi uma gramática bastante similar à anterior, mas cujo reconhecedor sintático é aproximadamente 10 vezes mais rápido (demorando agora cerca de 50 milissegundos para reconhecer a biblioteca \textit{standard}). As maiores diferenças da gramática passam pela forma como os \textit{whitespaces} são tratados. Estes são ignorados pelo reconhecedor sintático, o que não faz mal pois na linguagem Musikla apenas a chamada de funções é \textit{whitespace-aware}. Parênteses curvos colados a algum \textit{token} são uma chamada de função, enquanto que separados são um agrupamento de expressões. Para fazermos esta distinção, alguns\textit{tokens} que precedem a chamada de uma função no reconhecedor léxico têm duas versões: uma que inclui o parênteses de abertura no próprio \textit{token}, sem espaços antes, e que permite identificar a chamada de uma função.
@@ -699,11 +699,11 @@ Os \textit{outputs} podem ser globais, ou seja, aplicarem-se aos eventos emitido
 \subsubsection{FluidSynth}
 A biblioteca \textbf{FluidSynth} serve como \textbf{output} para a linguagem, e permite sintetizar sons a partir de ficheiros \textit{SoundFont}. Os sons gerados podem depois ser passados diretamente para as colunas do computador, ou guardados em disco num ficheiro de música.
 
-Para implementar este \textit{output}, utilizamos o projeto \textit{pyfluidsynth}\cite{pyfluidsynth} para interoperar o nosso código \textit{Python} com a biblioteca \textit{FluidSynth}, escrita em \textit{C}. Como os \textit{bindings} do projeto em \textit{Python} não cobriam toda a \acrshort{api} da biblioteca que nós necessitávamos, optamos por realizar um \textit{fork} dos \textit{bindings}, o que nos permitiu depois efetuar as alterações necessárias à nossa medida.
+Para implementar este \textit{output}, utilizamos o projeto \textit{pyfluidsynth}\citep{pyfluidsynth} para interoperar o nosso código \textit{Python} com a biblioteca \textit{FluidSynth}, escrita em \textit{C}. Como os \textit{bindings} do projeto em \textit{Python} não cobriam toda a \acrshort{api} da biblioteca que nós necessitávamos, optamos por realizar um \textit{fork} dos \textit{bindings}, o que nos permitiu depois efetuar as alterações necessárias à nossa medida.
 
 O objeto principal disponibilizado pelo \textit{FluidSynth} é o objeto \texttt{Synth}. Este disponibiliza inúmeros métodos (baseados no \textit{standard} MIDI) para ativar e desativar uma nota, mudar o instrumento, definir o valor de um controlo, entre muitas outras. Os métodos chamados neste objetos são aplicados imediatamente, pelo que se tivermos uma lista de ações (eventos musicais) a tomar com \textit{timestamps} variados, temos de tratar do seu correto agendamento.
 
-Felizmente a biblioteca também providencia um objeto para isso: \texttt{Sequencer}.  Para o efeito registamos um \textit{callback} na nossa aplicação que recebe o evento e é responsável por o aplicar ao \texttt{Synth}. Depois, sempre que algum evento é gerado, chamamos a função \texttt{Sequencer.timer()} e passamos-lhe o \textit{timestamp} em que deve ser executado o evento, bem como o evento em si e o \textit{callback} a chamar quando o temporizador concluir. Uma das vantagens é o facto de o FluidSynth já disponibilizar uma interface segura de acesso entre \textit{threads}\cite{henningsson2011fluidsynth}.
+Felizmente a biblioteca também providencia um objeto para isso: \texttt{Sequencer}.  Para o efeito registamos um \textit{callback} na nossa aplicação que recebe o evento e é responsável por o aplicar ao \texttt{Synth}. Depois, sempre que algum evento é gerado, chamamos a função \texttt{Sequencer.timer()} e passamos-lhe o \textit{timestamp} em que deve ser executado o evento, bem como o evento em si e o \textit{callback} a chamar quando o temporizador concluir. Uma das vantagens é o facto de o FluidSynth já disponibilizar uma interface segura de acesso entre \textit{threads}\citep{henningsson2011fluidsynth}.
 
 A maioria dos eventos da nossa linguagem são inspirados pelo \textit{standard} MIDI, tal como a é desenhada a \acrshort{api} do sintetizador do \textit{FluiSynth}, pelo que aplicação dos eventos passa geralmente apenas por chamar a função correta e fornecer-lhe os parâmetros carregados pelo evento. Há no entanto uma exceção à regra, algo que iremos aprofundar mais à frente, e que é a possibilidade de reproduzir, para além de notas musicais, reproduzir ficheiros musicais. Infelizmente o \textit{FluidSynth} não suporta diretamente este tipo de utilização, mas com alguma criatividade foi possível implementá-la usando as ferramentas que nos eram disponibilizadas.
 
@@ -789,7 +789,7 @@ Bit depth             & 16bit          \\ \hline
 Compressão            & \textit{N/A}   \\ \hline
 \end{tabular}
 \caption{Formato nativo suportado pelo FluidSynth}
-\label{tab:sounds-format}
+% \label{tab:sounds-format}
 \end{table}
 
 Para facilitar a utilização, é possível ao utilizador carregar ficheiros de som em formatos diferentes desde que tenha a ferramenta \textbf{FFmpeg} instalada no sistema. Quando isso ocorre, a linguagem converte o ficheiro musical \textit{background}, aplicando as configurações necessárias, e guarda-o depois em memória. Isto é especialmente útil para experiências rápidas e com ficheiros pequenos (até alguns \textit{megabytes}).
@@ -806,7 +806,7 @@ if ( not is_sample_optimized( "cihat.wav" ) ) {
 Desta forma a conversão ocorre apenas uma vez, e de seguida o utilizador pode utilizar o ficheiro convertido e não se preocupar com a perda de performance sempre que usa o som num \textit{script}.
 
 \subsection{Grelhas}
-A linguagem tem dois modos de produção de música principais: expressões musicais descritas no código, e a utilização de teclados em tempo real. Em termos de propriedades temporais, de modo geral, as expressões musicais são geradas com tempos precisos. Por outro lado, como é natural, músicas criadas através dos teclados musicais vão ter tempos imperfeitos. Quando utilizadas de modo separado, as diferenças muitas vezes são tão subtis que não se notam. Mas quando queremos tocar uma expressão de música pré-definida em código ao mesmo tempo que se utiliza um teclado, as diferenças e imperfeições podem-se tornar mais óbvias\cite{doi:10.1177/1029864913486793}.
+A linguagem tem dois modos de produção de música principais: expressões musicais descritas no código, e a utilização de teclados em tempo real. Em termos de propriedades temporais, de modo geral, as expressões musicais são geradas com tempos precisos. Por outro lado, como é natural, músicas criadas através dos teclados musicais vão ter tempos imperfeitos. Quando utilizadas de modo separado, as diferenças muitas vezes são tão subtis que não se notam. Mas quando queremos tocar uma expressão de música pré-definida em código ao mesmo tempo que se utiliza um teclado, as diferenças e imperfeições podem-se tornar mais óbvias \citep{doi:10.1177/1029864913486793}.
 
 A operação conhecida como \textit{Quantization}~\footnote{\url{https://en.wikipedia.org/wiki/Quantization_(music)}} é possível na nossa linguagem através da utilização de \textbf{Grelhas}. Uma vez que o objetivo das grelhas é poderem ser utilizadas em tempo real à medida que as notas vão sendo tocadas, a forma de funcionamento escolhido para as grelhas é bastante simples e determinística, dependendo apenas do tempo (\textit{timestamp}) e tipo do evento que queremos alinhar.
 

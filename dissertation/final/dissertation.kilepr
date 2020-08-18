@@ -1,6 +1,6 @@
 [General]
 bib_extensions=.bib
-bibliographyBackendAutoDetected=BibTeX
+bibliographyBackendAutoDetected=Biber
 bibliographyBackendUserOverride=
 def_graphic_ext=eps
 img_extIsRegExp=false
