@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import List, Union
 
 from typing import Tuple
 from musikla.core import Context, Library
@@ -21,58 +21,106 @@ import musikla.parser.abstract_syntax_tree.statements as ast_stm
 import musikla.parser.abstract_syntax_tree.context_modifiers as ast_mod
 
 class MusiklaNotationBuilderTransformer(NotationBuilderTransformer):
-    def __init__ ( self, only_final : bool = False, ast : bool = False, context : Context = None ):
+    def __init__ ( self, only_final : bool = False, ast : bool = False, context : Context = None, freestanding : bool = True ):
+        """
+        only_final      When true, the result is only emitted after the entire 
+                        input (musical sequence) has been processed. When false,
+                        intermediate notations are continuously emitted.
+        
+        ast             When true, emits the Abstract Syntax Tree objects. When
+                        false, transforms those objects into a string that can
+                        be parsed, and emits the string instead
+
+        freestanding    When true, it tries to produce notation that carries with
+                        it any state that is needed, instead of relying on the
+                        global state of the voices that it will be executed on
+        """
         super().__init__(  only_final )
 
         self.ast : bool = ast
         self.context : Context = context or Context.create()
+        self.freestanding = freestanding
 
-    def note_to_ast ( self, context : Context, event : NoteEvent ) -> ast.NoteNode:
+    # def voice_to_ast ( self, context : Context, voice : Voice ) -> Union[ast_mod.VoiceBlockModifier, ast.MusicSequenceNode, None]:
+        
+
+    def note_to_ast ( self, context : Context, voice : Voice, event : NoteEvent ) -> ast.NoteNode:
         return ast.NoteNode( Note(
             pitch_class = event.pitch_class,
-            octave = event.octave - context.voice.octave,
+            octave = event.octave - voice.octave,
             accidental = event.accidental,
-            value = context.voice.get_relative_value( event.value )
+            value = voice.get_relative_value( event.value )
         ) )
 
-    def event_to_ast ( self, context : Context, events : List[ast.Node], event : MusicEvent ):
+    def event_to_ast ( self, context : Context, voice : Voice, events : List[ast.Node], event : MusicEvent ):
         if not any( isinstance( event, eventType ) for eventType in [ evt.NoteEvent, evt.ChordEvent, evt.RestEvent ] ):
             return
 
-        if isinstance( event, evt.NoteEvent ) and event.velocity != context.voice.velocity:
-            context.voice = context.voice.clone( velocity = event.velocity )
+        if isinstance( event, evt.NoteEvent ) and event.velocity != voice.velocity:
+            voice = voice.clone( velocity = event.velocity )
 
             events.append( ast_mod.VelocityModifierNode( event.velocity ) )
         
         if isinstance( event, evt.NoteEvent ):
-            events.append( self.note_to_ast( context, event ) )
+            events.append( self.note_to_ast( context, voice, event ) )
         elif isinstance( event, evt.ChordEvent ):
             events.append( ast.ChordNode( Chord(
-                notes = [ self.note_to_ast( context, n ).note for n in event.notes ],
+                notes = [ self.note_to_ast( context, voice, n ).note for n in event.notes ],
                 name = event.name,
-                value = context.voice.get_relative_value( event.value )
+                value = voice.get_relative_value( event.value )
             ) ) )
         elif isinstance( event, evt.RestEvent ):
             events.append( ast.RestNode(
-                value = context.voice.get_relative_value( event.value ),
+                value = voice.get_relative_value( event.value ),
                 visible = event.visible
             ) )
 
-    def event_sequence_to_ast ( self, context : Context, events : List[MusicEvent] ) -> ast.MusicSequenceNode:
+    def event_sequence_to_ast ( self, context : Context, voice: Voice, events : List[MusicEvent] ) -> ast.MusicSequenceNode:
         nodes : List[ast.Node] = []
 
         for ev in events:
-            self.event_to_ast( context, nodes, ev )
+            self.event_to_ast( context, voice, nodes, ev )
 
         return ast.MusicSequenceNode( nodes )
 
-    def voice_to_ast ( self, context : Context, voice : Tuple[Voice, int, List[MusicEvent]] ) -> ast_mod.VoiceBlockModifier:
-        sequence = self.event_sequence_to_ast( context, voice[ 2 ] )
+    def voice_to_ast ( self, context: Context, voice : Voice, music : ast.MusicSequenceNode = None ) -> Union[ast_mod.VoiceBlockModifier, ast.MusicSequenceNode, None]:
+        if self.freestanding:
+            mods = []
+
+            if voice.time_signature != (4, 4):
+                mods.append( ast_mod.SignatureModifierNode( voice.time_signature[ 0 ], voice.time_signature[ 1 ] ) )
+
+            if voice.tempo != 60:
+                mods.append( ast_mod.TempoModifierNode( voice.tempo ) )
+
+            if voice.octave != 4:
+                mods.append( ast_mod.OctaveModifierNode( voice.octave ) )
+
+            if voice.value != 1:
+                mods.append( ast_mod.LengthModifierNode( voice.value ) )
+
+            if voice.velocity != 127:
+                mods.append( ast_mod.VelocityModifierNode( voice.velocity ) )
+
+            if music:
+                mods.extend( music.expressions )
+
+            return ast.MusicSequenceNode( mods )
+        else:
+            name = voice.name.split( "/" )[ 0 ]
+            
+            if name == context.voice.name:
+                return music
+            else:
+                return ast_mod.VoiceBlockModifier( Music, name )
+        
+    def voice_sequence_to_ast ( self, context : Context, voice : Tuple[Voice, int, List[MusicEvent]] ) -> ast_mod.VoiceBlockModifier:
+        sequence = self.event_sequence_to_ast( context, voice[ 0 ], voice[ 2 ] )
 
         if not sequence.expressions:
             return None
         
-        return ast_mod.VoiceBlockModifier( sequence, voice[ 0 ].name.split( "/" )[0] )
+        return self.voice_to_ast( context, voice[ 0 ], sequence )
 
     def to_ast ( self, events_per_voice : List[Tuple[Voice, int, List[MusicEvent]]] ) -> ast.Node:
         l = len( events_per_voice )
@@ -80,14 +128,14 @@ class MusiklaNotationBuilderTransformer(NotationBuilderTransformer):
         if l == 0:
             return ast.MusicSequenceNode( [] )
         elif l == 1:
-            staff = self.voice_to_ast( self.context.fork(), events_per_voice[ 0 ] )
+            staff = self.voice_sequence_to_ast( self.context.fork(), events_per_voice[ 0 ] )
 
             if staff is None:
                 return ast_exp.GroupNode()
             
             return staff
         else:
-            staffs = [ self.voice_to_ast( self.context.fork(), v ) for v in events_per_voice ]
+            staffs = [ self.voice_sequence_to_ast( self.context.fork(), v ) for v in events_per_voice ]
 
             return ast.MusicParallelNode( [ st for st in staffs if st is not None ] )
 
@@ -116,13 +164,12 @@ def function_transpose ( note, semitones : int = 0, octaves : int = 1 ):
     
     return note
 
-def function_to_mkl ( context : Context, music : Music, ast : bool = False ) -> Union[str, Node]:
+def function_to_mkl ( context : Context, music : Music, ast : bool = False, freestanding: bool = True ) -> Union[str, Node]:
     source : Box[str] = Box( "" )
 
     inp, out = Transformer.pipeline2(
-        AnnotateTransformer(), 
         VoiceIdentifierTransformer(), 
-        MusiklaNotationBuilderTransformer( only_final = True, ast = ast, context = context ),
+        MusiklaNotationBuilderTransformer( only_final = True, ast = ast, context = context, freestanding = freestanding ),
     )
 
     out.subscribe( lambda s: source.set( s ) )

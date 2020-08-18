@@ -327,9 +327,9 @@ class MusiklaTransformer(Transformer):
 
     def keyboard_declaration ( self, tree ):
         if len( tree.children ) == 3:
-            return KeyboardDeclarationMacroNode( tree.children[ 2 ], tree.children[ 0 ], tree.children[ 1 ] )
+            return KeyboardDeclarationMacroNode( tree.children[ 2 ] or [], tree.children[ 0 ], tree.children[ 1 ] )
 
-        return KeyboardDeclarationMacroNode( tree.children[ 1 ], tree.children[ 0 ] )
+        return KeyboardDeclarationMacroNode( tree.children[ 1 ] or [], tree.children[ 0 ] )
 
     def keyboard_flags ( self, tree ):
         return list( tree.children )
