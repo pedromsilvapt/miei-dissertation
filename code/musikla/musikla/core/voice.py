@@ -1,5 +1,5 @@
 from typing import Tuple, Union
-from .instrument import Instrument
+from .instrument import Instrument, GeneralMidi
 from fractions import Fraction
 from copy import copy
 
@@ -7,8 +7,8 @@ class Voice:
     unknown : 'Voice' = None
 
     def __init__ ( self, 
-                   name : str, 
-                   instrument : Instrument,
+                   name : str = 'default', 
+                   instrument : Instrument = None,
                    time_signature : Tuple[int, int] = (4, 4),
                    velocity : int = 127,
                    octave : int = 4,
@@ -17,7 +17,7 @@ class Voice:
                  ):
         self.id : int = id( self )
         self.name : str = name
-        self.instrument : Instrument = instrument
+        self.instrument : Instrument = instrument or Instrument( 'Acoustic Grand Piano', GeneralMidi.AcousticGrandPiano )
         self.time_signature : Tuple[int, int] = time_signature
         self.velocity : int = velocity
         self.octave : int = octave

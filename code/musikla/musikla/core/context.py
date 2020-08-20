@@ -1,4 +1,3 @@
-from .instrument import Instrument, GeneralMidi
 from .voice import Voice
 from .shared_context import SharedContext
 from .symbols_scope import SymbolsScope
@@ -60,7 +59,7 @@ class Context():
     @staticmethod
     def create ():
         ctx = Context(
-            voice = Voice( "default", instrument = Instrument( 'Acoustic Grand Piano', GeneralMidi.AcousticGrandPiano ) )
+            # voice = Voice( "default", instrument = Instrument( 'Acoustic Grand Piano', GeneralMidi.AcousticGrandPiano ) )
         )
 
         ctx.symbols.assign( 'is_prelude', True, container = 'internal' )
@@ -75,7 +74,7 @@ class Context():
                    symbols : SymbolsScope = None,
                  ):
         self.shared : SharedContext = shared or SharedContext()
-        self.voice : Optional[Voice] = voice
+        self.voice : Optional[Voice] = voice or Voice()
         self.cursor : int = cursor
         self.symbols : SymbolsScope = symbols or SymbolsScope()
 
