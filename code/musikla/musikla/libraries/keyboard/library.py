@@ -223,7 +223,8 @@ class KeyboardLibrary(Library):
         self.lookup_internal( "keyboards" )
 
         if keyboard != None:
-            self.keyboards.remove( keyboard )
+            if keyboard in self.keyboards:
+                self.keyboards.remove( keyboard )
         else:
             for kb in self.keyboards: 
                 kb.close( closing = True )

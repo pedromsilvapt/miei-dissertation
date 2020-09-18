@@ -1,14 +1,11 @@
 from decimal import InvalidOperation
-from musikla.parser.abstract_syntax_tree.expressions.variable_expression_node import VariableExpressionNode
 from musikla.core import Context, Value, Music
 from musikla.core.theory import Note
 from musikla.core.events import NoteEvent
 from typing import Callable, List, Dict, Optional, Union, Any, cast
 from musikla.parser.abstract_syntax_tree import Node, MusicSequenceNode
-from musikla.parser.abstract_syntax_tree.expressions import BoolLiteralNode, FunctionExpressionNode, ConstantNode, PropertyAccessorNode, StringLiteralNode
-from musikla.parser.abstract_syntax_tree.statements import FunctionDeclarationStatementNode
+from musikla.parser.abstract_syntax_tree.expressions import FunctionExpressionNode, ConstantNode
 from musikla.audio import Player, InteractivePlayer
-from fractions import Fraction
 from .event import KeyStroke, PianoKey, KeyboardEvent
 from .action import KeyAction
 
@@ -163,6 +160,14 @@ class Keyboard:
         if key_stroke in self.keys:
             self.keys[ key_stroke ].on_release( self.context, self.player, self.on_new_player )
 
+    @property
+    def is_closed ( self ) -> bool:
+        from .library import KeyboardLibrary
+
+        lib : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
+        
+        return self not in lib.keyboards
+
     def close ( self, closing : bool = False ) -> 'Keyboard':
         from .library import KeyboardLibrary
 
@@ -192,14 +197,14 @@ class Keyboard:
         if not isinstance( obj, Keyboard ):
             raise InvalidOperation( f"Cannot combine a keyboard with '{ type( obj ) }'" )
 
-    def clone ( self ):
+    def clone ( self, auto_close : bool = True ):
         from .library import KeyboardLibrary
 
         lib : KeyboardLibrary = cast( KeyboardLibrary, self.context.library( KeyboardLibrary ) )
 
         keyboard = lib.create()
         
-        if not self.manual_lifetime:
+        if auto_close and not self.manual_lifetime:
             self.close()
 
         keyboard.context = self.context
@@ -208,6 +213,16 @@ class Keyboard:
         keyboard.global_prefixes = list( self.global_prefixes )
         keyboard.manual_lifetime = self.manual_lifetime
         
+        return keyboard
+
+    def map_actions ( self, context : Context, mapper : Node ) -> 'Keyboard':
+        mapper = Value.eval( context, mapper ).raw() if isinstance( mapper, Node ) else mapper
+
+        keyboard = self.clone()
+
+        for key, action in self.keys.items():
+            keyboard.keys[ key ] = mapper( context, ConstantNode( action ) )
+
         return keyboard
 
     def map ( self, context : Context, mapper : Node ) -> 'Keyboard':
