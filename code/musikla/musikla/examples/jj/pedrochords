@@ -1,0 +1,188 @@
+#:accord = I22 S4/4 T120 L/4;
+#setvoice( $accord );
+
+
+$ins = @[1,22,25];
+$cu_i = 0;
+
+$t=120;
+
+I1 S4/4 T120 L/4;
+#I25 S4/4 T120 L/4;
+
+cc( 64; 0 );
+
+$trans = 0; 
+
+#$e1 = ( c r/2 [cdef]/2 [cdef]/2 r/2 [cdef] );
+
+fun e1() => ( C r/2 E/2 r [cdef]/2 r/2 ) ;
+fun e2() => ( c5/2  );
+fun e3() => ( c r/2 d/2 r [cdef]/2 r/2 ) ;
+fun e3() => ( c/2*5 );
+fun e4() => ( c5/2 r/2 | r [cdef][cdef] );
+fun e5() => ( [CEdef]);
+
+$pat = $e4;
+# keyboard\midi()::map( fun($k,$m) => $m + $trans );
+
+#  inverter o teclado !  
+#    keyboard\midi()::map( fun($k,$m) => c'' - int( $m::first_note() ) );
+
+
+# keyboard\debug();
+
+$keyboardm = (keyboard\midi() + @keyboard hold extend {
+     q: [E7] ;
+     w: [F7] ;
+     e: [G7];
+     r: [Am7] ;
+     t: [Bdim7] ;
+     y: [C7] ;
+     u: [Dm7] ;
+     i: [E7] ;
+     o: [F7] ;
+     p: [G7];
+     '+': [Am7] ;
+ 
+     a: [FM] ;
+     s: [GM];
+     d: [Am] ;
+     f: [Bdim] ;
+     g: [CM] ;
+     h: [Dm] ;
+     j: [EM] ;
+     k: [FM] ;
+     l: [GM];
+     'ç': [Am] ;
+
+
+
+#    [c] : [C7] * $pat ;
+#    [d] : [D7] * $pat ;
+#    [e] : [E7] * $pat ;
+#    [f] : [F7] * $pat ;
+#    [g] : [G7] * $pat ;
+#    [a] : [A7] * $pat ;
+    
+    
+#})::map( fun($k,$m) => $m  + $trans );
+})::map( fun($k,$m) => if $keyboardm::is_extend then $m + $trans else $m * $pat() + $trans ) + @keyboard hold extend {
+    '<': F, ;
+    z: G, ;
+    x: A, ;
+    c: B,;
+    v: C ;
+    b: D ;
+    n: E ;
+    m : F ;
+    ',' : G;
+    '.' : A;
+    '-' : B;
+};
+
+$keyboardm::is_extend = true;
+$keyboardM::is_extend = true;
+
+fun toggle_hold_extend ($kb) {
+    $kb::is_extend = not $kb::is_extend;
+
+    for $action in $kb::keys::values() {
+        $action::hold = not $action::hold;
+        $action::extend = not $action::extend;
+    };
+};
+
+@keyboard {
+    caps_lock: {
+        toggle_hold_extend( $keyboardm );
+        toggle_hold_extend( $keyboardM );
+    };
+
+    8: { $pat = $e1 };
+    9: { $pat = $e2 };
+    0: { $pat = $e3 };
+    0: { $pat = $e3 };
+    7: { $pat = $e5 };
+
+    right : { $t = $t * 1.1; print( $t ); setattr( getctx()::voice, "tempo", $t )  } ;
+    left : { $t = $t / 1.1; print( $t ); setattr( getctx()::voice, "tempo", $t )  } ;
+    up : { $trans += 1 } ;
+    down : { $trans -= 1 } ;
+    page_down : { 
+        if $keyboardM::is_closed {
+            $keyboardM::open(); $keyboardm::close() 
+        } else {
+            $keyboardM::close(); $keyboardm::open() 
+        };
+    };
+    page_up : { $cu_i = mod( $cu_i + 1, len($ins) );
+                setinstrument( $ins::[$cu_i], 0 )  } ;
+    
+#    page_up : { $keyboardM::open(); $keyboardm::close() } ;
+};
+
+
+$keyboardM = (keyboard\midi() + @keyboard hold extend {
+    q: [G7] ;
+    w: [Am7] ;
+    e: [Bdim7] ;
+    r: [C7] ;
+    t: [Dm7] ;
+    y: [Em7] ;
+    u: [F7] ;
+    i: [G7] ;
+    o: [Am7] ;
+    p: [Bdim7] ;
+    '+': [C7] ;
+
+    a: [Am] ;
+    s: [Bdim] ;
+    d: [CM] ;
+    f: [Dm] ;
+    g: [Em] ;
+    h: [FM] ;
+    j: [GM] ;
+    k: [Am] ;
+    l: [Bdim] ;
+    'ç': [CM] ;
+    
+#})::map( fun($k,$m) => $m  + $trans );
+})::map( fun($k,$m) => if $keyboardm::is_extend then $m + $trans else $m * $pat() + $trans ) + @keyboard hold extend {
+    '<' : A, ;
+    z: B, ;
+    x: C ;
+    c: D ;
+    v: E ;
+    b: F ;
+    n: G ;
+    m : A ;
+    ',' : B ;
+    '.' : c;
+    '-' : d;
+};
+
+$keyboardM::close(); 
+# $keyboardm::close();
+
+# $k = @keyboard hold extend {
+#     q: [G7] ;
+#     w: [Am7] ;
+# };
+
+# $k_arp = $k::clone( auto_close = false ) # Keep $k active, cloning a usually keyboard closes it
+#            ::map_actions( fun ( $act ) => $act::clone( hold = false, extend = false ) )
+#            ::map( fun ( $k, $m ) => $m * $pat() + $trans )
+#            ::close();
+
+# fun toggle_keyboard ( $a, $b ) {
+#     if $a::is_closed {
+#         $a::open(); $b::close();
+#     } else {
+#         $a::close(); $b::open();
+#     };
+# };
+
+# @keyboard {
+#     t: toggle_keyboard( $k, $k_arp );
+# };
