@@ -28,6 +28,20 @@ Keeps the same voice but changes it's instrument. Expects a number representing 
     #!musikla
     setinstrument( 41 );
 
+### sfload( soundfont : str, alias : str = none, only_new : bool = false )
+Loads a custom soundfont. An optional alias can be passed in to avoid having to reference the full file path everytime we want to set instruments.
+
+    #!musikla
+    sfload("/path/to/Blanchet-1720.sf","bl")
+
+    setinstrument( 4, 1, "bl" );
+
+### sfunload( soundfont : str, only_new : bool = false )
+Unloads and releases the resources associated with a soundfont. Can pass either the file path or the alias (if the font has one).
+
+    #!musikla
+    sfunload( "bl" );
+
 ### interval( semitones : int = 0, octaves : int = 0 )
 Creates an interval with the given semitones and octaves. Both parameters are optional, and can be used as positional or named parameters.
 
@@ -56,10 +70,35 @@ They can also be added to Music sequences or single note events, effectively tra
     # Adds two octaves
     play( ( C F G ) + interval( octaves = 2 ) );
 
-### scale ( intervals : List[int] )
+### scale( intervals : List[int] )
 Creates a scale with the given intervals. There are two predefined scales, `$scales::white_keys` and `$scales::black_keys`. The scales wrap around, going up octaves or down, when the index is negative.
 
     #!musikla
     play( C + $scale::white_keys::[ 1 ] ) # will play D
 
     play( C + $scale::white_keys::[ 8 ] ) # will play d
+
+### save( music, outputs )
+Save a music expression to a sequencer. The sequencers can either be:
+
+ - A `str`, such as a file name.
+ - A `Sequencer` instance, created with [make\_sequencer](#make-sequencer) for example.
+ - A of sequencers' options
+
+<span></span>
+
+    #!musikla
+    $melody = A, E A B;
+
+    # We can save directly to files, the format is guessed based upon
+    # the file extension
+    save( $melody, "file.wav" );
+
+    # We can also pass custom options, and even save to multiple sequencers
+    save( $melody, @[
+        # First output, a WAV file with custom options
+        @[ "-o", "file.wav", "-g", "1" ],
+        # Second output, a MIDI file with default options
+        "file.midi"
+        # Could have more outputs if needed
+    ] );

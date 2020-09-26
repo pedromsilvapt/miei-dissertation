@@ -2,12 +2,12 @@
 A **musikla** script is just a sequence of statements ( and expressions ). Each statement must be followed by a `;`, even if it ends in brackes `{` and `}` like an `if` or `while`.
 
 ## Variables
-Variables can stored and accessed by prefixing their name with a dollar sign `$.
+Variables can stored and accessed by prefixing their name with a dollar sign `$`.
 
     #!musikla
     $var_name = true;
 
-    print( $var_name == null or $var_name == false );
+    print( $var_name == none or $var_name == false );
 
 
 ## Function Declarations
@@ -43,7 +43,7 @@ Function arguments can be declared as `ref`, meaning that any changes done to th
 Right now `else if`'s are not supported. The `else` block is optional, of course.
 
     #!musikla
-    if ( $condition ) {
+    if $condition {
         print( 1 );
     } else {
         print( 2 );
@@ -52,14 +52,14 @@ Right now `else if`'s are not supported. The `else` block is optional, of course
 ## While
 
     #!musikla
-    while ( $condition ) {
+    while $condition {
         print( 1 );
     };
 
 ## For
 
     #!musikla
-    for ( $item in $collection ) {
+    for $item in $collection {
         print( $item );
     };
 
@@ -72,7 +72,7 @@ Array literals can be constructed with the syntax `@[]`
     $array = @[ 1, 2, 3, 4 ];
 
     # Iterate over the array
-    for ( $i in $array ) {
+    for $i in $array {
         print( $i );
     };
 
@@ -89,12 +89,12 @@ Dictionaries have four methods: `has()`, `get()`, `set()` and `delete()`. For co
 
     #!musikla
     # We check if the key exists, and access it directly
-    if ( $dict::has( 'foo' ) ) {
+    if $dict::has( 'foo' ) {
         print( $dict::foo );
     };
     
     # With the `get` method we can provide a default value
-    print( $dict::get( 'foo', default = null ) );
+    print( $dict::get( 'foo', default = none ) );
 
     $dict::set( 'bar', false );
 
@@ -113,7 +113,6 @@ The first directive can only contain python expressions, but can be used anywher
 > **Note** How variables in musikla are prefixed by a dollar sign `$` but in python are referenced simply by their name
 
 The second directive `@python` currently can only be used at the end of the file, since it treats everything after it as python code. It's execution is hoisted though (runs before anything else) which gives the user the possibility of defining functions or classes in python and using them in their code.
-
 
     #!musikla
     $arr = @[ 1, 2, 3 ];
