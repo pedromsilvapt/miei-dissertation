@@ -511,6 +511,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sfload-soundfont-str-alias-str-none-only_new-bool-false" class="md-nav__link">
+    sfload( soundfont : str, alias : str = none, only_new : bool = false )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sfunload-soundfont-str-only_new-bool-false" class="md-nav__link">
+    sfunload( soundfont : str, only_new : bool = false )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#interval-semitones-int-0-octaves-int-0" class="md-nav__link">
     interval( semitones : int = 0, octaves : int = 0 )
   </a>
@@ -519,7 +533,14 @@
         
           <li class="md-nav__item">
   <a href="#scale-intervals-listint" class="md-nav__link">
-    scale ( intervals : List[int] )
+    scale( intervals : List[int] )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-music-outputs" class="md-nav__link">
+    save( music, outputs )
   </a>
   
 </li>
@@ -595,6 +616,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sfload-soundfont-str-alias-str-none-only_new-bool-false" class="md-nav__link">
+    sfload( soundfont : str, alias : str = none, only_new : bool = false )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sfunload-soundfont-str-only_new-bool-false" class="md-nav__link">
+    sfunload( soundfont : str, only_new : bool = false )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#interval-semitones-int-0-octaves-int-0" class="md-nav__link">
     interval( semitones : int = 0, octaves : int = 0 )
   </a>
@@ -603,7 +638,14 @@
         
           <li class="md-nav__item">
   <a href="#scale-intervals-listint" class="md-nav__link">
-    scale ( intervals : List[int] )
+    scale( intervals : List[int] )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-music-outputs" class="md-nav__link">
+    save( music, outputs )
   </a>
   
 </li>
@@ -664,6 +706,22 @@
 </code></pre></div>
 </td></tr></table>
 
+<h3 id="sfload-soundfont-str-alias-str-none-only_new-bool-false">sfload( soundfont : str, alias : str = none, only_new : bool = false )</h3>
+<p>Loads a custom soundfont. An optional alias can be passed in to avoid having to reference the full file path everytime we want to set instruments.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nf">sfload</span><span class="p">(</span><span class="s">&quot;/path/to/Blanchet-1720.sf&quot;</span><span class="p">,</span><span class="s">&quot;bl&quot;</span><span class="p">)</span><span class="s"></span>
+
+<span class="nf">setinstrument</span><span class="p">(</span><span class="s"> </span><span class="m">4</span><span class="p">,</span><span class="s"> </span><span class="m">1</span><span class="p">,</span><span class="s"> &quot;bl&quot; </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="sfunload-soundfont-str-only_new-bool-false">sfunload( soundfont : str, only_new : bool = false )</h3>
+<p>Unloads and releases the resources associated with a soundfont. Can pass either the file path or the alias (if the font has one).</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nf">sfunload</span><span class="p">(</span><span class="s"> &quot;bl&quot; </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
 <h3 id="interval-semitones-int-0-octaves-int-0">interval( semitones : int = 0, octaves : int = 0 )</h3>
 <p>Creates an interval with the given semitones and octaves. Both parameters are optional, and can be used as positional or named parameters.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
@@ -704,13 +762,51 @@
 </code></pre></div>
 </td></tr></table>
 
-<h3 id="scale-intervals-listint">scale ( intervals : List[int] )</h3>
+<h3 id="scale-intervals-listint">scale( intervals : List[int] )</h3>
 <p>Creates a scale with the given intervals. There are two predefined scales, <code>$scales::white_keys</code> and <code>$scales::black_keys</code>. The scales wrap around, going up octaves or down, when the index is negative.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nf">play</span><span class="p">(</span><span class="s"> </span><span class="l">C</span><span class="s"> </span><span class="kp">+</span><span class="s"> </span><span class="nv">$scale</span><span class="kp">::</span><span class="nf">white_keys</span><span class="gr">::</span><span class="p">[</span><span class="s"> </span><span class="m">1</span><span class="s"> </span><span class="p">]</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="c"># will play D</span><span class="s"></span>
 
 <span class="nf">play</span><span class="p">(</span><span class="s"> </span><span class="l">C</span><span class="s"> </span><span class="kp">+</span><span class="s"> </span><span class="nv">$scale</span><span class="kp">::</span><span class="nf">white_keys</span><span class="gr">::</span><span class="p">[</span><span class="s"> </span><span class="m">8</span><span class="s"> </span><span class="p">]</span><span class="s"> </span><span class="p">)</span><span class="s"> </span><span class="c"># will play d</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="save-music-outputs">save( music, outputs )</h3>
+<p>Save a music expression to a sequencer. The sequencers can either be:</p>
+<ul>
+<li>A <code>str</code>, such as a file name.</li>
+<li>A <code>Sequencer</code> instance, created with <a href="#make-sequencer">make_sequencer</a> for example.</li>
+<li>A of sequencers' options</li>
+</ul>
+<p><span></span></p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$melody</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="l">A,</span><span class="s"> </span><span class="l">E</span><span class="s"> </span><span class="l">A</span><span class="s"> </span><span class="l">B</span><span class="p">;</span><span class="s"></span>
+
+<span class="c"># We can save directly to files, the format is guessed based upon</span><span class="s"></span>
+<span class="c"># the file extension</span><span class="s"></span>
+<span class="nf">save</span><span class="p">(</span><span class="s"> </span><span class="nv">$melody</span><span class="p">,</span><span class="s"> &quot;file.wav&quot; </span><span class="p">);</span><span class="s"></span>
+
+<span class="c"># We can also pass custom options, and even save to multiple sequencers</span><span class="s"></span>
+<span class="nf">save</span><span class="p">(</span><span class="s"> </span><span class="nv">$melody</span><span class="p">,</span><span class="s"> </span><span class="gr">@</span><span class="p">[</span><span class="s"></span>
+<span class="s">    </span><span class="c"># First output, a WAV file with custom options</span><span class="s"></span>
+<span class="s">    </span><span class="gr">@</span><span class="p">[</span><span class="s"> &quot;-o&quot;</span><span class="p">,</span><span class="s"> &quot;file.wav&quot;</span><span class="p">,</span><span class="s"> &quot;-g&quot;</span><span class="p">,</span><span class="s"> &quot;1&quot; </span><span class="p">],</span><span class="s"></span>
+<span class="s">    </span><span class="c"># Second output, a MIDI file with default options</span><span class="s"></span>
+<span class="s">    &quot;file.midi&quot;</span>
+<span class="s">    </span><span class="c"># Could have more outputs if needed</span><span class="s"></span>
+<span class="p">]</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
 </code></pre></div>
 </td></tr></table>
                 

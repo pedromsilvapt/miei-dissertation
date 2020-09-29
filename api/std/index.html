@@ -535,6 +535,76 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#getctx" class="md-nav__link">
+    getctx()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withctxctx-expr" class="md-nav__link">
+    withctx(ctx, expr)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ast-expr-any" class="md-nav__link">
+    ast ( expr : any )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ast_to_code-node-node-ident-int-4" class="md-nav__link">
+    ast_to_code ( node : Node, ident : int = 4 )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parse-code-str" class="md-nav__link">
+    parse ( code : str )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eval-code-str-node" class="md-nav__link">
+    eval ( code : str | Node )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyeval-code-str" class="md-nav__link">
+    pyeval ( code : str )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyexec-code-str" class="md-nav__link">
+    pyexec ( code : str )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pymodule-module-str-variables-str-liststr-none" class="md-nav__link">
+    pymodule ( module : str, variables : str | List[str] = none )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getcwd" class="md-nav__link">
+    getcwd()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -674,6 +744,76 @@
           <li class="md-nav__item">
   <a href="#settime-time-int" class="md-nav__link">
     settime ( time : int )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getctx" class="md-nav__link">
+    getctx()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#withctxctx-expr" class="md-nav__link">
+    withctx(ctx, expr)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ast-expr-any" class="md-nav__link">
+    ast ( expr : any )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ast_to_code-node-node-ident-int-4" class="md-nav__link">
+    ast_to_code ( node : Node, ident : int = 4 )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parse-code-str" class="md-nav__link">
+    parse ( code : str )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eval-code-str-node" class="md-nav__link">
+    eval ( code : str | Node )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyeval-code-str" class="md-nav__link">
+    pyeval ( code : str )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyexec-code-str" class="md-nav__link">
+    pyexec ( code : str )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pymodule-module-str-variables-str-liststr-none" class="md-nav__link">
+    pymodule ( module : str, variables : str | List[str] = none )
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getcwd" class="md-nav__link">
+    getcwd()
   </a>
   
 </li>
@@ -818,6 +958,148 @@
 <p>Return the current timestamp in milliseconds</p>
 <h3 id="settime-time-int">settime ( time : int )</h3>
 <p>Set the current timestamp to <code>time</code>, in milliseconds. Use with care so as to not break the principle or ordered events.</p>
+<h3 id="getctx">getctx()</h3>
+<p>Returns the current context object.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nf">getctx</span><span class="p">()</span><span class="kp">::</span><span class="nf">voice</span><span class="kp">::</span><span class="nf">tempo</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 60</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nf">getctx</span><span class="p">()</span><span class="kp">::</span><span class="nf">voice</span><span class="kp">::</span><span class="nf">time_signature</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># (4, 4)</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="withctxctx-expr">withctx(ctx, expr)</h3>
+<p>Evaluates the expression on the second argument with the context provided in the first argument.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="k">fun</span><span class="g"> some_function </span><span class="p">()</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">    </span><span class="c"># All musikla functions have a special variable &#39;$__callerctx__&#39;</span><span class="s"></span>
+<span class="s">    </span><span class="c"># that contains a reference to the context of the caller</span><span class="s"></span>
+<span class="s">    </span><span class="c"># With it we can modify it&#39;s context (i.e. changing variables)</span><span class="s"></span>
+<span class="s">    </span><span class="nf">withctx</span><span class="p">(</span><span class="s"> </span><span class="nv">$__callerctx__</span><span class="p">,</span><span class="s"> </span><span class="p">{</span><span class="s"></span>
+<span class="s">        </span><span class="nv">$i</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">1</span><span class="p">;</span><span class="s"></span>
+<span class="s">    </span><span class="p">}</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+<span class="p">};</span><span class="s"></span>
+
+<span class="nv">$i</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="m">0</span><span class="p">;</span><span class="s"></span>
+
+<span class="nf">some_function</span><span class="p">();</span><span class="s"></span>
+
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$i</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 1</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="ast-expr-any">ast ( expr : any )</h3>
+<p>Instead of evaluating the expression that is passed to it, simply returns the AST Node object of the argument.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$node</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">ast</span><span class="p">(</span><span class="s"> </span><span class="l">^C4</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$node</span><span class="kp">::</span><span class="nf">__class__</span><span class="kp">::</span><span class="nf">__name__</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># NoteNode</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$node</span><span class="kp">::</span><span class="nf">note</span><span class="kp">::</span><span class="nf">pitch_class</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 0</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$node</span><span class="kp">::</span><span class="nf">note</span><span class="kp">::</span><span class="nf">value</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 4</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$node</span><span class="kp">::</span><span class="nf">note</span><span class="kp">::</span><span class="nf">accidental</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 1</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="ast_to_code-node-node-ident-int-4">ast_to_code ( node : Node, ident : int = 4 )</h3>
+<p>Converts an AST node to a string representing the source code. Useful for debugging.</p>
+<h3 id="parse-code-str">parse ( code : str )</h3>
+<p>Similar to the <a href="#ast">ast</a> function, but takes a string instead of an expression. Is useful to create code dynamically at runtime.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$node</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">parse</span><span class="p">(</span><span class="s"> &#39;^C4&#39; </span><span class="p">);</span><span class="s"></span>
+
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$node</span><span class="kp">::</span><span class="nf">__class__</span><span class="kp">::</span><span class="nf">__name__</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># NoteNode</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$node</span><span class="kp">::</span><span class="nf">note</span><span class="kp">::</span><span class="nf">pitch_class</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 0</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$node</span><span class="kp">::</span><span class="nf">note</span><span class="kp">::</span><span class="nf">value</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 4</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$node</span><span class="kp">::</span><span class="nf">note</span><span class="kp">::</span><span class="nf">accidental</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 1</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="eval-code-str-node">eval ( code : str | Node )</h3>
+<p>Evaluates a snippet of Musikla code with the current context. If a string is provided, parses it first.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nf">eval</span><span class="p">(</span><span class="s"> &#39;3 * 2&#39; </span><span class="p">)</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 6</span><span class="s"></span>
+
+<span class="c"># Evals can have side-effects too</span><span class="s"></span>
+<span class="nf">eval</span><span class="p">(</span><span class="s"> &#39;$var_name = 25&#39; </span><span class="p">);</span><span class="s"></span>
+
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$var_name</span><span class="s"> </span><span class="p">);</span><span class="s"> </span><span class="c"># 25</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="pyeval-code-str">pyeval ( code : str )</h3>
+<p>Allows executing arbitrary strings of Python code. Follows the same rules as <a href="../../getting-started/programming/#embedding-python">embedding python expressions</a>, which means Musikla variables can be read from.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nv">$arr</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="gr">@</span><span class="p">[</span><span class="s"> </span><span class="m">1</span><span class="p">,</span><span class="s"> </span><span class="m">2</span><span class="p">,</span><span class="s"> </span><span class="m">3</span><span class="s"> </span><span class="p">];</span><span class="s"></span>
+
+<span class="c"># We can use Python&#39;s list comprehensions to manipulate our array</span><span class="s"></span>
+<span class="nv">$arr</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">pyeval</span><span class="p">(</span><span class="s"> &#39;[ i * 2 for i in arr ]&#39; </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="pyexec-code-str">pyexec ( code : str )</h3>
+<p>Allows executing arbitrary strings of Python code. Follows the same rules as <a href="../../getting-started/programming/#embedding-python">embedding python blocks</a>, which means Musikla variables can be read/written to. Also allows exporting functions or other variables from the Python code.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nf">pyexec</span><span class="p">(</span><span class="s"></span>
+<span class="s">    &#39;import os\n&#39; </span><span class="kp">+</span><span class="s"></span>
+<span class="s">    &#39;export( &quot;os&quot; )( os )\n&#39;</span>
+<span class="p">);</span><span class="s"></span>
+
+<span class="c"># Since we exported the &#39;os&#39; module, we can access it in the current scope</span><span class="s"></span>
+<span class="nf">print</span><span class="p">(</span><span class="s"> </span><span class="nv">$os</span><span class="kp">::</span><span class="nf">name</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="pymodule-module-str-variables-str-liststr-none">pymodule ( module : str, variables : str | List[str] = none )</h3>
+<p>Loads a python module. If variables is a string, returns only that symbol. If it is a list, returns a tuple with the symbols.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="c"># Import the entire os module</span><span class="s"></span>
+<span class="nv">$os</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">pymodule</span><span class="p">(</span><span class="s"> &#39;os&#39; </span><span class="p">);</span><span class="s"></span>
+
+<span class="c"># Import only a single class</span><span class="s"></span>
+<span class="nv">$Path</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">pymodule</span><span class="p">(</span><span class="s"> &#39;pathlib&#39;</span><span class="p">,</span><span class="s"> &#39;Path&#39; </span><span class="p">);</span><span class="s"></span>
+
+<span class="c"># Import multiple functions</span><span class="s"></span>
+<span class="nv">$basename</span><span class="p">,</span><span class="s"> </span><span class="nv">$dirname</span><span class="s"> </span><span class="kp">=</span><span class="s"> </span><span class="nf">pymodule</span><span class="p">(</span><span class="s"> &#39;os.path&#39;</span><span class="p">,</span><span class="s"> </span><span class="gr">@</span><span class="p">[</span><span class="s"> &#39;basename&#39;</span><span class="p">,</span><span class="s"> &#39;dirname&#39; </span><span class="p">]</span><span class="s"> </span><span class="p">);</span><span class="s"></span>
+</code></pre></div>
+</td></tr></table>
+
+<h3 id="getcwd">getcwd()</h3>
+<p>Returns the current working directory</p>
                 
                   
                 
