@@ -23,7 +23,7 @@ A coleção de métodos e classes disponibilizados pela linguagem, e mais especi
 
 Ficamos também satisfeitos por reutilizar padrões, técnicas e bibliotecas onde existem já soluções bem estabelecidas, tanto a nível de formatos de \textit{input/output}, como o caso do formato \textit{MIDI} ou \textit{abc}, que nos permitem apanhar boleia de todo o ecossistema de ferramentas construído já à sua volta. Também a utilização de módulos como o FluitSynth, que nos permitiu não só fazer programas que escrevessem ou retornassem notação musical como resultado, mas tocassem as notas em \textit{realtime}, com suporte para vários instrumentos, sem o utilizador necessitar de configurar nada externo à aplicação, tornou-a a nosso ver muito mais interessante. Por fim, a utilização de notação existente (como a do \textit{abc notation}) dentro da nossa própria linguagem reduz imenso a curva de aprendizagem necessária para alguém (quer já seja músico ou não) se tornar proficiente com ela.
 
-Tudo isto resulta, na nossa opinião, num projeto que não reinventa a roda, mas sim adota os standards existentes onde estes fazem sentido, e pode assim focar-se em colmatar as áreas que realmente faltavam no ecossistema: uma linguagem declarativa e dinâmica para descrição de acompanhamentos musicais, e da possibilidade de criação de teclados interativos que combinam sem fricção com o resto da linguagem. 
+Tudo isto resulta, na nossa opinião, num projeto que não reinventa a roda, mas sim adota os standards existentes onde estes fazem sentido, e pode assim focar-se em colmatar as áreas que realmente faltavam no ecossistema: uma linguagem com componente musical declarativa e dinâmica para descrição de acompanhamentos musicais, e da possibilidade de criação de teclados interativos que combinam sem fricção com o resto da linguagem. 
 
 E assim esperamos que este projeto sirva como uma fundação. Que permita a mais pessoas no futuro fazer como nós fizemos, aproveitando as ideias que já existam e encontrem novas aberturas na área da música computacional. E desta vez aproveitando boleia da nossa linguagem, como nós fizemos também, criem novos projetos, novas ideias e novas possibilidades.
 
@@ -39,7 +39,7 @@ Também era importante fornecer de raiz a possibilidade de o utilizador empregar
 \subsubsection*{Criação de Interfaces Gráficas}
 A linguagem e a aplicação Musikla atualmente fornecem só uma interface de linha de comandos, que apesar de bastante poderosa, pode ser limitativa em alguns casos. Gostávamos por isso de investigar quais as formas em como poderíamos permitir, dentro da nossa linguagem, ao utilizador descrever interfaces gráficas customizadas, e usá-las para receber \textit{feedback} sobre o estado da aplicação ou controlar a música que é gerada.
 
-\subsubsection*{\textit{Refactor} do Interpretador}
+\subsubsection*{Refatorizar do Interpretador}
 O interpretador da semântica dinâmica também poderia ser melhor otimizado caso o fator da \textit{performance} se tornasse mais relevante (o que poderia acontecer no caso das interfaces gráficas). Para isso poderíamos converter em \textit{runtime} o código para \textit{Python} que seria depois mais rápido a executar, ou construir alguma máquina de \textit{bytecode} que seria também mais rápida que a nossa solução atual.
 
 \subsubsection*{Aumentar a Biblioteca \textit{Standard}}

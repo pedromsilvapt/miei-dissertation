@@ -22,7 +22,7 @@ Nós podemos assim sumarizar os objetivos principais para a nossa linguagem da s
  \item \textbf{Eventos Variados} As sequências musicais devem poder descrever extratos musicais complexos, contento notas singulares, pausas, acordes, \textit{arpeggios}, vozes, e mais.
  \item \textbf{Múltiplos \textit{Inputs}} Para além de permitir que os extratos musicais sejam descritos na nossa linguagem, também deve ser possível que eles sejam importados ou convertidos de diferentes fontes, como dispositivos ou ficheiros \textit{MIDI}.
  \item \textbf{Múltiplos \textit{Outputs}} Guardar ou escrever para diferentes \textit{outputs}, os eventos que forem gerados pela nossa aplicação.
- \item \textbf{Extensibilidade} Tornar simples o processo de estender e customizar o projeto, sem ser necessário passos como clonar o projeto, recompilar ou modificar o seu código interno.
+ \item \textbf{Extensibilidade} Tornar simples o processo de estender e configurar o projeto, sem ser necessário passos como clonar o projeto, recompilar ou modificar o seu código interno.
 \end{itemize}
 
 \section{Solução Proposta}
@@ -60,7 +60,7 @@ fun accomp () {
 # Create the notes from a melody with a piano and accompany it with a violin in parallel
 $notes = :piano melody() | :violin accomp();
 
-# Play the notes twice
+# Play the notes twice (using an overload of the operator * )
 play( $notes * 2 );
 \end{lstlisting}
 
@@ -72,7 +72,7 @@ O desenho da gramática da linguagem é composto por três partes, todas elas in
 \end{description}
 
 \subsubsection{Instruções e Expressões}
-As instruções e expressões da gramática são baseadas nas linguagens como C e JavaScript. Chavetas são usadas para delinear blocos de código. As variáveis são prefixadas com um dólar (\texttt{\$}) para prevenir ambiguidades com notas musicais. Cada instrução é separada com um ponto e vírgula (\texttt{;}) a menos que sejam blocos de código que terminem com o fechar de chavetas. Os parâmetros de funções são separados por vírgulas, mas como as vírgulas também são usadas para indicar a descida de oitava nas notas, o ponto e vírgula (\texttt{;}) pode ser usado nesses casos para prevenir ambiguidades.
+As instruções e expressões da gramática são baseadas nas linguagens como C e JavaScript. Chavetas são usadas para delinear blocos de código. As variáveis são prefixadas com um dólar (\texttt{\$}) para prevenir ambiguidades com notas musicais. Cada instrução é separada com um ponto e vírgula (\texttt{;}. Os parâmetros de funções são separados por vírgulas, mas como as vírgulas também são usadas para indicar a descida de oitava nas notas, o ponto e vírgula (\texttt{;}) pode ser usado nesses casos para prevenir ambiguidades.
 
 Em termos de instruções suportadas, a linguagem irá ter as usuais:
 \begin{description}
@@ -175,7 +175,7 @@ $keyboard::stop_all();
 \end{lstlisting}
 
 \subsection{Arquitetura do Sistema}
-O sistema irá ser composto por um interpretador de linguagem desenvolvido em Python, acompanhado por uma interface de linha de comandos que faça uso do interpretador.
+O sistema é composto por um interpretador de linguagem desenvolvido em Python, acompanhado por uma interface de linha de comandos que faça uso do interpretador.
 % TODO Float H position
 \begin{figure}[h]
 \begin{center}
@@ -184,14 +184,14 @@ O sistema irá ser composto por um interpretador de linguagem desenvolvido em Py
 \caption{Arquitetura Geral do Projeto}
 \end{figure}
 
-O interpretador receberá um \textit{script} obrigatório como input. Esse input poderá depois determinar quais os \textit{inputs} (opcionais) que irá usar, como o teclado do computador, ficheiros ou teclados \acrshort{midi}, ficheiros de performance (gravações de reproduções anteriores consistindo nos eventos em que as teclas foram premidas).
+O interpretador recebe um \textit{script} obrigatório como input. Esse input pode depois determinar quais os \textit{inputs} (opcionais) que irá usar, como o teclado do computador, ficheiros ou teclados \acrshort{midi}, ficheiros de performance (gravações de reproduções anteriores consistindo nos eventos em que as teclas foram premidas).
 
-Os eventos gerados pelo \textit{script} e os restantes \textit{inputs} serão depois redirecionados para os diversos \textit{outputs}, que podem ser as colunas do dispositivo, ficheiros \acrshort{wav} ou \acrshort{midi}, ficheiros em formato PDF com a pauta musical, entre outros.
+Os eventos gerados pelo \textit{script} e os restantes \textit{inputs} são depois redirecionados para os diversos \textit{outputs}, que podem ser as colunas do dispositivo, ficheiros \acrshort{wav} ou \acrshort{midi}, ficheiros em formato PDF com a pauta musical, entre outros.
 
-Toda a linguagem irá ser desenvolvida com extensibilidade em mente nos seguintes pontos:
+Toda a linguagem foi desenvolvida com extensibilidade em mente nos seguintes pontos:
 \begin{description}
-    \item[Inputs] Permitir a criação de novos \textit{inputs}, como estar à espera de mensagens por um \textit{socket} ou de outros processos do computador.
-    \item[Eventos] A linguagem já disponibiliza uma variedade de eventos multimédia (como reproduzir notas, sons genéricos, ou mensagens para controlar dispositivos \acrshort{midi}). Mas o objetivo é que criar e emitir eventos customizados seja extremamente simples (e feito com uma só linha de código por evento, no mínimo). Obviamente, nem todos os eventos são suportados por todos os outputs (por exemplo, um ficheiro ABC não pode reproduzir um ficheiro \acrshort{wav}), mas neste caso os diversos \textit{outputs} irão simplesmente ignorar os eventos que não estejam preparados para lidar.
+    \item[Inputs] Permitir a criação de novos \textit{inputs}, como mensagens vindas de \textit{socket} ou de outros processos do computador.
+    \item[Eventos] A linguagem já disponibiliza uma variedade de eventos multimédia (como reproduzir notas, sons genéricos, ou mensagens para controlar dispositivos \acrshort{midi}). O objetivo simplificar ao máximo a criação é de eventos personalizados. Obviamente, nem todos os eventos são suportados por todos os outputs (por exemplo, um ficheiro ABC não pode reproduzir um ficheiro \acrshort{wav}), mas neste caso os diversos \textit{outputs} irão simplesmente ignorar os eventos que não estejam preparados para lidar.
     \item[Outputs] Para além dos \textit{outputs} embutidos, permitir criar novos, tanto para outros formatos musicais, mas também para outros fins como controlar luzes, vídeo e imagens através da linguagem (em conjunto com os eventos personalizados) e permitir assim executar espetáculos multimédia completos a partir da linguagem.
     \item[Bibliotecas] Expor funções, variáveis e objetos adicionais, bem como possivelmente acrescentar dinamicamente sintaxe à linguagem (através de macros).
 \end{description}
