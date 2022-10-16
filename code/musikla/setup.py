@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="musikla", # Replace with your own username
-    version="0.7.2",
+    version="0.7.3",
     author="Pedro M. Silva",
     author_email="pemiolsi@hotmail.com",
     description="A programming environment for music accompaniements and keyboards",
@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     scripts=['bin/musikla'],
     python_requires='>=3.7',
-    package_data={ 'musikla': ['parser/grammar.peg', 'parser/grammar.lark', 'libraries/keyboard/library.mkl'] },
+    package_data={ 'musikla': ['parser/grammar.peg', 'parser/grammar.lark', 'libraries/keyboard/library.mkl', 'libraries/std.mkl'] },
     install_requires=[
         'typeguard',
         'pynput',

@@ -44,7 +44,7 @@ class Note:
         else:
             pitch_class = NotePitchClasses[ pitch[ 0 ] ]
             octave = -len( pitch )
-            
+
             return ( pitch_class, octave )
 
     @staticmethod
@@ -77,12 +77,14 @@ class Note:
             self.pitch_class -= 1
 
             self.accidental = 1
+        else:
+            self.accidental = 0
 
         return self
 
     def transpose ( self, semitones : int ) -> 'Note':
         return self.with_pitch( self.to_pitch() + int( semitones ) )
-    
+
     def timeless ( self ):
         if self.value != None and self.value != 1:
             note = self.clone()
@@ -118,7 +120,7 @@ class Note:
             for _ in range( base_octave - 2, self.octave - 1, -1 ): note += ","
         else:
             for _ in range( base_octave + 1, self.octave + 1 ): note += "'"
-        
+
         if append_value and self.value != None and self.value != 1:
             note += str( Fraction( self.value ) )
 
